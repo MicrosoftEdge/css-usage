@@ -1,15 +1,14 @@
 ﻿<!DOCTYPE html>
-
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
     <title></title>
     <link type="text/css" href="style.css" media="all" rel="stylesheet" />
-    <script src="cssUsage.js"></script>
+    <script src="../../src/cssUsage.js"></script>
 </head>
 <body>
     <div class="wrapper">
-        <header>
+        <header style="color: crazy; padding: 5px; font-size: 700pt;">
             <h1>Header</h1>
         </header>
         <nav>
@@ -19,9 +18,21 @@
                 <li><a>Link 3</a></li>
             </ul>
         </nav>
-        <article></article>
+        <article>
+            <h3 class="testfont">Header using font-face</h3>
+        </article>
         <aside></aside>
         <footer></footer>
+
+        <h3>Random stuff to make sure that I cover values and props</h3>
+        <div class="box">Text</div>
+        <h1>CRAZY!!!</h1>
+        
+        <div class="webkit-tests"></div>
+        <div class="animation-test"></div>
+		
+		<div class="variables" style="--c: red; color: var(--c)">VARIABLES</div>
+		
     </div>
 </body>
 </html>

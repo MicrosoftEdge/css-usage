@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../src/cssUsage.js"></script>
+	<style>
+		
+		* {
+			box-sizing: border-box;
+		}
+		
+		html {
+			width: 100%;
+			height: 100%;
+		}
+		
+		body {
+			margin: 0; 
+			padding: 0;
+		}
+		
+		ul {
+			color: red;
+		}
+		
+		ul > li {
+			font-weight: bold;
+		}
+		
+		.shouldNotBeIgnored {}
+		.shouldBeIgnored, ::non-sense { color: inherit; }
+	
+	</style>
+</head>
+<body>
+	
+	<ul>
+		<li>A</li>
+		<li>B</li>
+		<li>C</li>
+		<li>D</li>
+		<li>E</li>
+	</ul>
+	
+	<script>
+		
+		var log = console.log.bind(console); console.log=function(){};
+		var ASSERT = function(test) {
+			
+			var expression = (''+test+'').replace(/^[^=]*=>\s*([(](.*)[)]|[^(](.*)[^)]?)\s*$/,'$2').trim();
+			var result; try { result = test(); } catch(ex) { result = ex; };
+			
+			log(expression + ' //', result);
+			if(result !== true) { debugger; }
+			
+		};
+		
+		setTimeout(function() {
+			
+			var css = window.css = INSTRUMENTATION_RESULTS.css;
+			
+			//
+			// Our style sheet has only 6 valid style declarations
+			//
+			ASSERT(()=>(  css.types[0] == 0  ));
+			ASSERT(()=>(  css.types[1] == 6  ));
+			ASSERT(()=>(  css.types[4] == 0  ));
+			ASSERT(()=>(  css.types[8] == 0  ));
+			
+			//
+			// There are 12 elements on the page
+			//
+			ASSERT(()=>(  css.usages.DOMElements == 12  ));
+			
+			//
+			// 6 selectors are declared
+			// 1 selectors is not in use
+			//
+			ASSERT(()=>(  css.usages.SelectorsFound == 6  ));
+			ASSERT(()=>(  css.usages.SelectorsUnused == 1  ));
+			
+			//
+			// 12 <*> get the "box-sizing" property
+			// 5 <li> get the "font-weight" property
+			// 1 <ul> gets the "color" property
+			// 1 <html> get the "width" and "height" property
+			//
+			ASSERT(()=>(  css.props['box-sizing'].count == 12  ));
+			ASSERT(()=>(  css.props['font-weight'].count == 5  ));
+			ASSERT(()=>(  css.props['color'].count == 1  ));
+			ASSERT(()=>(  css.props['width'].count == 1  ));
+			ASSERT(()=>(  css.props['height'].count == 1  ));
+			
+			//
+			// All properties are declared exactly once
+			//
+			for(var prop in css.rules['@stylerule'].props) {
+				eval("ASSERT(()=>(  css.rules['@stylerule'].props['"+prop+"'] == 1  ));")
+			}
+			
+			//
+			// There are no properties in a .class selector
+			// (this detects that the ::non-sense rule was dropped properly)
+			//
+			ASSERT(()=>(  css.rules['.class'].count == 1  ));
+			ASSERT(()=>(  css.rules['.class'].props['color'] == undefined  ));
+
+			//
+			// Properties declarations are properly propagated to their selector
+			//
+			ASSERT(()=>(  css.rules['*'].props['box-sizing'] == 1  ));
+			
+		}, 250);
+		
+	</script>
+	
+</body>
+</html>

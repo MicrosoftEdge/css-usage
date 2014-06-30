@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../src/cssUsage.js"></script>
+	<style>
+		
+		div {
+			width: 100px;
+			height: 100px;
+		}
+		
+		body > div {
+			width: 200px;
+		}
+		
+		html > body > div {
+			width: 50%;
+		}
+	
+	</style>
+</head>
+<body>
+	
+	<div style="background: blue"></div>
+	
+	<script>
+		
+		var log = console.log.bind(console); console.log=function(){};
+		var ASSERT = function(test) {
+			
+			var expression = (''+test+'').replace(/^[^=]*=>\s*([(](.*)[)]|[^(](.*)[^)]?)\s*$/,'$2').trim();
+			var result; try { result = test(); } catch(ex) { result = ex; };
+			
+			log(expression + ' //', result);
+			if(result !== true) { debugger; }
+			
+		};
+		
+		setTimeout(function() {
+			
+			var css = window.css = INSTRUMENTATION_RESULTS.css;
+			
+			//
+			// 1 <div> should have "width", "height", and "background"
+			//
+			ASSERT(()=>(  css.props['width'].count == 1  ));
+			ASSERT(()=>(  css.props['width'].count == 1  ));
+			ASSERT(()=>(  css.props['background-color'].count == 1  ));
+			
+			//
+			// Since we don't know whether 'px' or '%' applies to the <div>
+			// both should get a count of 1. If a future version yields a 
+			// value of 0 for px, that would be fine though.
+			//
+			ASSERT(()=>(  css.props['width'].values['px'] <= 1  ));
+			ASSERT(()=>(  css.props['width'].values['%'] == 1  ));
+			ASSERT(()=>(  css.props['height'].values['px'] == 1  ));
+			
+			//
+			// There are 3 declarations of 'width' in a style rule
+			// There is 1 declaration of 'height' in a style rule
+			// There is 1 declaration of 'background' in an inline style
+			//
+			ASSERT(()=>(  css.rules['@stylerule'].props['width'] == 3  ));
+			ASSERT(()=>(  css.rules['@stylerule'].props['height'] == 1  ));
+			ASSERT(()=>(  css.rules['@inline'].props['background-color'] == 1  ));
+			
+		}, 250);
+		
+	</script>
+	
+</body>
+</html>

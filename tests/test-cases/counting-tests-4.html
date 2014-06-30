@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html class="js flexbox">
+<head>
+    <script src="../../src/cssUsage.js"></script>
+	<style>
+		
+		#javascriptMessage { display: none; }
+		.no-js #javascriptMessage { display: block }
+		
+		#content > * { width: 100%; }
+		#content > header { min-height: 100px; background: green; }
+		#content > main { min-height: 600px; width: 70%; background: red; }
+		#content > aside { min-height: 300px; width: 30%; background: blue; }
+		#content > footer { min-height: 100px; background: green; }
+		
+		.flexbox #content { display: flex; flex-wrap: wrap; align-items: stretch; }
+		.no-flexbox #content::after { content: ''; clear: both; }
+		.no-flexbox #content > * { float: left; }
+		
+		@media (max-width: 800px) {
+			#content > main { min-height: 600px; width: 100%; }
+			#content > aside { min-height: 300px; width: 100%; }
+		}
+	
+	</style>
+</head>
+<body>
+	
+	<div id="javascriptMessage">You should enable JavaScript</div>
+	<div id="content">
+		<header></header>
+		<main></main>
+		<aside></aside>
+		<footer></footer>
+	</div>
+	
+	<script>
+		
+		var log = console.log.bind(console); console.log=function(){};
+		var ASSERT = function(test) {
+			
+			var expression = (''+test+'').replace(/^[^=]*=>\s*([(](.*)[)]|[^(](.*)[^)]?)\s*$/,'$2').trim();
+			var result; try { result = test(); } catch(ex) { result = ex; };
+			
+			log(expression + ' //', result);
+			if(result !== true) { debugger; }
+			
+		};
+		
+		window.Modernizer = {/*dummy*/};
+		setTimeout(function() {
+			
+			var css = window.css = INSTRUMENTATION_RESULTS.css;
+			
+			//
+			// There should be 12 style rules, and one media query
+			//
+			ASSERT(()=>(  css.types[1] == 12  ));
+			ASSERT(()=>(  css.types[4] == 1  ));
+			
+			//
+			// 4 <*> should have "width", none should have "float"
+			//
+			ASSERT(()=>(  css.props['width'].count == 4  ));
+			ASSERT(()=>(  !css.props['float']  ));
+			
+			//
+			// There are 5 declarations of 'width' in a style rule
+			// and only one of float
+			//
+			ASSERT(()=>(  css.rules['@stylerule'].props['width'] == 5  ));
+			ASSERT(()=>(  css.rules['@stylerule'].props['float'] == 1  ));
+			
+			//
+			// "min-height" applies in 'px', "width" in '%'
+			//
+			ASSERT(()=>(  css.props['width'].values['%'] == 4  ));
+			ASSERT(()=>(  css.props['min-height'].values['px'] == 4  ));
+			
+			//
+			// Check that we got Modernizer stats setup properly
+			//
+			ASSERT(()=>(  css.usages.ModernizerDOMUsages.count == 2  ));
+			ASSERT(()=>(  css.usages.ModernizerDOMUsages.values['js'] == 1  ));
+			ASSERT(()=>(  css.usages.ModernizerDOMUsages.values['no-js'] == undefined  ));
+			ASSERT(()=>(  css.usages.ModernizerDOMUsages.values['flexbox'] == 1  ));
+			ASSERT(()=>(  css.usages.ModernizerDOMUsages.values['no-flexbox'] == undefined  ));
+			ASSERT(()=>(  css.usages.ModernizerCSSUsages.count == 4  ));
+			ASSERT(()=>(  css.usages.ModernizerCSSUsages.values['js'] == undefined  ));
+			ASSERT(()=>(  css.usages.ModernizerCSSUsages.values['no-js'] == 1  ));
+			ASSERT(()=>(  css.usages.ModernizerCSSUsages.values['flexbox'] == 1  ));
+			ASSERT(()=>(  css.usages.ModernizerCSSUsages.values['no-flexbox'] == 2  ));
+
+			//
+			// Check that selectors are generalized properly
+			//
+			ASSERT(()=>(  css.rules['.class #id'].count == 2  ));
+			
+			
+		}, 250);
+		
+	</script>
+	
+</body>
+</html>

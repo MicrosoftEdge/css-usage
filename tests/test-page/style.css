@@ -1,0 +1,167 @@
+﻿@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,900);
+
+@font-face {
+  font-family: 'testfont';
+  src: url('testfont.ttf') format('truetype');
+}
+
+.wrapper {
+    width: 80%;
+    height: 80%;
+    font-family: Arial;
+    background: #cccccc;
+    margin: auto;
+    color: yellow;
+    border: 1px solid #ffffff;
+}
+
+h1 { font-family: ‘Metrophobic’, Arial, serif; font-weight: 400; }
+
+.wrapper {
+    color: black;
+}
+
+.wrapper,
+header,
+nav,
+article,
+aside,
+footer {
+    border-radius: 5px;
+    padding: 10px;
+}
+
+header {
+    background: #6870DE;
+}
+
+    header h1 {
+        margin: 0;
+        color: white;
+        font-size: 25px;
+    }
+
+nav {
+    margin: 5px 0;
+    background: #666;
+}
+
+    nav ul {
+        margin: 0;
+        padding: 0;
+    }
+
+        nav ul li {
+            display: inline-block;
+        }
+
+            nav ul li a {
+                text-decoration: none;
+                color: black;
+            }
+
+            nav ul li a {
+                color: white;
+            }
+
+article, aside {
+    float: left;
+    height: 300px;
+    margin-bottom: 10px;
+}
+
+.testfont {
+    font-family: 'testfont';
+    font-size: 4em;
+}
+
+article {
+    width: 73%;
+    margin-right: 2%;
+    background: #eee;
+}
+
+aside {
+    width: 20.5%;
+    background: #ddd;
+}
+
+footer {
+    clear: both;
+    height: 25px;
+    background: #666;
+}
+
+.box {
+    width: 100%;
+    height: 50px;
+    background-color: rgba(200, 54, 54, 0.5);
+    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif; 
+}
+
+    .box:hover {
+        transform: rotate(90deg);
+        transition-delay: 1s;
+        transition-duration: 1s;
+        transform-style: flat;
+        transition-property: all;
+        background-color: hsl(120, 100%, 50%);
+        color: hsla(120, 100%, 50%, .75);
+    }
+    
+.webkit-tests {
+    background: -webkit-linear-gradient(red, blue);
+    background: linear-gradient( 45deg, blue, red );
+    background: linear-gradient( 45deg, blue, red ) no-repeat;
+}
+
+.animation-test {
+    animation-duration: 1s;
+    animation-name: test;
+    animation-iteration-count: 3;
+    width: 10px;
+    height: 10px;
+    background: blue;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+@keyframes test {
+  from {
+    margin-left: 0px;
+  }
+
+  to {
+    margin-left: 75px;
+  }
+}
+
+@media all and (max-width: 699px) {
+    .wrapper {
+        width: 90%;
+    }
+    
+    @keyframes test {
+        from {
+            margin-left: 5px;
+        }
+        
+        to {
+            margin-left: 300px;
+        }
+    }
+}
+
+@supports(display: flex) {
+    body {
+        font-size: 1em;
+    }
+}
+
+.variables {
+	
+	--a: a;
+	--b: var(--a);
+	
+}
