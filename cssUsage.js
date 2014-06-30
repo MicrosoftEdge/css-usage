@@ -42,7 +42,8 @@ var css = (function (document, window) {
 
 
     document.addEventListener("DOMContentLoaded", function (event) {
-        parseStylesheets().then(htmltree);
+        parseStylesheets();
+        htmlTree();
         console.log(css);
     });        
 
@@ -126,7 +127,7 @@ var css = (function (document, window) {
 
                     parseStyle(rule.style, rule.selectorText, rule.type);
 
-                    /*rulesProcessed++;
+                    rulesProcessed++;
 
                     // If we're done processing all of the CSS ruls for
                     // this stylesheet
@@ -134,10 +135,9 @@ var css = (function (document, window) {
                         styleSheetsProcessed++;
 
                         // If we are done processing all stylesheets
-                        if (styleSheetsProcessed == styleSheetsToProcess) {
-                            returnObject();
+                        if (styleSheetsProcessed == styleSheetsToProcess) {                            
                         }                     
-                    }*/
+                    }
                 }
             }
         }
@@ -214,13 +214,6 @@ var css = (function (document, window) {
                     }
                 }
             }
-        }
-
-        /*
-         * This will return the ojbect that we want to pass back
-         */
-        function returnObject() {
-            console.log(css);
         }
 
         /*
