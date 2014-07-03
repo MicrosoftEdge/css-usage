@@ -1,5 +1,7 @@
 var css = (function (document, window) {
     "use strict";
+    // Don't run in subframes for now
+    if (window.self !== window.top) return;
 
     var css = window.css || {
         props: [],
@@ -15,7 +17,8 @@ var css = (function (document, window) {
             "style": 0,
             "unknown": 0,
             "viewport": 0
-        }
+        },
+        url : location.href
     };
 
     // This stores a mapping of the
@@ -40,15 +43,21 @@ var css = (function (document, window) {
         "15": "viewport"
     }
 
-
+    var _stringify = JSON.stringify;
     document.addEventListener("DOMContentLoaded", function (event) {
-        parseStylesheets();
-        htmlTree();
-        console.log(css);
-    });        
+        setTimeout(function () {
+            parseStylesheets();
+            htmlTree();
+            console.log('sending...');
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '//jlory-srv.contoso.com/css-usage', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(_stringify(css));
+        }, 3000);
+    });
 
         function parseStylesheets() {
-            var styleSheets = document.styleSheets;            
+            var styleSheets = document.styleSheets;
 
             // Loop through StyeSheets
             for (var ssIndex in styleSheets) {
