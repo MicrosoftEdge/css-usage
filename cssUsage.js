@@ -45,15 +45,11 @@ var css = (function (document, window) {
 
     var _stringify = JSON.stringify;
     document.addEventListener("DOMContentLoaded", function (event) {
-        setTimeout(function () {
             parseStylesheets();
             htmlTree();
-            console.log('sending...');
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '//jlory-srv.contoso.com/css-usage', true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.send(_stringify(css));
-        }, 3000);
+            
+            // DO SOMETHING WITH THE CSS OBJECT HERE
+            console.log(css);
     });
 
         function parseStylesheets() {
@@ -97,7 +93,7 @@ var css = (function (document, window) {
 
         /*
          * If you try to do querySelectorAll on pseudo selectors
-         * it returns 0 because you are not actually doing those things,
+         * it returns 0 because you are not actually doing the action the pseudo is stating those things,
          * but we will honor those declarations and we don't want them to be missed,
          * so we remove the pseudo selector from the selector text
          */
@@ -129,7 +125,8 @@ var css = (function (document, window) {
 
                     iterateType(rule.type); // Increase for rule type
 
-                    // Some CssRules ha
+                    // Some CssRules have nested rules, so we need to
+                    // test those as well, this will start the recursion
                     if (rule.cssRules && rule.cssRules) {
                         parseCssRules(rule.cssRules, styleSheet);
                     }
@@ -141,10 +138,11 @@ var css = (function (document, window) {
                     // If we're done processing all of the CSS ruls for
                     // this stylesheet
                     if (rulesProcessed == totalRules) {
-                        styleSheetsProcessed++;
+                        styleSheetsProcessed++;                        
 
                         // If we are done processing all stylesheets
-                        if (styleSheetsProcessed == styleSheetsToProcess) {                            
+                        if (styleSheetsProcessed == styleSheetsToProcess) {
+                            console.log(_stringify(css));
                         }                     
                     }
                 }
