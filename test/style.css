@@ -114,6 +114,12 @@ footer {
     }
 }
 
+@supports(display: flex) {
+    body {
+        font-size: 1em;
+    }
+}
+
 /*@page:first {
   margin: 2in 3in;
 }*/
