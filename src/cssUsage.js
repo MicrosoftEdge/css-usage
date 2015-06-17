@@ -18,7 +18,8 @@ var css = (function (document, window) {
             "unknown": 0,
             "viewport": 0
         },
-        url : location.href
+        url : location.href,
+        createValueArr: createValueArr
     };
 
     // This stores a mapping of the
@@ -49,11 +50,11 @@ var css = (function (document, window) {
             htmlTree();
             
             // DO SOMETHING WITH THE CSS OBJECT HERE
-            console.log(css);
+            //console.log(css);
     });
 
         function parseStylesheets() {
-            var styleSheets = document.styleSheets;
+            var styleSheets = document.styleSheets;           
 
             // Loop through StyeSheets
             for (var ssIndex in styleSheets) {
@@ -138,12 +139,7 @@ var css = (function (document, window) {
                     // If we're done processing all of the CSS ruls for
                     // this stylesheet
                     if (rulesProcessed == totalRules) {
-                        styleSheetsProcessed++;                        
-
-                        // If we are done processing all stylesheets
-                        if (styleSheetsProcessed == styleSheetsToProcess) {
-                            console.log(_stringify(css));
-                        }                     
+                        styleSheetsProcessed++;             
                     }
                 }
             }

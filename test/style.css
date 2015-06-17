@@ -107,6 +107,10 @@ footer {
         background-color: hsl(120, 100%, 50%);
         color: hsla(120, 100%, 50%, .75);
     }
+    
+.webkit-tests {
+    background: -webkit-linear-gradient(red, blue);
+}
 
 @media all and (max-width: 699px) {
     .wrapper {
