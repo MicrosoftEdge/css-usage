@@ -38,6 +38,7 @@ header {
     header h1 {
         margin: 0;
         color: white;
+        font-size: 25px;
     }
 
 nav {
@@ -114,9 +115,41 @@ footer {
     background: linear-gradient( 45deg, blue, red ) no-repeat;
 }
 
+.animation-test {
+    animation-duration: 1s;
+    animation-name: test;
+    animation-iteration-count: 3;
+    width: 10px;
+    height: 10px;
+    background: blue;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+@keyframes test {
+  from {
+    margin-left: 0px;
+  }
+
+  to {
+    margin-left: 75px;
+  }
+}
+
 @media all and (max-width: 699px) {
     .wrapper {
         width: 90%;
+    }
+    
+    @keyframes test {
+        from {
+            margin-left: 5px;
+        }
+        
+        to {
+            margin-left: 300px;
+        }
     }
 }
 
