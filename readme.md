@@ -7,7 +7,7 @@ Overview
 This is a script that will iterate over the document.styleSheets object and determine what was actually used on the current page.
 Additionally it will loop over the DOM and determine any inline styles.
 
-### Why did you make this
+#### Why did you make this
 
 On the layout team we had ways of knowing, thanks to the Bing crawler, what properties were declared on sites. This however doesn't help us know which ones were actually
 used on the site. Because of this we had to devise a way to get this information. Now you may be thinking, "Why not just build that into your browser," and we are but we
@@ -26,7 +26,7 @@ and querying to see if there are any elements that would have needed to render t
 Contributing
 ------------
 
-### Getting Started
+#### Getting Started
 
 We highly recommend any advancements that you can make to the script, we only expect it to get better with the community providing pull requests. To get started you'll need
 to install [node](https://nodejs.org/) and [git](http://www.git-scm.com/) then do the following:
@@ -38,7 +38,7 @@ to install [node](https://nodejs.org/) and [git](http://www.git-scm.com/) then d
 
 This will get you underway, you'll see the dependancies installed if you already haven't already installed them and the page should launch to the test page.
 
-### Making a change
+#### Making a change
 
 We don't want the main focus of this to change and we want the data provided on [SITE NAME HERE](http://modern.status.ie) to not be affected by errors provided by contributors. So 
 if you are going to make a change you need to follow this process:
