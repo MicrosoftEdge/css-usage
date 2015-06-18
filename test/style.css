@@ -110,6 +110,8 @@ footer {
     
 .webkit-tests {
     background: -webkit-linear-gradient(red, blue);
+    background: linear-gradient( 45deg, blue, red );
+    background: linear-gradient( 45deg, blue, red ) no-repeat;
 }
 
 @media all and (max-width: 699px) {

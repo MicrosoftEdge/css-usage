@@ -16,10 +16,12 @@ var css = (function (document, window) {
             "page": 0,
             "style": 0,
             "unknown": 0,
+            "supports": 0,
             "viewport": 0
         },
         url : location.href,
-        createValueArr: createValueArr
+        createValueArr: createValueArr,
+        normalizeValue: normalizeValue
     };
 
     // This stores a mapping of the
@@ -41,6 +43,7 @@ var css = (function (document, window) {
         "7": "keyframes",
         "8": "keyframe",
         "10": "namespace",
+        "12": "supports",
         "15": "viewport"
     }
 
@@ -50,7 +53,7 @@ var css = (function (document, window) {
             htmlTree();
             
             // DO SOMETHING WITH THE CSS OBJECT HERE
-            //console.log(css);
+            console.log(css);
     });
 
         function parseStylesheets() {
@@ -224,31 +227,37 @@ var css = (function (document, window) {
          * an array from it.
          */
         function createValueArr(value) {
-            var values;
+            var values = new Array();
+            var splitString;            
 
-            if (value.indexOf(",") != -1) {
-                value = value.replace(/,/g, " ");
-            }
-
-            if (value.indexOf("(") != -1) {
-                value = value.replace(/\(([^\)]+)\)/g, "");
-            }
-
-            value = value.toLowerCase();
+            value = normalizeValue(value);
 
             // Parse values like: width 1s height 5s time 2s
-            if (value.indexOf(" ") != -1) {
-                // IE and Firefox wrap their fonts with double quotes
-                if (value.indexOf('"') != -1) {
-                    values = value.match(/(\w+)|"(?:[^\\"]+|\\.)*"/g);
-                }
-                // Chrome wraps it's fonts in single quotes
-                else if (value.indexOf("'" != -1)) {
-                    values = value.match(/(\w+)|'(?:[^\\']+|\\.)*'/g);
+            if (value.indexOf(" "||",") != -1) {               
+                if(value.indexOf(",") != -1) {
+                    splitString = value.split(",");
                 }
                 else {
-                    values = value.match(/\w+/g);
+                    splitString = value.split(" ");
                 }
+                                
+                splitString.forEach(function(splitVal) {
+                    
+                    // This is not included in the normalize
+                    // values section because fonts will have
+                    // their quotes removed and we won't be able
+                    // to tell where one font starts and another ends
+                    // until we split them based on space                    
+                    if(value.indexOf(",") != -1) {
+                        splitVal = splitVal.replace(/,/g, "");
+                    }
+                    
+                    // We need to trim again as fonts at times will
+                    // be Font, Font2, Font3 and so we need to trim
+                    // the ones next to the commas
+                    splitVal = trim(splitVal);
+                    values.push(splitVal);
+                });                
             }
             // Put the single value into an array so we get all values
             else {
@@ -256,6 +265,29 @@ var css = (function (document, window) {
             }
 
             return values;
+        }
+        
+        function trim(str) {
+            return str.replace(/(^\s+)|(\s+$)/g, "");
+        }
+        
+        // This will normalize the values so that
+        // we only keep the unique values
+        function normalizeValue(value) {
+            // Trim value on the edges
+            value = trim(value);
+            
+            // Remove (
+            if (value.indexOf("(") != -1) {
+                value = value.replace(/\(([^\)]+)\)/g, "");
+            }
+            
+            // Remove varous quotes
+            if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
+                value = value.replace(/('|‘|’|")/g, "");
+            }
+            
+            return value.toLowerCase();    
         }
 
         /*
