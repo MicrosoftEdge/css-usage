@@ -19,8 +19,7 @@ What it does and doesn't do
 It will iterate on the current top level page (this means that it will not parse stylesheets inside of an <iframe>) and and provide usage by taking the selectorText 
 and querying to see if there are any elements that would have needed to render this property. This of course leaves holes, here are some:
 
-* It can't actually determine the what would have won without building out a full CSS parser in JS, which defeats part of the reasons we made this, so take the counts with
-  a grain of salt. At minimum it would have been 1.
+* It can't actually determine the what would have won without building out a full CSS parser in JS, which defeats part of the reasons we made this, so take the counts with a grain of salt. At minimum it would have been 1.
 * It currently can't track properties and values that are inside of the @keyframes rule ([view issue](https://github.com/gregwhitworth/css-usage/issues/3))
 * It doesn't get anything behind authentication
 
