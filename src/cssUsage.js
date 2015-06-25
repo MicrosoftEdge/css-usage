@@ -24,7 +24,8 @@ var css = (function (document, window) {
         version: "0.1.0",
         createValueArr: createValueArr,
         normalizeValue: normalizeValue,
-        parseValues: parseValues
+        parseValues: parseValues,
+        cleanSelectorText: cleanSelectorText
     };
 
     // This stores a mapping of the
@@ -111,12 +112,7 @@ var css = (function (document, window) {
      * so we remove the pseudo selector from the selector text
      */
     function cleanSelectorText(text) {
-        var remove = [":hover", ":active", ":link", ":focus"];
-        remove.forEach(function (item) {
-            text = text.replace(item, "");
-        });
-
-        return text;
+        return text.replace(/:(?:hover|active|link|focus)/g, '');
     }
 
     /*

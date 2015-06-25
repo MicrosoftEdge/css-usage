@@ -53,6 +53,21 @@ describe('Function Values', function() {
     });
 });
 
+describe('Selectors', function(){
+    it('a:hover -> a', function() {
+        chai.assert.equal('a', css.cleanSelectorText('a:hover'));
+    });
+    it('#id .class:focus -> #id .class', function() {
+        chai.assert.equal('#id .class', css.cleanSelectorText('#id .class:focus'));
+    });
+    it('ul li:not(:nth-child(2n+1)):active -> ul li:not(:nth-child(2n+1))', function() {
+        chai.assert.equal('ul li:not(:nth-child(2n+1))', css.cleanSelectorText('ul li:not(:nth-child(2n+1)):active'));
+    });
+    it('a:link -> a', function() {
+        chai.assert.equal('a', css.cleanSelectorText('a:link'));
+    });
+});
+
 // Misc
 describe('Normalizing Values', function() {
     it('remove fancy apostrophes', function() {
