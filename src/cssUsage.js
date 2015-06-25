@@ -23,7 +23,8 @@ var css = (function (document, window) {
         duration: 0,
         version: "0.1.0",
         createValueArr: createValueArr,
-        normalizeValue: normalizeValue
+        normalizeValue: normalizeValue,
+        parseValues: parseValues
     };
 
     // This stores a mapping of the
@@ -242,36 +243,19 @@ var css = (function (document, window) {
      * an array from it.
      */
     function createValueArr(value) {
-        var values = new Array();
-        var splitString;            
+        var values = new Array();          
 
         value = normalizeValue(value);
 
         // Parse values like: width 1s height 5s time 2s
-        if (value.indexOf(" "||",") != -1) {               
-            if(value.indexOf(",") != -1) {
-                splitString = value.split(",");
-            }
-            else {
-                splitString = value.split(" ");
-            }
+        if (Array.isArray(value)) {    
                             
-            splitString.forEach(function(splitVal) {
-                
-                // This is not included in the normalize
-                // values section because fonts will have
-                // their quotes removed and we won't be able
-                // to tell where one font starts and another ends
-                // until we split them based on space                    
-                if(value.indexOf(",") != -1) {
-                    splitVal = splitVal.replace(/,/g, "");
-                }
-                
+            value.forEach(function(val) {          
                 // We need to trim again as fonts at times will
                 // be Font, Font2, Font3 and so we need to trim
                 // the ones next to the commas
-                splitVal = trim(splitVal);
-                values.push(splitVal);
+                val = trim(val);
+                values.push(val);
             });                
         }
         // Put the single value into an array so we get all values
@@ -295,14 +279,27 @@ var css = (function (document, window) {
         // Remove (
         if (value.indexOf("(") != -1) {
             value = value.replace(/\(([^\)]+)\)/g, "");
-        }
+        }       
         
         // Remove varous quotes
         if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
             value = value.replace(/('|‘|’|")/g, "");
         }
         
-        return value.toLowerCase();    
+        value = value.toLowerCase();
+        
+        // We need to check if there are commas or spaces and 
+        // split on those so that we can keep track of each  
+        if (value.indexOf(" ") != -1 || value.indexOf(",") != - 1) {                       
+            if(value.indexOf(",") != -1) {
+                value = value.split(",");
+            }
+            else {
+                value = value.split(" ");
+            }
+        }  
+        
+        return value;    
     }
 
     /*
@@ -320,6 +317,9 @@ var css = (function (document, window) {
              return value.replace(/'/g, "");
          }
          else {
+             if(value.indexOf(".") != -1) {
+                value = value.replace(/\./g, "");
+             }
              return value.replace(/\d+/g, ""); // Remove any digits eg: 55px -> px
          }
     }

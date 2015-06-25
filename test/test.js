@@ -3,6 +3,18 @@ describe('Basic Values', function(){
     it('background-color', function(){
         chai.assert.equal(["green"][0], css.createValueArr("green")[0]);
     });
+    it('1.5rem -> rem', function() {
+        chai.assert.equal('rem', css.parseValues("1.5rem"));
+    });
+    it('.5em -> em', function() {
+        chai.assert.equal('em', css.parseValues(".5em"));
+    });
+    it('2.5px -> px', function() {
+        chai.assert.equal('px', css.parseValues("2.5px"));
+    });
+    it('6.78.5% -> %', function() {
+        chai.assert.equal('%', css.parseValues("6.78.5%"));
+    });
 });
 
 // Webkit Values
@@ -17,8 +29,11 @@ describe('Shorthand & Complex Values', function() {
     it('background', function() {
         chai.assert.equal(['linear-gradient'][0], css.createValueArr('linear-gradient( 45deg, blue, red ) no-repeat')[0]);
     });
-    it('font-family', function() {
+    it('font-family: initial testing of comma seperated vals', function() {
         chai.assert.equal('baskerville,baskerville old face,hoefler text,garamond,times new roman,serif', css.createValueArr('Baskerville,Baskerville Old Face,Hoefler Text,Garamond,Times New Roman,serif').join(','));
+    });
+    it('font-family: just more parsing due to bugs in initial implementation because this value sneaked through due to issue with indexOf', function() {
+        chai.assert.equal('roboto', css.createValueArr('roboto,arial,sans-serif')[0]);
     });
 });
 
