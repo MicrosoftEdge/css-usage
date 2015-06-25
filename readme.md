@@ -45,5 +45,5 @@ if you are going to make a change you need to follow this process:
 
 1. Make the change
 2. Write a unit test under \tests\test.js for your change if it is necessary
-3. Run the tests in your Chrome/Firefox/IE/Edge and ensure that they still pass
+3. Run the tests in Chrome/Firefox/IE/Edge and ensure that they still pass
 4. Submit a pull request

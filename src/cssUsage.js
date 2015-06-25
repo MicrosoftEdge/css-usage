@@ -21,6 +21,7 @@ var css = (function (document, window) {
         },
         url : location.href,
         duration: 0,
+        version: "0.1.0",
         createValueArr: createValueArr,
         normalizeValue: normalizeValue
     };
