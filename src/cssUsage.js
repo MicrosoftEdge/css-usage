@@ -88,7 +88,7 @@ var css = (function (document, window) {
      * to the css.types object
      */
     function iterateType(type) {
-        if (type != ("" || undefined)) {
+        if (type !== "" || type !== undefined) {
             var typeKey = typeMap[type];
             css.types[typeKey]++;
         }
@@ -213,7 +213,7 @@ var css = (function (document, window) {
 
                             values.forEach(function (value) {
                                 value = parseValues(value);
-                                if (value != (" " || "")) {
+                                if (value !== " " || value !== "") {
                                     var valExists = valueExists(normalizedKey, value);
                                     if (!valExists) {
                                         propObject.values.push({ name: value, count: count });
@@ -378,7 +378,7 @@ var css = (function (document, window) {
      * get the inline styles and track those
      */
     function htmlTree(obj) {
-        var obj = obj || document.getElementsByTagName('html')[0];
+        obj = obj || document.getElementsByTagName('html')[0];
 
         if (obj.style.cssText != "") {
             parseStyle(obj.style, null, 1, true);
