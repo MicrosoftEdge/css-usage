@@ -21,6 +21,9 @@ describe('Basic Values', function(){
     it('-65px -> px', function() {
         chai.assert.equal('px', css.parseValues("-65px"));
     });
+    it('table-cell', function() {
+        chai.assert.equal('table-cell', css.parseValues("table-cell"));
+    });
 });
 
 // Webkit Values

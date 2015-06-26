@@ -314,7 +314,7 @@ var css = (function (document, window) {
              return value.replace(/'/g, "");
          }
          else {
-             return value.replace(/(\d+)|(\-)|(\.)/g, ""); // Remove any digits eg: 55px -> px
+             return value.replace(/(\d+)|(\-\d+)|(\.)/g, ""); // Remove any digits eg: 55px -> px
          }
     }
 
