@@ -20,6 +20,7 @@ var css = (function (document, window) {
             "viewport": 0
         },
         url : location.href,
+        ua : navigator.userAgent,
         duration: 0,
         version: "0.1.0",
         createValueArr: createValueArr,
@@ -313,10 +314,7 @@ var css = (function (document, window) {
              return value.replace(/'/g, "");
          }
          else {
-             if(value.indexOf(".") != -1) {
-                value = value.replace(/\./g, "");
-             }
-             return value.replace(/\d+/g, ""); // Remove any digits eg: 55px -> px
+             return value.replace(/(\d+)|(\-)|(\.)/g, ""); // Remove any digits eg: 55px -> px
          }
     }
 

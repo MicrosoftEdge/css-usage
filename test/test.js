@@ -15,6 +15,12 @@ describe('Basic Values', function(){
     it('6.78.5% -> %', function() {
         chai.assert.equal('%', css.parseValues("6.78.5%"));
     });
+    it('-5.5em -> em', function() {
+        chai.assert.equal('em', css.parseValues("-5.5em"));
+    });
+    it('-65px -> px', function() {
+        chai.assert.equal('px', css.parseValues("-65px"));
+    });
 });
 
 // Webkit Values
