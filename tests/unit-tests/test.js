@@ -46,7 +46,7 @@ describe('Shorthand & Complex Values', function() {
     });
 });
 
-// Transforms
+// Function Notation
 describe('Function Values', function() {
     it('rotate()', function() {
         chai.assert.equal('rotate', css.createValueArr("rotate(90deg)")[0]);
@@ -60,6 +60,15 @@ describe('Function Values', function() {
     it('rgba()', function() {
         chai.assert.equal('rgba', css.createValueArr("rgba(200, 54, 54, 0.5)")[0]);
     });
+    it('matrix3d()', function() {
+        chai.assert.equal('matrix3d', css.createValueArr("matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1)")[0]);
+    });
+    it('matrix()', function() {
+        chai.assert.equal('matrix', css.createValueArr("matrix(1, 0, 0, 1, 0, 0)")[0]);
+    });
+    it('var()', function() {
+        chai.assert.equal('var', css.createValueArr("var(--primary-color)"));
+    })
 });
 
 describe('Selectors', function(){

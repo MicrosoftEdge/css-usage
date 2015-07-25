@@ -57,14 +57,14 @@ var css = (function (document, window) {
 
     var _stringify = JSON.stringify;
     document.addEventListener("DOMContentLoaded", function (event) {
-            parseStylesheets();
-            htmlTree();
-            
-            // Update duration
-            css.duration = new Date().getTime() - startTime;
-            
-            // DO SOMETHING WITH THE CSS OBJECT HERE
-            console.log(css);
+        parseStylesheets();
+        htmlTree();
+        
+        // Update duration
+        css.duration = new Date().getTime() - startTime;
+        
+        // DO SOMETHING WITH THE CSS OBJECT HERE
+        console.log(css);
     });
 
     function parseStylesheets() {
@@ -125,7 +125,7 @@ var css = (function (document, window) {
     var rulesProcessed = 0;
     var styleSheetsToProcess = document.styleSheets.length;
     var styleSheetsProcessed = 0;
-    function parseCssRules(cssRules, styleSheet) {
+    function parseCssRules(/*CSSRuleList*/ cssRules, styleSheet) {
         if (cssRules != undefined) {
             totalRules += cssRules.length;
 
@@ -166,72 +166,76 @@ var css = (function (document, window) {
         for (var key in style) {
 
             var normalizedKey = normalizeKey(key);
+            
+            // Only keep styles that were declared by the author
+            if (style.cssText.indexOf(normalizedKey) == -1) continue;
+            
+            // Chrome puts integer keys in for used props and we don't want to parse those
+            if (isInteger(key)) continue;
 
-            if (style.cssText.indexOf(normalizedKey) != -1) { // Only keep styles that were declared by the author
+            var styleValue = style[key]; // Get the value of the current style property (eg: color: _black_)
 
-                if (!isInteger(key)) { // Chrome puts integer keys in for used props and we don't want to parse those
+            // We need to make sure we're only checking string props
+            if (typeof styleValue !== 'string' && styleValue != "" && styleValue != undefined) {
+                continue;
+            }
 
-                    var styleValue = style[key]; // Get the value of the current style property (eg: color: _black_)
+            var count = 0;
 
-                    // We need to make sure we're only checking string props
-                    if (typeof styleValue === 'string' && styleValue != "" && styleValue != undefined) {
+            // If there is a pseudo style clean it, other wise just pass it along
+            // TODO: Come up with a better solution for parsing certain @rules
+            if (selector != undefined) {
+                var selectorText = (selector.indexOf(':') != -1) ? cleanSelectorText(selector) : selector;
+                count = document.querySelectorAll(selectorText).length;
+            }
 
-                        var count = 0;
+            // Since this is an inline style we know this will be applied
+            // one time
+            if (isInline == true) {
+                count = 1;
+            }
 
-                        // If there is a pseudo style clean it, other wise just pass it along
-                        // TODO: Come up with a better solution for parsing certain @rules
-                        if (selector != undefined) {
-                            var selectorText = (selector.indexOf(':') != -1) ? cleanSelectorText(selector) : selector;
-                            count = document.querySelectorAll(selectorText).length;
-                        }
+            var propExists = propertyExists(normalizedKey);
+            var propObject;
+            var cssPointer = propMap[normalizedKey];
+            
+            if (count == 0 || selector == undefined) continue;
 
-                        // Since this is an inline style we know this will be applied
-                        // one time
-                        if (isInline == true) {
-                            count = 1;
-                        }
+            var values = createValueArr(styleValue);
 
-                        var propExists = propertyExists(normalizedKey);
-                        var propObject;
-                        var cssPointer = propMap[normalizedKey];
+            if (!propExists) {
+                // Instantiate a new property object
+                css.props.push({ name: normalizedKey, count: count, type: type, values: [] });
+                // Create a key to object mapping
+                propMap[normalizedKey] = css.props.length - 1;
+                cssPointer = propMap[normalizedKey];
+                iterateType(type); // Increase for rule type
+                propObject = css.props[cssPointer];
+            }
+            else {
+                propObject = css.props[cssPointer];
+                propObject.count += count;
+            }
 
-                        if (count > 0 || selector == undefined) {
-                            var values = createValueArr(styleValue);
-
-                            if (!propExists) {
-                                // Instantiate a new property object
-                                css.props.push({ name: normalizedKey, count: count, type: type, values: [] });
-                                // Create a key to object mapping
-                                propMap[normalizedKey] = css.props.length - 1;
-                                cssPointer = propMap[normalizedKey];
-                                iterateType(type); // Increase for rule type
-                                propObject = css.props[cssPointer];
-                            }
-                            else {
-                                propObject = css.props[cssPointer];
-                                propObject.count += count;
-                            }
-
-                            values.forEach(function (value) {
-                                value = parseValues(value);
-                                if (value !== " " || value !== "") {
-                                    var valExists = valueExists(normalizedKey, value);
-                                    if (!valExists) {
-                                        propObject.values.push({ name: value, count: count });
-                                    }
-                                    else {
-                                        for (var valIndex in propObject.values) {
-                                            if (propObject.values[valIndex].name == value) {
-                                                propObject.values[valIndex].count += count;
-                                            }
-                                        }
-                                    }
-                                }
-                            });
+            values.forEach(function (value) {
+                value = parseValues(value);
+                
+                if (value === " " || value === "") {
+                    return;
+                }
+                
+                var valExists = valueExists(normalizedKey, value);
+                if (!valExists) {
+                    propObject.values.push({ name: value, count: count });
+                }
+                else {
+                    for (var valIndex in propObject.values) {
+                        if (propObject.values[valIndex].name == value) {
+                            propObject.values[valIndex].count += count;
                         }
                     }
                 }
-            }
+            });
         }
     }
 
