@@ -357,7 +357,7 @@ void function() {
 		if(resultFromCache) {
 			return resultFromCache;
 		} else {
-			result = key.replace(/([a-z])([A-Z])/g, "$1-$2");
+			result = key.replace(/([a-z])([A-Z])/g, "$1-$2").replace(/^ms-/,'-ms-');
 			result = result.toLowerCase();
 			switch(result) { case 'stylefloat': case 'cssfloat': return cache[key]='float'; default: return cache[key]=result; }
 		}
