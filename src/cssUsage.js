@@ -352,9 +352,15 @@ void function() {
      * to normalize those values to be able to do string comparisons
      */
     function normalizeKey(key) {
-        key = key.replace(/([a-z])([A-Z])/g, "$1-$2");
-        key = key.toLowerCase();
-        switch(key) { case 'stylefloat': case 'cssfloat': return 'float'; default: return key; }
+		var cache = normalizeKey.cache || (normalizeKey.cache=Object.create(null));
+		var result, resultFromCache = cache[key];
+		if(resultFromCache) {
+			return resultFromCache;
+		} else {
+			result = key.replace(/([a-z])([A-Z])/g, "$1-$2");
+			result = result.toLowerCase();
+			switch(result) { case 'stylefloat': case 'cssfloat': return cache[key]='float'; default: return cache[key]=result; }
+		}
     }
 
     /*
