@@ -392,7 +392,7 @@ void function() {
      * so we remove the pseudo selector from the selector text
      */
     function cleanSelectorText(text) {
-        return text.replace(/:(?:hover|active|focus)|::(?:before|after)/g, '');
+	return text.replace(/:(?:hover|active|focus|before|after)|::(?:before|after)/g, '');
     }
 
     // This should be very obvious what it does

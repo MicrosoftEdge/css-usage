@@ -81,6 +81,9 @@ describe('Selectors', function(){
     it('ul li:not(:nth-child(2n+1)):active -> ul li:not(:nth-child(2n+1))', function() {
         chai.assert.equal('ul li:not(:nth-child(2n+1))', CSSUsage.PropertyValuesAnalyzer.cleanSelectorText('ul li:not(:nth-child(2n+1)):active'));
     });
+    it('a:before -> a', function() {
+        chai.assert.equal('a', CSSUsage.PropertyValuesAnalyzer.cleanSelectorText('a:before'));
+    });
     it('a::before -> a', function() {
         chai.assert.equal('a', CSSUsage.PropertyValuesAnalyzer.cleanSelectorText('a::before'));
     });
