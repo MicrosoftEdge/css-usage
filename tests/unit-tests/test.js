@@ -75,6 +75,12 @@ describe('Selectors', function(){
     it('a:hover -> a', function() {
         chai.assert.equal('a', CSSUsage.PropertyValuesAnalyzer.cleanSelectorText('a:hover'));
     });
+    it('*:hover -> *', function() {
+        chai.assert.equal('*', CSSUsage.PropertyValuesAnalyzer.cleanSelectorText('*:hover'));
+    });
+    it(':hover -> *', function() {
+        chai.assert.equal('*', CSSUsage.PropertyValuesAnalyzer.cleanSelectorText(':hover'));
+    });
     it('#id .class:focus -> #id .class', function() {
         chai.assert.equal('#id .class', CSSUsage.PropertyValuesAnalyzer.cleanSelectorText('#id .class:focus'));
     });

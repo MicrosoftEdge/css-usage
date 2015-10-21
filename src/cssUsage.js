@@ -11,7 +11,6 @@ void function() {
 //
 void function() {
     window.CSSUsage = {};
-	typesMap: 
     window.CSSUsageResults = {
 		
 		// this will contains the usage stats of various at-rules and rules
@@ -48,8 +47,9 @@ void function() { "use strict";
 
     CSSUsage.StyleWalker = {
         ruleAnalyzers: [],
+		elementAnalyzers: [],
         parseStylesheets: parseStylesheets,
-        parseInlineStyle: parseInlineStyle,
+        walkOverDomElements: walkOverDomElements,
     }
 
     function parseStylesheets() {
@@ -59,11 +59,11 @@ void function() { "use strict";
         for (var ssIndex in styleSheets) {
             var styleSheet = styleSheets[ssIndex];
             try {
-                parseCssRules(styleSheet.cssRules, styleSheet);
+                walkOverCssRules(styleSheet.cssRules, styleSheet);
             }
             catch (e) {
-                console.log(e);
-                if (e.description.indexOf("Access") != -1) {
+                console.log(e, e.stack);
+                if (e && (e.description||e.message||"").indexOf("Access") != -1) {
                     styleSheetsToProcess--; // Since we can't parse this one we shouldn't depend on it to return results
                 }
             }
@@ -79,7 +79,7 @@ void function() { "use strict";
     var rulesProcessed = 0;
     var styleSheetsToProcess = document.styleSheets.length;
     var styleSheetsProcessed = 0;
-    function parseCssRules(/*CSSRuleList*/ cssRules, styleSheet) {
+    function walkOverCssRules(/*CSSRuleList*/ cssRules, styleSheet) {
         if (cssRules != undefined) {
             totalRules += cssRules.length;
 
@@ -97,7 +97,7 @@ void function() { "use strict";
                     // Some CssRules have nested rules, so we need to
                     // test those as well, this will start the recursion
                     if (rule.cssRules && rule.cssRules) {
-                        parseCssRules(rule.cssRules, styleSheet);
+                        walkOverCssRules(rule.cssRules, styleSheet);
                     }
 
                     runRuleAnalyzers(rule.style, rule.selectorText, rule.type);
@@ -120,9 +120,17 @@ void function() { "use strict";
      * This creates a dom tree to walk over so that you can
      * get the inline styles and track those
      */
-    function parseInlineStyle(obj) {
-        obj = obj || document.getElementsByTagName('html')[0];
+    function walkOverDomElements(obj, index, depth) {
+        obj = obj || document.documentElement; index = index|0; depth = depth|0;
 
+		var elements = [].slice.call(document.all,0);
+		for(var i=elements.length; i--;) { var element=elements[i];
+			runElementAnalyzers(element, index);
+			if (element.hasAttribute('style')) {
+				runRuleAnalyzers(element.style, null, 1, true);
+			}
+		}
+		/*runElementAnalyzers(obj, index, depth);
         if (obj.style.cssText != "") {
             runRuleAnalyzers(obj.style, null, 1, true);
         }
@@ -131,11 +139,11 @@ void function() { "use strict";
             var child = obj.firstChild;
             while (child) {
                 if (child.nodeType === 1) {
-                    parseInlineStyle(child);
+                    walkOverDomElements(child, index++, depth+1);
                 }
                 child = child.nextSibling;
             }
-        }
+        }*/
     }
 
     /*
@@ -144,6 +152,15 @@ void function() { "use strict";
     function runRuleAnalyzers(style, selector, type, isInline) {
         CSSUsage.StyleWalker.ruleAnalyzers.forEach(function(runAnalyzer) {
             runAnalyzer(style, selector, type, isInline);
+        });
+    }
+	
+    /*
+     *
+     */
+    function runElementAnalyzers(element, index, depth) {
+        CSSUsage.StyleWalker.elementAnalyzers.forEach(function(runAnalyzer) {
+            runAnalyzer(element,index,depth);
         });
     }
 
@@ -275,7 +292,7 @@ void function() {
             var normalizedKey = normalizeKey(key);
 
             // Only keep styles that were declared by the author
-            if (style.cssText.indexOf(normalizedKey) == -1) continue;
+            //if (style.cssText.indexOf(normalizedKey) == -1) continue;
 
             // Chrome puts integer keys in for used props and we don't want to parse those
             if (isInteger(key)) continue;
@@ -291,9 +308,10 @@ void function() {
 
             // If there is a pseudo style clean it, other wise just pass it along
             // TODO: Come up with a better solution for parsing certain @rules
-            if (selector != undefined) {
+            if (selector) {
                 var selectorText = (selector.indexOf(':') != -1) ? cleanSelectorText(selector) : selector;
-                count = document.querySelectorAll(selectorText).length;
+                //count = document.querySelectorAll(selectorText).length;
+				count = document.querySelector(selectorText) ? 1 : 0;
             }
 
             // Since this is an inline style we know this will be applied
@@ -313,7 +331,7 @@ void function() {
                     name: normalizedKey,
                     count: 0,
                     type: type,
-                    values: []
+                    values: {}
                 };
             }
 
@@ -327,18 +345,9 @@ void function() {
                 if (value === " " || value === "") {
                     return;
                 }
+				
+				propObject.values[value] = (propObject.values[value]|0) + 1;
 
-                var valExists = valueExists(normalizedKey, value);
-                if (!valExists) {
-                    propObject.values.push({ name: value, count: count });
-                }
-                else {
-                    for (var valIndex in propObject.values) {
-                        if (propObject.values[valIndex].name == value) {
-                            propObject.values[valIndex].count += count;
-                        }
-                    }
-                }
             });
         }
     }
@@ -376,13 +385,8 @@ void function() {
      * to determine if the value exists
      */
     function valueExists(propertyName, valueName) {
-        var pvalues = CSSUsageResults.props[propertyName].values;
-        for (var vIndex in pvalues) {
-            if (pvalues[vIndex].name == valueName) {
-                return true;
-            }
-        }
-        return false;
+        return propertyExists(propertyName) && valueName in CSSUsageResults.props[propertyName].values;
+        
     }
 
     /*
@@ -392,7 +396,7 @@ void function() {
      * so we remove the pseudo selector from the selector text
      */
     function cleanSelectorText(text) {
-	return text.replace(/:(?:hover|active|focus|before|after)|::(?:before|after)/g, '');
+		return text.replace(/([*a-zA-Z]?):(?:hover|active|focus|before|after)|::(?:before|after)/g, '>>$1<<').replace(/^>><</g,'*').replace(/ >><</g,'*').replace(/>>([*a-zA-Z]?)<</g,'$1');
     }
 
     // This should be very obvious what it does
@@ -400,6 +404,219 @@ void function() {
         return (value == parseInt(value));
     }
 
+}();
+
+//
+// extracts valuable informations about selectors in use
+//
+void function() {
+	
+	var domStats = { count: 0, maxDepth: 1 };
+	
+	var cssPseudos = {};
+	var domClasses = {};
+	var cssClasses = {};
+	var domIds = {};
+	var cssIds = {};
+	
+	var cssLonelyIdGates = {__proto__:null};
+	var cssLonelyClassGates = {__proto__:null};
+	var cssLonelyClassGatesMatches = [];
+	var cssLonelyIdGatesMatches = [];
+	
+	var ID_REGEXP = /[#][a-zA-Z][-_a-zA-Z0-9]*/g;
+	var ID_REGEXP1 = /[#][a-zA-Z][-_a-zA-Z0-9]*/;
+	var CLASS_REGEXP = /[.][a-zA-Z][-_a-zA-Z0-9]*/g;
+	var CLASS_REGEXP1 = /[.][a-zA-Z][-_a-zA-Z0-9]*/;
+	var PSEUDO_REGEXP = /[:][a-zA-Z][-_a-zA-Z0-9]*/g;
+	var GATEID_REGEXP = /^\s*[#][a-zA-Z][-_a-zA-Z0-9]*([.][a-zA-Z][-_a-zA-Z0-9]*|[:][a-zA-Z][-_a-zA-Z0-9]*)*\s+[^>+{, ][^{,]+$/;
+	var GATECLASS_REGEXP = /^\s*[.][a-zA-Z][-_a-zA-Z0-9]*([:][a-zA-Z][-_a-zA-Z0-9]*)*\s+[^>+{, ][^{,]+$/;
+	function extractFeature(feature, selector, counters) {
+		var instances = (selector.match(feature)||[]).map(function(s) { return s.substr(1) });
+		instances.forEach((instance) => {
+			counters[instance] = (counters[instance]|0) + 1;
+		});
+	}
+	
+	CSSUsage.SelectorAnalyzer = function parseSelector(style, selectorsText) {
+		if(!selectorsText) return;
+			
+		var selectors = selectorsText.split(',');
+		for(var i = selectors.length; i--;) { var selector = selectors[i];
+			
+			// extract all features from the selectors
+			extractFeature(ID_REGEXP, selector, cssIds);
+			extractFeature(CLASS_REGEXP, selector, cssClasses);
+			extractFeature(PSEUDO_REGEXP, selector, cssPseudos);
+			
+			// detect specific selector patterns we're interested in
+			if(GATEID_REGEXP.test(selector)) {
+				cssLonelyIdGatesMatches.push(selector);
+				extractFeature(ID_REGEXP1, selector, cssLonelyIdGates);
+			}
+			if(GATECLASS_REGEXP.test(selector)) {
+				cssLonelyClassGatesMatches.push(selector);
+				extractFeature(CLASS_REGEXP1, selector, cssLonelyClassGates);
+			}
+		}
+		
+	}
+	
+	CSSUsage.DOMClassAnalyzer = function(element) {
+		
+		// collect classes used in the wild
+		if(element.className) {
+			var elementClasses = [].slice.call(element.classList,0);
+			elementClasses.forEach(function(c) {
+				domClasses[c] = (domClasses[c]|0) + 1;
+			});
+		}
+		
+		// collect ids used in the wild
+		if(element.id) {
+			domIds[element.id] = (domIds[element.id]|0) + 1;
+		}
+		
+	}
+	
+	CSSUsage.SelectorAnalyzer.finalize = function() {
+		
+		var domClassesArray = Object.keys(domClasses);
+		var cssClassesArray = Object.keys(cssClasses);
+		var domIdsArray = Object.keys(domIds);
+		var cssIdsArray = Object.keys(cssIds);
+
+		var cssUniqueLonelyClassGatesArray = Object.keys(cssLonelyClassGates);
+		var cssUniqueLonelyClassGatesUsedArray = cssUniqueLonelyClassGatesArray.filter((c) => domClasses[c]);
+		var cssUniqueLonelyClassGatesUsedWorthArray = cssUniqueLonelyClassGatesUsedArray.filter((c)=>(cssLonelyClassGates[c]>9));
+		console.log(cssLonelyClassGates);
+		console.log(cssUniqueLonelyClassGatesUsedWorthArray);
+
+		var cssUniqueLonelyIdGatesArray = Object.keys(cssLonelyIdGates);
+		var cssUniqueLonelyIdGatesUsedArray = cssUniqueLonelyIdGatesArray.filter((c) => domIds[c]);
+		var cssUniqueLonelyIdGatesUsedWorthArray = cssUniqueLonelyIdGatesUsedArray.filter((c)=>(cssLonelyIdGates[c]>9));
+		console.log(cssLonelyIdGates);
+		console.log(cssUniqueLonelyIdGatesUsedWorthArray);
+		
+		//
+		//
+		//
+		var detectedClearfixUsages = function(domClasses) {
+			
+			var trackedClasses = [
+				'clearfix','clear',
+			];
+			
+			return trackedClasses.reduce((a,b) => a+(domClasses[b]|0), 0);
+			
+		};
+		
+		var detectedVisibilityUsages = function(domClasses) {
+			
+			var trackedClasses = [
+				'show', 'hide', 'visible', 'hidden', 
+			];
+			
+			return trackedClasses.reduce((a,b) => a+(domClasses[b]|0), 0);
+			
+		};
+		
+		//
+		//
+		//
+		var detectedBootstrapGridUsages = function(domClasses) {
+			
+			var trackedClasses = [];
+			
+			var sizes = ['xs','sm','md','lg'];
+			for(var i = sizes.length; i--;) { var size = sizes[i];
+				for(var j = 12+1; --j;) {
+					trackedClasses.push('col-'+size+'-'+j);
+					for(var k = 12+1; --k;) {
+						trackedClasses.push('col-'+size+'-'+j+'-offset-'+k);
+						trackedClasses.push('col-'+size+'-'+j+'-push-'+k);
+						trackedClasses.push('col-'+size+'-'+j+'-pull-'+k);
+					}
+				}
+			}
+			
+			return trackedClasses.reduce((a,b) => a+(domClasses[b]|0), 0);
+			
+		};
+		
+		var detectedBootstrapFormUsages = function(domClasses) {
+			
+			var trackedClasses = [
+				'form-group', 'form-group-xs', 'form-group-sm', 'form-group-md', 'form-group-lg',
+				'form-control', 'form-horizontal', 'form-inline',
+				'btn','btn-primary','btn-secondary','btn-success','btn-warning','btn-danger','btn-error'
+			];
+			
+			return trackedClasses.reduce((a,b) => a+(domClasses[b]|0), 0);
+			
+		};
+		
+		var detectedBootstrapAlertUsages = function(domClasses) {
+			
+			var trackedClasses = [
+				'alert','alert-primary','alert-secondary','alert-success','alert-warning','alert-danger','alert-error'
+			];
+			
+			return trackedClasses.reduce((a,b) => a+(domClasses[b]|0), 0);
+			
+		};
+		
+		var detectedBootstrapFloatUsages = function(domClasses) {
+			
+			var trackedClasses = [
+				'pull-left','pull-right',
+			];
+			
+			return trackedClasses.reduce((a,b) => a+(domClasses[b]|0), 0);
+			
+		};
+
+		//
+		//
+		//
+		var results = {
+			
+			ClassesUsed: domClassesArray.length,
+			ClassesRecognized: Object.keys(cssClasses).length,
+			ClassesUsedRecognized: domClassesArray.filter(c => cssClasses[c]).length,
+			LonelyGatesClass: cssLonelyClassGatesMatches.length,
+			LonelyGatesClassUnique: cssUniqueLonelyClassGatesArray.length,
+			LonelyGatesClassUniqueUsed: cssUniqueLonelyClassGatesUsedArray.length,
+			LonelyGatesClassUniqueUsedWorth: cssUniqueLonelyClassGatesUsedWorthArray.length,
+			LonelyGatesId: cssLonelyIdGatesMatches.length,
+			LonelyGatesIdUnique: cssUniqueLonelyIdGatesArray.length,
+			LonelyGatesIdUniqueUsed: cssUniqueLonelyIdGatesUsedArray.length,
+			LonelyGatesIdUniqueUsedWorth: cssUniqueLonelyIdGatesUsedWorthArray.length,
+			
+			ClearfixUsage: detectedClearfixUsages(domClasses),
+			VisibilityUsage: detectedVisibilityUsages(domClasses),
+			
+			ClearfixRecognized: detectedClearfixUsages(cssClasses),
+			VisibilityRecognized: detectedVisibilityUsages(cssClasses),
+			
+			Bootstrap: !!((window.jQuery||window.$) && (window.jQuery||window.$).fn.modal)|0,
+			
+			BootstrapGridUsage: detectedBootstrapGridUsages(domClasses),
+			BootstrapFormUsage: detectedBootstrapFormUsages(domClasses),
+			BootstrapFloatUsage: detectedBootstrapFloatUsages(domClasses),
+			BootstrapAlertUsage: detectedBootstrapAlertUsages(domClasses),
+			
+			BootstrapGridRecognized: detectedBootstrapGridUsages(cssClasses),
+			BootstrapFormRecognized: detectedBootstrapFormUsages(cssClasses),
+			BootstrapFloatRecognized: detectedBootstrapFloatUsages(cssClasses),
+			BootstrapAlertRecognized: detectedBootstrapAlertUsages(cssClasses),
+			
+		};
+		
+		console.log(CSSUsageResults.selectorUsages = results);
+		
+	}
+		
 }();
 
 //
@@ -416,17 +633,20 @@ void function() {
 
     function onready() {
 		// Uncomment if you want to set breakpoints when running in the console
-        //debugger;
+        debugger;
 
         // Keep track of duration
         var startTime = performance.now();
 
         // register tools
         CSSUsage.StyleWalker.ruleAnalyzers.push(CSSUsage.PropertyValuesAnalyzer);
+        CSSUsage.StyleWalker.ruleAnalyzers.push(CSSUsage.SelectorAnalyzer);
+		CSSUsage.StyleWalker.elementAnalyzers.push(CSSUsage.DOMClassAnalyzer);
 
         // perform analysis
         CSSUsage.StyleWalker.parseStylesheets();
-        CSSUsage.StyleWalker.parseInlineStyle();
+        CSSUsage.StyleWalker.walkOverDomElements();
+		CSSUsage.SelectorAnalyzer.finalize();
 
         // Update duration
         CSSUsageResults.duration = performance.now() - startTime;
