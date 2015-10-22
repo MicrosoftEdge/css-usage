@@ -158,3 +158,10 @@ footer {
         font-size: 1em;
     }
 }
+
+.variables {
+	
+	--a: a;
+	--b: var(--a);
+	
+}
