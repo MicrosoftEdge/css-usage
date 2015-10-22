@@ -3,6 +3,12 @@ describe('Basic Values', function(){
     it('background-color', function(){
         chai.assert.equal(["green"][0], CSSUsage.CSSValues.createValueArray("green")[0]);
     });
+    it('1-> 0', function() {
+        chai.assert.equal('0', CSSUsage.CSSValues.parseValues("1"));
+    });
+    it('1.5 -> 0.0', function() {
+        chai.assert.equal('0.0', CSSUsage.CSSValues.parseValues("1.5"));
+    });
     it('1.5rem -> rem', function() {
         chai.assert.equal('rem', CSSUsage.CSSValues.parseValues("1.5rem"));
     });
@@ -12,8 +18,8 @@ describe('Basic Values', function(){
     it('2.5px -> px', function() {
         chai.assert.equal('px', CSSUsage.CSSValues.parseValues("2.5px"));
     });
-    it('6.78.5% -> %', function() {
-        chai.assert.equal('%', CSSUsage.CSSValues.parseValues("6.78.5%"));
+    it('6.785% -> %', function() {
+        chai.assert.equal('%', CSSUsage.CSSValues.parseValues("6.785%"));
     });
     it('-5.5em -> em', function() {
         chai.assert.equal('em', CSSUsage.CSSValues.parseValues("-5.5em"));

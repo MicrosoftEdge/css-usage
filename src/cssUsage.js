@@ -7,6 +7,22 @@ void function() {
 }
 
 //
+// Prepare the whole instrumentation world
+//
+void function() {
+	
+	var ua = navigator.userAgent;
+	window.INSTRUMENTATION_RESULTS = {
+		UA: ua.indexOf('Edge')>=0 ? 'EdgeHTML' :ua.indexOf('Chrome')>=0 ? 'Chromium' : 'Gecko',
+		UAString: ua,
+		timestamp: Date.now(),
+		css: {},
+		dom: {}
+	};
+	
+}();
+
+//
 // Prepare our global namespace
 //
 void function() {
@@ -35,7 +51,19 @@ void function() {
 		}*/
 		
 		// this will contains the usage stats of various css properties and values
-        props: Object.create(null),
+        props: Object.create(null), /*
+		props ~= {
+			"background-color": {
+				count: 10,
+				values: {
+					"color": 9,
+					"inherit": 1
+				}
+			}
+		}*/
+		
+		// this will contains the various datapoints we measure on css selector usage
+		selectorUsages: {},
 		
     }
 }();
@@ -100,7 +128,10 @@ void function() { "use strict";
                         walkOverCssRules(rule.cssRules, styleSheet);
                     }
 
-                    runRuleAnalyzers(rule.style, rule.selectorText, rule.type);
+					// Some CssRules have style we can ananlyze
+					if(rule.style) {
+						runRuleAnalyzers(rule.style, rule.selectorText, rule.type);
+					}
                 }
 
                 rulesProcessed++;
@@ -211,18 +242,22 @@ void function() {
      * to only the aspects of the value we wish to keep
      */
     function parseValues(value) {
-         if (isKeywordColor(value)) {
-            return "keyword"; // eg: white, blue, yellow
+		
+         // Map colors to colors (eg: white, blue, yellow)
+		 if (isKeywordColor(value)) {
+            return "color"; 
          }
-         else if (value.indexOf('"') != -1) {
-             return value.replace(/"/g, "");
-         }
-         else if (value.indexOf("'") != -1) {
-             return value.replace(/'/g, "");
-         }
-         else {
-             return value.replace(/(\d+)|(\-\d+)|(\.)/g, ""); // Remove any digits eg: 55px -> px
-         }
+		 
+		 // Remove any digits eg: 55px -> px, 1.5 -> 0.0, 1 -> 0
+         value = value.replace(/([+]|[-]|)(([0-9]+)([.][0-9]+|)|([.][0-9]+))([a-zA-Z%]+)/g, "$6"); 
+         value = value.replace(/([+]|[-]|)([0-9]+)([.][0-9]+)/g, "0.0");
+         value = value.replace(/([+]|[-]|)([.][0-9]+)/g, "0.0");
+         value = value.replace(/([+]|[-]|)([0-9]+)/g, "0");
+		 
+		 // Remove quotes
+		 value = value.replace(/('|‘|’|")/g, "");
+		 return value;
+		 
     }
 
     //-----------------------------------------------------------------------------
@@ -234,12 +269,12 @@ void function() {
         // Trim value on the edges
         value = value.trim();
 
-        // Remove (
+        // Remove (...)
         if (value.indexOf("(") != -1) {
-            value = value.replace(/\(([^\)]+)\)/g, "");
+            value = value.replace(/[(]([^()]+|[(]([^()]+)[)])+[)]/g, "");
         }
 
-        // Remove varous quotes
+        // Remove various quotes
         if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
             value = value.replace(/('|‘|’|")/g, "");
         }
@@ -286,44 +321,48 @@ void function() {
 	CSSUsage.PropertyValuesAnalyzer.cleanSelectorText = cleanSelectorText;
 
     // This will loop over the styles declarations
+	// TODO: Come up with a better solution for parsing certain @rules
+	var defaultStyle = getComputedStyle(document.createElement('div'));
     function parseStyle(style, selector, type, isInline) {
-        for (var key in style) {
+		
+		// We want to filter rules that are not actually used
+		var count = 0;
+		var isRuleUnsed = () => {
+			
+			// If this is an inline style we know this will be applied once
+			if (isInline == true) {
+				count += 1; 
+			}
+			
+			// If there's a selector, we can see how many times it matches
+			// If there is a pseudo style, clean it
+			if (selector) {
+				count += document.querySelectorAll(cleanSelectorText(selector)).length;
+			}
+			
+			return count == 0;
+		};
+		
+		if(isRuleUnsed()) {
+			return;
+		}
+		
+		// For each property declaration in this rule, we collect some stats
+        for (var i = style.length; i--;) {
 
-            var normalizedKey = normalizeKey(key);
-
+			var key = style[i];
+			var normalizedKey = key.replace(/^--.*/,'--var');
+			var styleValue = style.getPropertyValue(key);
+			
             // Only keep styles that were declared by the author
-            //if (style.cssText.indexOf(normalizedKey) == -1) continue;
-
-            // Chrome puts integer keys in for used props and we don't want to parse those
-            if (isInteger(key)) continue;
-
-            var styleValue = style[key]; // Get the value of the current style property (eg: color: _black_)
-
             // We need to make sure we're only checking string props
-            if (typeof styleValue !== 'string' && styleValue != "" && styleValue != undefined) {
+			var isValueInvalid = () => (typeof styleValue !== 'string' && styleValue != "" && styleValue != undefined);
+			var isPropertyUndefined = () => (style.cssText.indexOf(key+':') == -1 && (styleValue=='initial' || styleValue==defaultStyle.getPropertyValue(key)));
+			
+            if (isValueInvalid() || isPropertyUndefined()) {
                 continue;
             }
-
-            var count = 0;
-
-            // If there is a pseudo style clean it, other wise just pass it along
-            // TODO: Come up with a better solution for parsing certain @rules
-            if (selector) {
-                var selectorText = (selector.indexOf(':') != -1) ? cleanSelectorText(selector) : selector;
-                //count = document.querySelectorAll(selectorText).length;
-				count = document.querySelector(selectorText) ? 1 : 0;
-            }
-
-            // Since this is an inline style we know this will be applied
-            // one time
-            if (isInline == true) {
-                count = 1;
-            }
-
-            if (count == 0 || selector == undefined) continue;
-
-            var values = CSSUsage.CSSValues.createValueArray(styleValue);
-
+			
             // instanciate or fetch the property metadata
             var propObject = CSSUsageResults.props[normalizedKey];
             if (!propObject) {
@@ -335,10 +374,11 @@ void function() {
                 };
             }
 
-
             // increment the amount of affected elements
             propObject.count += count;
 
+			// add newly found values too
+            var values = CSSUsage.CSSValues.createValueArray(styleValue);
             values.forEach(function (value) {
                 value = CSSUsage.CSSValues.parseValues(value);
 
@@ -346,7 +386,7 @@ void function() {
                     return;
                 }
 				
-				propObject.values[value] = (propObject.values[value]|0) + 1;
+				propObject.values[value] = (propObject.values[value]|0) + count;
 
             });
         }
@@ -396,13 +436,12 @@ void function() {
      * so we remove the pseudo selector from the selector text
      */
     function cleanSelectorText(text) {
-		return text.replace(/([*a-zA-Z]?):(?:hover|active|focus|before|after)|::(?:before|after)/g, '>>$1<<').replace(/^>><</g,'*').replace(/ >><</g,'*').replace(/>>([*a-zA-Z]?)<</g,'$1');
-    }
-
-    // This should be very obvious what it does
-    function isInteger(value) {
-        return (value == parseInt(value));
-    }
+		if(text.indexOf(':') == -1) {
+			return text;
+		} else {
+			return text.replace(/([*a-zA-Z]?):(?:hover|active|focus|before|after)|::(?:before|after)/g, '>>$1<<').replace(/^>><</g,'*').replace(/ >><</g,'*').replace(/>>([*a-zA-Z]?)<</g,'$1');
+		}
+	}
 
 }();
 
@@ -626,14 +665,20 @@ void function() {
 void function() {
 
     if(document.readyState !== 'complete') {
-        document.addEventListener("DOMContentLoaded", onready);
+        window.addEventListener('load', onready);
+		setTimeout(onready, 10000);
     } else {
         onready();
     }
 
     function onready() {
+		
+		// Prevent this code from running multiple times
+		var firstTime = !onready.hasAlreadyRun; onready.hasAlreadyRun = true;
+		if(!firstTime) { return; /* for now... */ }
+		
 		// Uncomment if you want to set breakpoints when running in the console
-        debugger;
+        //debugger;
 
         // Keep track of duration
         var startTime = performance.now();
@@ -655,8 +700,9 @@ void function() {
         console.log(CSSUsageResults);
 
         // Convert it to a more efficient format
-        var getValuesOf = Object.values || function(o) { return Object.keys(o).map(function(k) { return o[k]; }) };
-        CSSUsageResults.props = getValuesOf(CSSUsageResults.props);
+		INSTRUMENTATION_RESULTS.css = CSSUsageResults;
+        //var getValuesOf = Object.values || function(o) { return Object.keys(o).map(function(k) { return o[k]; }) };
+        //CSSUsageResults.props = getValuesOf(CSSUsageResults.props);
 
     }
 
