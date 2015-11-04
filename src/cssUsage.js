@@ -642,6 +642,9 @@ void function() {
         // Trim whitespace
         value = value.trim();
         
+        // Remove unnecessary * to match Chrome
+        value = value.replace(/[*]([#.\x5B:])/g,'$1');
+        
         // Now we can sort components so that all browsers give results similar to Chrome
         var ID_REGEXP = "[#]id";          // #id
         var CLASS_REGEXP = "[.]class"; // .class
