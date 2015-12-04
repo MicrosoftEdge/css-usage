@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../src/cssUsage.js"></script>
+	<style>
+		
+		@font-face {
+			
+			font-family: "test";
+			src: url(404.woff);
+			
+			unicode-range: U+0025-00FF;
+			non-sense: non-sense;
+			
+		}
+		
+		@font-face {
+			
+			font-family: "test";
+			src: url(404.woff);
+			
+		}
+		
+		@keyframes redblue {
+			
+			from { color: red; }
+			to   { color: blue; }
+			
+		}
+	
+	</style>
+</head>
+<body>
+	
+	<span style="animation: redblue 2s infinite">REDBLUE</span>
+	
+	<script>
+		
+		var log = console.log.bind(console); console.log=function(){};
+		var ASSERT = function(test) {
+			
+			var expression = (''+test+'').replace(/^[^=]*=>\s*([(](.*)[)]|[^(](.*)[^)]?)\s*$/,'$2').trim();
+			var result; try { result = test(); } catch(ex) { result = ex; };
+			
+			log(expression + ' //', result);
+			if(result !== true) { debugger; }
+			
+		};
+		
+		setTimeout(function() {
+			
+			var css = window.css = INSTRUMENTATION_RESULTS.css;
+			
+			//
+			// Our style sheet has 2 font-faces, 1 keyframes, 2 keyframes
+			//
+			ASSERT(()=>(  css.types[0] == 0  ));
+			ASSERT(()=>(  css.types[1] == 0  ));
+			ASSERT(()=>(  css.types[5] == 2  ));
+			ASSERT(()=>(  css.types[7] == 1  ));
+			ASSERT(()=>(  css.types[8] == 2  ));
+			
+			//
+			// 1 <span> should have "animation-name" but not "animation-timing-function"
+			//
+			ASSERT(()=>(  css.props['animation-name'].count == 1  ));
+			ASSERT(()=>(  css.props['animation-duration'].count == 1  ));
+			ASSERT(()=>(  css.props['animation-timing-function'] == undefined  ));
+			
+			//
+			// Inline styles propagate properly as virtual selectors
+			//
+			ASSERT(()=>(  css.rules['@inline'].props['animation-name'] == 1  ));
+			ASSERT(()=>(  css.rules['@inline:SPAN'].props['animation-name'] == 1  ));
+
+			//
+			// There are two declarations of 'color' in a @keyframe
+			// but only one element has the 'color' property applied on it (the <span>)
+			//
+			ASSERT(()=>(  css.rules['@atrule:8'].props['color'] == 2  ));
+			ASSERT(()=>(  css.props['color'].count == 1  ));
+			
+			//
+			// We can fetch the properties of the @font-face's properly
+			// but those do not affect the DOM counting
+			//
+			ASSERT(()=>(  css.rules['@atrule:5'].props['font-family'] == 2  ));
+			ASSERT(()=>(  css.rules['@atrule:5'].props['src'] == 2  ));
+			ASSERT(()=>(  !css.props['font-family']  ));
+			ASSERT(()=>(  !css.props['src']  ));
+			
+		}, 250);
+		
+	</script>
+	
+</body>
+</html>

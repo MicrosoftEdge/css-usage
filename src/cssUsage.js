@@ -2,8 +2,13 @@
 // Guards execution against invalid conditions
 //
 void function() {
+    
     // Don't run in subframes for now
     if (window.self !== window.top) throw new Error("CSSUsage: the script doesn't run in frames for now");
+    
+    // Don't run if already ran
+    if (window.INSTRUMENTATION_RESULTS) console.warn("CSSUsage: only one run will be executed; check the right version was chosen");
+    
 }
 
 //
@@ -18,7 +23,7 @@ void function() {
         UASTRING: ua,
         URL: location.href,
         TIMESTAMP: Date.now(),
-        css: {},
+        css: {/*  see CSSUsageResults  */},
         dom: {}
     };
     window.INSTRUMENTATION_RESULTS_TSV = [];
@@ -69,7 +74,7 @@ void function() {
         usages: {},
         
         // this will contain selectors and the properties they refer to
-        rules: {"@stylerule":undefined,"@atrule":undefined,"@inline":undefined}, /*
+        rules: {"@stylerule":0,"@atrule":0,"@inline":0}, /*
         rules ~= {
             "#id:hover .class": {
                 count: 10,
@@ -93,7 +98,7 @@ void function() { "use strict";
     CSSUsage.StyleWalker = {
         
         // This array contains the list of functions being run on each CSSStyleDeclaration
-        // [ function(style, selectorText_matchCount_or_element, ruleType) { ... }, ... ]
+        // [ function(style, selectorText, matchedElements, ruleType) { ... }, ... ]
         ruleAnalyzers: [],
         
         // This array contains the list of functions being run on each DOM element of the page
@@ -121,10 +126,14 @@ void function() { "use strict";
         var styleSheets = document.styleSheets;
 
         // Loop through StyeSheets
-        for (var ssIndex in styleSheets) {
+        for (var ssIndex = styleSheets.length; ssIndex--;) {
             var styleSheet = styleSheets[ssIndex];
             try {
-                walkOverCssRules(styleSheet.cssRules, styleSheet);
+                if(styleSheet.cssRules) {
+                    walkOverCssRules(styleSheet.cssRules, styleSheet);
+                } else {
+                    console.warn("No content loaded for stylesheet: ", styleSheet.href||styleSheet);
+                }
             }
             catch (e) {
                 console.log(e, e.stack);
@@ -139,9 +148,9 @@ void function() { "use strict";
         var animations = (CSSUsageResults.props['animation-name']||{}).values||{};
         for(var animation in keyframes) {
             var keyframe = keyframes[animation];
-            var count = animations[animation];
-            keyframes[animation] = null
-            processRule(keyframe, count|0);
+            var matchCount = animations[animation]|0;
+            var fakeElements = initArray(matchCount, (i)=>({tagName:'@keyframes '+animation+' ['+i+']'}));
+            processRule(keyframe, fakeElements);
         }
 
     }
@@ -150,7 +159,7 @@ void function() { "use strict";
      * This is the css work horse, this will will loop over the
      * rules and then call the rule analyzers currently registered
      */
-    function walkOverCssRules(/*CSSRuleList*/ cssRules, styleSheet) {
+    function walkOverCssRules(/*CSSRuleList*/ cssRules, styleSheet, parentMatchedElements) {
         for (var ruleIndex = cssRules.length; ruleIndex--;) {
 
             // Loop through the rules
@@ -169,7 +178,7 @@ void function() { "use strict";
             }
                 
             // Other rules should be processed immediately
-            processRule(rule);
+            processRule(rule,parentMatchedElements);
                 
 
         }
@@ -180,7 +189,7 @@ void function() { "use strict";
      * [1] walk over its child rules if needed
      * [2] call rule analyzers for that rule if it has style data
      */
-    function processRule(rule, count) {
+    function processRule(rule, parentMatchedElements) {
         
         // Increment the rule type's counter
         CSSUsageResults.types[rule.type|0]++; 
@@ -188,21 +197,35 @@ void function() { "use strict";
         // Some CssRules have nested rules to walk through:
         if (rule.cssRules && rule.cssRules.length>0) {
             
-            walkOverCssRules(rule.cssRules, rule.parentStyleSheet);
+            walkOverCssRules(rule.cssRules, rule.parentStyleSheet, parentMatchedElements);
             
         }
 
         // Some CssRules have style we can ananlyze
         if(rule.style) {
             
-            var selectorText_matchCount_or_element = (
-                // if we have a count, use that count
-                // else, use the selector text of the current rule
-                // else, use a count of 0, which will not increment usage counters
-                count!=undefined ? count : rule.selectorText||0
-            );
+            // find what the rule applies to
+            var selectorText;
+            var matchedElements; 
+            if(rule.selectorText) {
+                selectorText = rule.selectorText;
+                if(parentMatchedElements) {
+                    matchedElements = [].slice.call(document.querySelectorAll(selectorText));
+                    matchedElements.parentMatchedElements = parentMatchedElements;
+                } else {
+                    matchedElements = [].slice.call(document.querySelectorAll(selectorText));
+                }
+            } else {
+                selectorText = '@atrule:'+rule.type;
+                if(parentMatchedElements) {
+                    matchedElements = parentMatchedElements;
+                } else {
+                    matchedElements = [];
+                }
+            }
             
-            runRuleAnalyzers(rule.style, selectorText_matchCount_or_element, rule.type);
+            // run an analysis on it
+            runRuleAnalyzers(rule.style, selectorText, matchedElements, rule.type);
             
         }
     }
@@ -225,17 +248,12 @@ void function() { "use strict";
             // Analyze its style, if any
             if (element.hasAttribute('style')) {
                 
-                
-                // Inline styles count like a style rule with an element as selector
+                // Inline styles count like a style rule with no selector but one matched element
                 var ruleType = 1;
                 var isInline = true;
-                var selectorText_matchCount_or_element = (
-                    // We know only one element matches the style,
-                    // and we know which one:
-                    element
-                );
-                
-                runRuleAnalyzers(element.style, selectorText_matchCount_or_element, ruleType, isInline);
+                var selectorText = '@inline:'+element.tagName;
+                var matchedElements = [element];
+                runRuleAnalyzers(element.style, selectorText, matchedElements, ruleType, isInline);
                 
             }
         }
@@ -245,7 +263,7 @@ void function() { "use strict";
     /**
      * Given a rule and its data, send it to all rule analyzers
      */
-    function runRuleAnalyzers(style, selectorText_matchCount_or_element, type, isInline) {
+    function runRuleAnalyzers(style, selectorText, matchedElements, type, isInline) {
         
         // Keep track of the counters
         if(isInline) {
@@ -256,7 +274,7 @@ void function() { "use strict";
         
         // Run all rule analyzers
         CSSUsage.StyleWalker.ruleAnalyzers.forEach(function(runAnalyzer) {
-            runAnalyzer(style, selectorText_matchCount_or_element, type, isInline);
+            runAnalyzer(style, selectorText, matchedElements, type, isInline);
         });
         
     }
@@ -268,6 +286,17 @@ void function() { "use strict";
         CSSUsage.StyleWalker.elementAnalyzers.forEach(function(runAnalyzer) {
             runAnalyzer(element,index,depth);
         });
+    }
+    
+    /**
+     * Creates an array of "length" elements, by calling initializer for each cell
+     */
+    function initArray(length, initializer) {
+        var array = Array(length);
+        for(var i = length; i--;) { 
+            array[i] = initializer(i);
+        }
+        return array;
     }
 
 }();
@@ -402,54 +431,13 @@ void function() {
     var defaultStyle = getComputedStyle(document.createElement('div'));
     
     /** This will loop over the styles declarations */
-    function analyzeStyleOfRule(style, selectorText_matchCount_or_element, type, isInline) {
+    function analyzeStyleOfRule(style, selectorText, matchedElements, type, isInline) { isInline=!!isInline;
         
         // We want to filter rules that are not actually used
-        var count = (typeof selectorText_matchCount_or_element == 'number') ? selectorText_matchCount_or_element|0 : undefined;
-        var selector = (typeof selectorText_matchCount_or_element == 'string') ? selectorText_matchCount_or_element : undefined;
-        var selectorCat = /* either one of '@stylerule', '@inline' or '@atrule'*/undefined;
-        var matchedElement = (typeof selectorText_matchCount_or_element == 'object') ? selectorText_matchCount_or_element : undefined;
-        var matchedElements = [];
-        var isRuleUnsed = () => {
-            
-            // If we get a count, we can trust it
-            if(typeof count == 'number') {
-                
-                selectorCat = '@atrule';
-                selector = '@atrule:'+type;
-                
-            } else {
-                
-                // reset count to 0
-                count = 0;
-                
-                // If there's a selector, we can see how many times it matches
-                // If there is a pseudo style, clean it
-                if (selector !== undefined) {
-                    
-                    selectorCat = '@stylerule';
-                    
-                    var matchedElementsNL = document.querySelectorAll(cleanSelectorText(selector))
-                    matchedElements = [].slice.call(matchedElementsNL, 0);
-                    count += matchedElements.length;
-                    
-                }
-            
-                // If this is an inline style we know this will be applied once
-                if (matchedElement !== undefined) {
-                    
-                    selectorCat = '@inline';
-                    selector = '@inline:'+matchedElement.tagName;
-                    
-                    matchedElements.push(matchedElement);
-                    count += 1; 
-                    
-                }
-            
-            }
-            
-            return count == 0;
-        };
+        var count = matchedElements.length;
+        var selector = selectorText;
+        var selectorCat = {'1:true':'@inline','1:false':'@stylerule'}[''+type+':'+isInline]||'@atrule';
+        var isRuleUnsed = () => (count == 0);
         
         // Keep track of unused rules
         if(isRuleUnsed()) {
@@ -801,12 +789,18 @@ void function() {
         // (modernizer stats)
         //
         
-        var detectedModernizerUsages = function(domClasses) {
+        var detectedModernizerUsages = function(cssLonelyClassGates) {
             
             var ModernizerUsages = {count:0,values:{/*  "js":1,  "no-js":2  */}};
             var trackedClasses = ["js","ambientlight","applicationcache","audio","batteryapi","blobconstructor","canvas","canvastext","contenteditable","contextmenu","cookies","cors","cryptography","customprotocolhandler","customevent","dart","dataview","emoji","eventlistener","exiforientation","flash","fullscreen","gamepads","geolocation","hashchange","hiddenscroll","history","htmlimports","ie8compat","indexeddb","indexeddbblob","input","search","inputtypes","intl","json","olreversed","mathml","notification","pagevisibility","performance","pointerevents","pointerlock","postmessage","proximity","queryselector","quotamanagement","requestanimationframe","serviceworker","svg","templatestrings","touchevents","typedarrays","unicoderange","unicode","userdata","vibrate","video","vml","webintents","animation","webgl","websockets","xdomainrequest","adownload","audioloop","audiopreload","webaudio","lowbattery","canvasblending","todataurljpeg,todataurlpng,todataurlwebp","canvaswinding","getrandomvalues","cssall","cssanimations","appearance","backdropfilter","backgroundblendmode","backgroundcliptext","bgpositionshorthand","bgpositionxy","bgrepeatspace,bgrepeatround","backgroundsize","bgsizecover","borderimage","borderradius","boxshadow","boxsizing","csscalc","checked","csschunit","csscolumns","cubicbezierrange","display-runin","displaytable","ellipsis","cssescape","cssexunit","cssfilters","flexbox","flexboxlegacy","flexboxtweener","flexwrap","fontface","generatedcontent","cssgradients","hsla","csshyphens,softhyphens,softhyphensfind","cssinvalid","lastchild","cssmask","mediaqueries","multiplebgs","nthchild","objectfit","opacity","overflowscrolling","csspointerevents","csspositionsticky","csspseudoanimations","csspseudotransitions","cssreflections","regions","cssremunit","cssresize","rgba","cssscrollbar","shapes","siblinggeneral","subpixelfont","supports","target","textalignlast","textshadow","csstransforms","csstransforms3d","preserve3d","csstransitions","userselect","cssvalid","cssvhunit","cssvmaxunit","cssvminunit","cssvwunit","willchange","wrapflow","classlist","createelementattrs,createelement-attrs","dataset","documentfragment","hidden","microdata","mutationobserver","bdi","datalistelem","details","outputelem","picture","progressbar,meter","ruby","template","time","texttrackapi,track","unknownelements","es5array","es5date","es5function","es5object","es5","strictmode","es5string","es5syntax","es5undefined","es6array","contains","generators","es6math","es6number","es6object","promises","es6string","devicemotion,deviceorientation","oninput","filereader","filesystem","capture","fileinput","directory","formattribute","localizednumber","placeholder","requestautocomplete","formvalidation","sandbox","seamless","srcdoc","apng","jpeg2000","jpegxr","sizes","srcset","webpalpha","webpanimation","webplossless,webp-lossless","webp","inputformaction","inputformenctype","inputformmethod","inputformtarget","beacon","lowbandwidth","eventsource","fetch","xhrresponsetypearraybuffer","xhrresponsetypeblob","xhrresponsetypedocument","xhrresponsetypejson","xhrresponsetypetext","xhrresponsetype","xhr2","scriptasync","scriptdefer","speechrecognition","speechsynthesis","localstorage","sessionstorage","websqldatabase","stylescoped","svgasimg","svgclippaths","svgfilters","svgforeignobject","inlinesvg","smil","textareamaxlength","bloburls","datauri","urlparser","videoautoplay","videoloop","videopreload","webglextensions","datachannel","getusermedia","peerconnection","websocketsbinary","atob-btoa","framed","matchmedia","blobworkers","dataworkers","sharedworkers","transferables","webworkers"];
-            trackedClasses.forEach(function(c) { var count = cssLonelyClassGates[c]; if(!count) return; ModernizerUsages.count += count; ModernizerUsages.values[c]=count; });
+            trackedClasses.forEach(function(c) { countInstancesOfTheClass(c); countInstancesOfTheClass('no-'+c); });
             return ModernizerUsages;
+            
+            function countInstancesOfTheClass(c) {
+                var count = cssLonelyClassGates[c]; if(!count) return; 
+                ModernizerUsages.count += count; 
+                ModernizerUsages.values[c]=count; 
+            }
             
         }
 
@@ -842,7 +836,8 @@ void function() {
             
             // framework usage stats (see before)
             Modernizer: !!window.Modernizer,
-            ModernizerUsages: detectedModernizerUsages(domClasses),
+            ModernizerDOMUsages: detectedModernizerUsages(domClasses),
+            ModernizerCSSUsages: detectedModernizerUsages(cssLonelyClassGates),
            
             Bootstrap: !!((window.jQuery||window.$) && (window.jQuery||window.$).fn.modal)|0,
             
