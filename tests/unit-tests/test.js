@@ -27,6 +27,12 @@ describe('Basic Values', function(){
     it('-65px -> px', function() {
         chai.assert.equal('px', CSSUsage.CSSValues.parseValues("-65px"));
     });
+    it('#aaa -> #0', function() {
+       chai.assert.equal('#0', CSSUsage.CSSValues.parseValues("#aaa"));
+    });
+    it('#aaaaaa -> #0', function() {
+       chai.assert.equal('#0', CSSUsage.CSSValues.parseValues("#aaaaaa"));
+    });
     it('table-cell', function() {
         chai.assert.equal('table-cell', CSSUsage.CSSValues.parseValues("table-cell"));
     });
@@ -42,13 +48,17 @@ describe('Prefixed Values', function(){
 // Shorthands
 describe('Shorthand & Complex Values', function() {
     it('background', function() {
-        chai.assert.equal(['linear-gradient'][0], CSSUsage.CSSValues.createValueArray('linear-gradient( 45deg, blue, red ) no-repeat')[0]);
+        chai.assert.equal('linear-gradient', CSSUsage.CSSValues.createValueArray('linear-gradient( 45deg, blue, red ) no-repeat')[0]);
+        chai.assert.equal('no-repeat', CSSUsage.CSSValues.createValueArray('linear-gradient( 45deg, blue, red ) no-repeat')[1]);
     });
     it('font-family: initial testing of comma seperated vals', function() {
-        chai.assert.equal('baskerville,baskerville old face,hoefler text,garamond,times new roman,serif', CSSUsage.CSSValues.createValueArray('Baskerville,Baskerville Old Face,Hoefler Text,Garamond,Times New Roman,serif').join(','));
+        chai.assert.equal('baskerville,baskerville old face,hoefler text,garamond,times new roman,serif', CSSUsage.CSSValues.createValueArray('Baskerville,Baskerville Old Face,Hoefler Text,Garamond,Times New Roman,serif','font-family').join(','));
     });
     it('font-family: just more parsing due to bugs in initial implementation because this value sneaked through due to issue with indexOf', function() {
-        chai.assert.equal('roboto', CSSUsage.CSSValues.createValueArray('roboto,arial,sans-serif')[0]);
+        chai.assert.equal('roboto', CSSUsage.CSSValues.createValueArray('roboto,arial,sans-serif','font-family')[0]);
+    });
+    it('box-shadow: initial testing of comma seperated vals', function() {
+        chai.assert.equal('3px,blue,1em,red', CSSUsage.CSSValues.createValueArray('3px blue , 1em red','box-shadow').join(','));
     });
 });
 
@@ -77,7 +87,7 @@ describe('Function Values', function() {
     })
 });
 
-describe('Selectors', function(){
+describe('Matchable Selectors', function(){
     it('a:hover -> a', function() {
         chai.assert.equal('a', CSSUsage.PropertyValuesAnalyzer.cleanSelectorText('a:hover'));
     });
@@ -101,15 +111,48 @@ describe('Selectors', function(){
     });
 });
 
+describe('Anonymized Selectors', function(){
+    it('#id1>#id2+#id3 -> #id > #id + #id', function() {
+        chai.assert.equal('#id > #id + #id', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('#id1>#id2+#id3')[0]);
+    });
+    it('div.box:hover -> div.class:hover', function() {
+        chai.assert.equal('div.class:hover', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('div.box:hover')[0]);
+    });
+    it('.class1.class2.class3 -> .class.class.class', function() {
+        chai.assert.equal('.class.class.class', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('.class1.class2.class3')[0]);
+    });
+    it('.class1 .class2 .class3 -> .class .class .class', function() {
+        chai.assert.equal('.class .class .class', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('.class1 .class2 .class3')[0]);
+    });
+    it('.-class1 ._class2 .Class3 -> .class .class .class', function() {
+        chai.assert.equal('.class .class .class', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('.-class1 ._class2 .Class3')[0]);
+    });
+    it(':nth-child(2n+1) -> :nth-child', function() {
+        chai.assert.equal(':nth-child', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf(':nth-child(2n+1)')[0]);
+    });
+    it(':not([attribute*="-3-"]) -> :not', function() {
+        chai.assert.equal(':not', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf(':not([attribute*="-3-"])')[0]);
+    });
+    it('div.a#b[c][d].e#f -> div#id#id.class.class[att][att]', function() {
+        chai.assert.equal('div#id#id.class.class[att][att]', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('div.a#b[c][d].e#f')[0]);
+    });
+});
+
 // Misc
 describe('Normalizing Values', function() {
-    it('remove fancy apostrophes', function() {
-        chai.assert.equal('word', CSSUsage.CSSValues.normalizeValue('‘word’'));
+    it('[font-family] remove fancy apostrophes', function() {
+        chai.assert.equal('word', CSSUsage.CSSValues.parseValues('‘word’','font-family'));
     });
-    it('remove regular apostrophes', function() {
-        chai.assert.equal('word', CSSUsage.CSSValues.normalizeValue("'word'"));
+    it('[font-family] remove regular apostrophes', function() {
+        chai.assert.equal('word', CSSUsage.CSSValues.parseValues("'word'",'font-family'));
     });
     it('trim values', function() {
-        chai.assert.equal('word', CSSUsage.CSSValues.normalizeValue(" word "));
+        chai.assert.equal('word', CSSUsage.CSSValues.parseValues(" word "));
+    });
+    it('grid-template: bracket identifiers', function() {
+        chai.assert.equal('[names]', CSSUsage.CSSValues.parseValues('[start]','grid-template'));
+    });
+    it('--var: bracket islands', function() {
+        chai.assert.equal('{...}', CSSUsage.CSSValues.parseValues('{toto:true}','--var'));
     });
 });

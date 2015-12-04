@@ -7,26 +7,7 @@ void function() {
     if (window.self !== window.top) throw new Error("CSSUsage: the script doesn't run in frames for now");
     
     // Don't run if already ran
-    if (window.INSTRUMENTATION_RESULTS) console.warn("CSSUsage: only one run will be executed; check the right version was chosen");
-    
-}
-
-//
-// Prepare the whole instrumentation world
-//
-void function() {
-    
-    var ua = navigator.userAgent;
-    var uaName = ua.indexOf('Edge')>=0 ? 'EDGE' :ua.indexOf('Chrome')>=0 ? 'CHROME' : 'FIREFOX';
-    window.INSTRUMENTATION_RESULTS = {
-        UA: uaName,
-        UASTRING: ua,
-        URL: location.href,
-        TIMESTAMP: Date.now(),
-        css: {/*  see CSSUsageResults  */},
-        dom: {}
-    };
-    window.INSTRUMENTATION_RESULTS_TSV = [];
+    if (window.CSSUsage) throw new Error("CSSUsage: only one run will be executed; check the right version was chosen");
     
 }();
 
@@ -316,10 +297,10 @@ void function() {
      * This takes a string value and will create
      * an array from it.
      */
-    function createValueArray(value) {
+    function createValueArray(value, propertyName) {
         var values = new Array();
 
-        value = normalizeValue(value);
+        value = normalizeValue(value, propertyName);
 
         // Parse values like: width 1s height 5s time 2s
         if (Array.isArray(value)) {
@@ -345,22 +326,58 @@ void function() {
      * This will take a string value and reduce it down
      * to only the aspects of the value we wish to keep
      */
-    function parseValues(value) {
+    function parseValues(value,propertyName) {
         
-         // Map colors to colors (eg: white, blue, yellow)
-         if (isKeywordColor(value)) {
-            return "color"; 
-         }
+        // Trim value on the edges
+        value = value.trim();
+        
+        // Normalize letter-casing
+        value = value.toLowerCase();
+
+        // Map colors to a standard value (eg: white, blue, yellow)
+        value = value.replace(/[#][0-9a-fA-F]+/g, '#000');
+        if (isKeywordColor(value)) {
+           return "color"; 
+        }
+        
+        // Remove any digits eg: 55px -> px, 1.5 -> 0.0, 1 -> 0
+        value = value.replace(/([+]|[-]|)(([0-9]+)([.][0-9]+|)|([.][0-9]+))([a-zA-Z%]+)/g, "$6"); 
+        value = value.replace(/([+]|[-]|)([0-9]+)([.][0-9]+)/g, "0.0");
+        value = value.replace(/([+]|[-]|)([.][0-9]+)/g, "0.0");
+        value = value.replace(/([+]|[-]|)([0-9]+)/g, "0");
+        
+        // Remove quotes
+        value = value.replace(/('|‘|’|")/g, "");
+        
+        //
+        switch(propertyName) {
+            case 'counter-increment':
+            case 'counter-reset':
+                
+                // Anonymize the user identifier
+                value = value.replace(/[-_a-zA-Z0-9]+/g,'iden');
+                break;
+                
+            case 'grid':
+            case 'grid-template':
+            case 'grid-template-rows':
+            case 'grid-template-columns':
+            case 'grid-template-areas':
+                
+                // Anonymize line names
+                value = value.replace(/\[[-_a-zA-Z0-9 ]+\]/g,'[names]');
+                break;
+                
+            case '--var':
+            
+                // Replace {...} and [...]
+                value = value.replace(/\[([^\[\]]+|\[[^\[\]]+\])+\]/g, "[...]");
+                value = value.replace(/\{([^\{\}]+|\{[^\{\}]+\})+\}/g, "{...}");
+                break;
+                
+        }
          
-         // Remove any digits eg: 55px -> px, 1.5 -> 0.0, 1 -> 0
-         value = value.replace(/([+]|[-]|)(([0-9]+)([.][0-9]+|)|([.][0-9]+))([a-zA-Z%]+)/g, "$6"); 
-         value = value.replace(/([+]|[-]|)([0-9]+)([.][0-9]+)/g, "0.0");
-         value = value.replace(/([+]|[-]|)([.][0-9]+)/g, "0.0");
-         value = value.replace(/([+]|[-]|)([0-9]+)/g, "0");
-         
-         // Remove quotes
-         value = value.replace(/('|‘|’|")/g, "");
-         return value;
+        return value;
          
     }
 
@@ -370,37 +387,48 @@ void function() {
      * This will normalize the values so that
      * we only keep the unique values
      */ 
-    function normalizeValue(value) {
+    function normalizeValue(value, propertyName) {
 
         // Trim value on the edges
         value = value.trim();
+        
+        // Normalize letter-casing
+        value = value.toLowerCase();
 
         // Remove (...)
         if (value.indexOf("(") != -1) {
             value = value.replace(/[(]([^()]+|[(]([^()]+)[)])+[)]/g, "");
         }
-
-        // Remove various quotes
-        if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
-            value = value.replace(/('|‘|’|")/g, "");
+        
+        // Do the right thing in function of the property
+        switch(propertyName) {
+            case 'font-family':
+                
+                // Remove various quotes
+                if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
+                    value = value.replace(/('|‘|’|")/g, "");
+                }
+                
+                // Divide at commas to separate different font names
+                value = value.split(",");
+                return value;
+                
+            case '--var':
+            
+                // Group {...} and [...]
+                value = value.replace(/\[([^\[\]]+|\[[^\[\]]+\])+\]/g, "[...]");
+                value = value.replace(/\{([^\{\}]+|\{[^\{\}]+\})+\}/g, "{...}");
+                break;
+                
         }
-
-        // Normalize letter-casing
-        value = value.toLowerCase();
-
-        // We need to check if there are commas or spaces and
-        // split on those so that we can keep track of each
-        if(value.indexOf(",") != -1) {
-            value = value.split(",");
-            
-        } else if(value.indexOf(" ") != -1) {
-            value = value.split(" ");
-            
-        } else {
-            value = [ value ];
-            
-        }
-
+        
+        // Replace strings by dummies
+        value = value.replace(/"([^"]|\\")*"/g,'"..."')
+                     .replace(/'([^']|\\')*'/g,'"..."');
+        
+        // Divide at commas and spaces to separate different values
+        value = value.split(/\s*,\s*|\s+/g);
+        
         return value;
     }
 
@@ -426,6 +454,7 @@ void function() {
 
     CSSUsage.PropertyValuesAnalyzer = analyzeStyleOfRule;
     CSSUsage.PropertyValuesAnalyzer.cleanSelectorText = cleanSelectorText;
+    CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf = generalizedSelectorsOf;
 
     // We put a computed style in cache for filtering purposes
     var defaultStyle = getComputedStyle(document.createElement('div'));
@@ -445,35 +474,80 @@ void function() {
         }
         
         // We need a generalized selector to collect some stats
-        // TODO: transform this into an array of generalized selectors
-        var generalizedSelector1 = selectorCat;
-        var generalizedSelector2 = (selectorCat=='@stylerule') ? generalizedSelectorOf(selector) : selector;
+        var generalizedSelectors = (
+            (selectorCat=='@stylerule')
+                ? [selectorCat].concat(generalizedSelectorsOf(selector))
+                : [selectorCat, selector]
+        );
+        
+        // Get the datastores of the generalized selectors
+        var generalizedSelectorsData = generalizedSelectors.map((generalizedSelector) => (
+            CSSUsageResults.rules[generalizedSelector] || (CSSUsageResults.rules[generalizedSelector] = {count:0,props:{}})
+        ));
         
         // Increment the occurence counter of found generalized selectors
-        var generalizedSelectorData1 = CSSUsageResults.rules[generalizedSelector1] || (CSSUsageResults.rules[generalizedSelector1] = {count:0,props:{}});
-        var generalizedSelectorData2 = CSSUsageResults.rules[generalizedSelector2] || (CSSUsageResults.rules[generalizedSelector2] = {count:0,props:{}});
-        generalizedSelectorData1.count++;
-        generalizedSelectorData2.count++;
+        generalizedSelectorsData.forEach((generalizedSelectorData) => {
+            generalizedSelectorData.count++
+        })
         
         // For each property declaration in this rule, we collect some stats
         for (var i = style.length; i--;) {
 
-            var key = style[i];
+            var key = style[i], rootKey = key.replace(/[-].*/,'');
             var normalizedKey = key.replace(/^--.*/,'--var');
             var styleValue = style.getPropertyValue(key);
             
             // Only keep styles that were declared by the author
             // We need to make sure we're only checking string props
             var isValueInvalid = () => (typeof styleValue !== 'string' && styleValue != "" && styleValue != undefined);
-            var isPropertyUndefined = () => (style.cssText.indexOf(key+':') == -1 && (styleValue=='initial' || styleValue==defaultStyle.getPropertyValue(key)));
+            var isPropertyUndefined = () => (((' '+style.cssText).indexOf(' '+key+':') == -1) && (styleValue=='initial' || !valueExistsInRootProperty(key, styleValue)));
+            var valueExistsInRootProperty = (key,value) => { 
+                // avoid most common browser lies
+                var cssText = ' '+style.cssText; value = value.trim();
+                if(navigator.userAgent.indexOf('Edge')>=0) {
+                    if(key == 'border-image-source' && value=='none') { return false; }
+                    if(key == 'border-image-outset' && value=='0') { return false; }
+                    if(key == 'border-image-width' && value=='1') { return false; }
+                    if(/border-([a-zA-Z]+)-width/i.test(key) && value=='medium') { return false; }
+                    cssText = cssText.replace(/border: medium; border-image: none;/i,'border: none;');
+                    cssText = cssText.replace(/ border-image: none;/i,'');
+                }
+                // ask the browser is the best we can do right now
+                var rootKey = key.split("-")[0]; if(key==rootKey) return false;
+                var values = value.split(/\s+|\s*,\s*/g);
+                var result = values.every((value) => (new RegExp(' '+rootKey+'(?:[-][-_a-zA-Z0-9]+)?[:][^;]*'+value.trim().replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"),'gi')).test(cssText));
+                return result;
+            };
             
             if (isValueInvalid() || isPropertyUndefined()) {
                 continue;
             }
             
-            // log the usage per selector
-            generalizedSelectorData1.props[normalizedKey] = (generalizedSelectorData1.props[normalizedKey]|0) + 1;
-            generalizedSelectorData2.props[normalizedKey] = (generalizedSelectorData2.props[normalizedKey]|0) + 1;
+            // divide the value into simplified components
+            var values = (
+                CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey) // split in components
+                .map(v => CSSUsage.CSSValues.parseValues(v,normalizedKey)) // simplify them
+                .filter(v => v.trim()) // don't keep empty ones
+            );
+            
+            // log the property usage per selector
+            generalizedSelectorsData.forEach((generalizedSelectorData) => {
+                
+                // get the datastore for current property
+                var propStats = generalizedSelectorData.props[normalizedKey] || (generalizedSelectorData.props[normalizedKey] = {count:0,values:{}});
+
+                // we saw the property one time
+                propStats.count++;
+                
+                // we also saw a bunch of values
+                values.forEach(function (value) {
+                    
+                    // increment the counts for those by one, too
+                    propStats.values[value] = (propStats.values[value]|0) + 1
+                    
+                });
+                
+            });
             
             // if we may increment some counts due to this declaration
             if(count > 0) {
@@ -497,13 +571,7 @@ void function() {
                     if(knownValues.length == 0) { propObject.count += 1; }
 
                     // add newly found values too
-                    var values = CSSUsage.CSSValues.createValueArray(styleValue);
                     values.forEach(function (value) {
-                        value = CSSUsage.CSSValues.parseValues(value);
-
-                        if (value === " " || value === "") {
-                            return;
-                        }
                         
                         if(knownValues.indexOf(value) >= 0) { return; }
                         propObject.values[value] = (propObject.values[value]|0) + 1;
@@ -538,7 +606,7 @@ void function() {
      * Returns an anonimized version of the selector.
      * @example "#menu.open:hover>a.submenu" => "#id.class:hover > a.class"
      */
-    function generalizedSelectorOf(value) {
+    function generalizedSelectorsOf(value) {
         
         // Trim
         value = value.trim();
@@ -571,10 +639,48 @@ void function() {
         // Normalize combinators
         value = value.replace(/[ ]*([>|+|~])[ ]*/g,' $1 ');
         
-        // Clean multitple selectors
-        value = value.replace(/,.*/,'');
+        // Trim whitespace
+        value = value.trim();
+        
+        // Remove unnecessary * to match Chrome
+        value = value.replace(/[*]([#.\x5B:])/g,'$1');
+        
+        // Now we can sort components so that all browsers give results similar to Chrome
+        var ID_REGEXP = "[#]id";          // #id
+        var CLASS_REGEXP = "[.]class"; // .class
+        var ATTR_REGEXP = "\\[att\\]";    // [att]
+        var PSEUDO_REGEXP = "[:][:]?[-_a-zA-Z][-_a-zA-Z0-9]*"; // :pseudo
+        var SORT_REGEXPS = [
+            
+            // #id first
+            new RegExp("("+CLASS_REGEXP+")("+ID_REGEXP+")",'g'),
+            new RegExp("("+ATTR_REGEXP+")("+ID_REGEXP+")",'g'),
+            new RegExp("("+PSEUDO_REGEXP+")("+ID_REGEXP+")",'g'),
+            
+            // .class second
+            new RegExp("("+ATTR_REGEXP+")("+CLASS_REGEXP+")",'g'),
+            new RegExp("("+PSEUDO_REGEXP+")("+CLASS_REGEXP+")",'g'),
+            
+            // [attr] third
+            new RegExp("("+PSEUDO_REGEXP+")("+ATTR_REGEXP+")",'g'),
+            
+            // :pseudo last
+            
+        ];
+        
+        var oldValue; do { // Yeah this is a very inefficient bubble sort. I know.
+            
+            oldValue = value;
+            for(var wrongPair of SORT_REGEXPS) {
+                value = value.replace(wrongPair,'$2$1');
+            }
+            
+        } while(oldValue != value);
+        
+        // Split multiple selectors
+        value = value.split(/\s*,\s*/);
 
-        return value.trim();
+        return value;
 
     }
 
@@ -908,80 +1014,9 @@ void function() {
 
         // DO SOMETHING WITH THE CSS OBJECT HERE
         console.log(CSSUsageResults);
-
-        // Convert it to a more efficient format
-        INSTRUMENTATION_RESULTS.css = CSSUsageResults;
-        console.log(convertToTSV(INSTRUMENTATION_RESULTS));
-
-        /** convert the instrumentation results to a spreadsheet for analysis */
-        function convertToTSV(INSTRUMENTATION_RESULTS) {
-            
-            var VALUE_COLUMN = 4;
-            var finishedRows = [];
-            var currentRowTemplate = [
-                INSTRUMENTATION_RESULTS.UA,
-                INSTRUMENTATION_RESULTS.UASTRING,
-                INSTRUMENTATION_RESULTS.URL,
-                INSTRUMENTATION_RESULTS.TIMESTAMP,
-                0
-            ];
-            
-            currentRowTemplate.push('css');
-            convertToTSV(INSTRUMENTATION_RESULTS['css']);
-            currentRowTemplate.pop();
-            
-            currentRowTemplate.push('dom');
-            convertToTSV(INSTRUMENTATION_RESULTS['dom']);
-            currentRowTemplate.pop();
-            
-            return finishedRows.map((row) => (row.join('\t'))).join('\n');
-            
-            /** helper function doing the actual conversion */
-            function convertToTSV(object) {
-                if(object==null || object==undefined || typeof object == 'number' || typeof object == 'string') {
-                    finishedRows.push(new Row(currentRowTemplate, ''+object));
-                } else {
-                    for(var key in object) {
-                        if({}.hasOwnProperty.call(object,key)) {
-                            currentRowTemplate.push(key);
-                            convertToTSV(object[key]);
-                            currentRowTemplate.pop();
-                        }
-                    }
-                }
-            }
-            
-            /** constructor for a row of our table */
-            function Row(currentRowTemplate, value) {
-                
-                // Initialize an empty row with enough columns
-                var row = [
-                    /*UANAME:     edge                            */'',
-                    /*UASTRING:   mozilla/5.0 (...)               */'',
-                    /*URL:        http://.../...                  */'',
-                    /*TIMESTAMP:  1445622257303                   */'',
-                    /*VALUE:      0|1|...                         */'',
-                    /*DATATYPE:   css|dom|...                     */'',
-                    /*SUBTYPE:    props|types|api|...             */'',
-                    /*NAME:       font-size|querySelector|...     */'',
-                    /*CONTEXT:    count|values|...                */'',
-                    /*SUBCONTEXT: px|em|...                       */'',
-                    /*...                                         */'',
-                    /*...                                         */'',
-                ];
-                
-                // Copy the column values from the template
-                for(var i = currentRowTemplate.length; i--;) {
-                    row[i] = currentRowTemplate[i];
-                }
-                
-                // Add the value to the row
-                row[VALUE_COLUMN] = value;
-                
-                return row;
-            }
-
-        }
+        if(window.onCSSUsageResults) {
+            window.onCSSUsageResults(CSSUsageResults);
+        };
         
     }
 
