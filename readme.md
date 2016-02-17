@@ -47,7 +47,7 @@ So if you are going to make a change you need to follow this process:
 
 #### Tips on getting a successful pull request
 
-**Usefulness
+*Usefulness*
 One very important question to ask yourself before you write any code is
 > Will anyone actually use this?
 
