@@ -9,8 +9,7 @@ This is a script that will iterate over the document.styleSheets object and dete
 #### Why did you make this?
 
 In order to help in planning decisions, it can be useful to know which feature or bug fix will make the biggest impact.
-We, up until this point, we able to know
-via a variety of different sources, what CSS was declared but not necessarily what was actually used by the browser.
+Up until this point, we able to know (via a variety of different sources) what CSS was declared but not necessarily what was actually used by the browser.
 
 What it does and doesn't do
 ---------------------------
