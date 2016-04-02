@@ -27,23 +27,22 @@ Contributing
 We highly recommend any advancements that you can make to the script, we only expect it to get better with the community providing pull requests.
 To get started you'll need to install [node](https://nodejs.org/) and [git](http://www.git-scm.com/) then do the following:
 
-1. Fork the repo (see this page for [help]())
+1. Fork the repo (see this page for [help](https://help.github.com/articles/fork-a-repo/))
 2. Clone your repo
 3. Change directories into the root of your cloned directory
 4. Then type `npm install`
 5. Finally build the application `grunt`
 
-This will get you underway, you'll see the dependancies installed if you already haven't installed them and the page should launch to the test page.
-
 #### Making a change
-
-We don't want the main focus of this to change and we want the data provided on [API Usage](http://modern.status.ie) to not be affected by errors provided by contributors.
-So if you are going to make a change you need to follow this process:
 
 1. Make the change
 2. Write a unit test under `\tests\unit-tests\test.js` for your change if it is necessary
-3. Run the tests in Chrome/Firefox/IE/Edge and ensure that they still pass
+3. Run the tests in Chrome/Firefox/Edge and ensure that they still pass
 4. Submit a pull request
+
+#### Legal
+
+You will **need** to complete a [Contributor License Agreement (CLA)](https://cla.microsoft.com) before your pull request can be accepted. This agreement testifies that you are granting us permission to use the source code you are submitting, and that this work is being submitted under appropriate license that we can use it. The process is very simple as it just hooks into your Github account. Once we have received the signed CLA, we'll review the request. You will only need to do this once.
 
 #### Tips on getting a successful pull request
 

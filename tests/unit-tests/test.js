@@ -3,11 +3,11 @@ describe('Basic Values', function(){
     it('background-color', function(){
         chai.assert.equal(["green"][0], CSSUsage.CSSValues.createValueArray("green")[0]);
     });
-    it('1-> 0', function() {
-        chai.assert.equal('0', CSSUsage.CSSValues.parseValues("1"));
+    it('1-> <int>', function() {
+        chai.assert.equal('<int>', CSSUsage.CSSValues.parseValues("1"));
     });
-    it('1.5 -> 0.0', function() {
-        chai.assert.equal('0.0', CSSUsage.CSSValues.parseValues("1.5"));
+    it('1.5 -> <float>', function() {
+        chai.assert.equal('<float>', CSSUsage.CSSValues.parseValues("1.5"));
     });
     it('1.5rem -> rem', function() {
         chai.assert.equal('rem', CSSUsage.CSSValues.parseValues("1.5rem"));
@@ -27,11 +27,11 @@ describe('Basic Values', function(){
     it('-65px -> px', function() {
         chai.assert.equal('px', CSSUsage.CSSValues.parseValues("-65px"));
     });
-    it('#aaa -> #0', function() {
-       chai.assert.equal('#0', CSSUsage.CSSValues.parseValues("#aaa"));
+    it('#aaa -> #xxyyzz', function() {
+       chai.assert.equal('#xxyyzz', CSSUsage.CSSValues.parseValues("#aaa"));
     });
-    it('#aaaaaa -> #0', function() {
-       chai.assert.equal('#0', CSSUsage.CSSValues.parseValues("#aaaaaa"));
+    it('#aaaaaa -> #xxyyzz', function() {
+       chai.assert.equal('#xxyyzz', CSSUsage.CSSValues.parseValues("#aaaaaa"));
     });
     it('table-cell', function() {
         chai.assert.equal('table-cell', CSSUsage.CSSValues.parseValues("table-cell"));
@@ -40,15 +40,15 @@ describe('Basic Values', function(){
 
 // Webkit Values
 describe('Prefixed Values', function(){
-    it('-webkit-linear-gradient', function(){
-        chai.assert.equal(["-webkit-linear-gradient"][0], CSSUsage.CSSValues.createValueArray("-webkit-linear-gradient(red, blue)")[0]);
+    it('-webkit-linear-gradient()', function(){
+        chai.assert.equal(["-webkit-linear-gradient()"][0], CSSUsage.CSSValues.createValueArray("-webkit-linear-gradient(red, blue)")[0]);
     });
 });
 
 // Shorthands
 describe('Shorthand & Complex Values', function() {
     it('background', function() {
-        chai.assert.equal('linear-gradient', CSSUsage.CSSValues.createValueArray('linear-gradient( 45deg, blue, red ) no-repeat')[0]);
+        chai.assert.equal('linear-gradient()', CSSUsage.CSSValues.createValueArray('linear-gradient( 45deg, blue, red ) no-repeat')[0]);
         chai.assert.equal('no-repeat', CSSUsage.CSSValues.createValueArray('linear-gradient( 45deg, blue, red ) no-repeat')[1]);
     });
     it('font-family: initial testing of comma seperated vals', function() {
@@ -61,38 +61,38 @@ describe('Shorthand & Complex Values', function() {
         chai.assert.equal('3px,blue,1em,red', CSSUsage.CSSValues.createValueArray('3px blue , 1em red','box-shadow').join(','));
     });
 	it('background: lime url(")...\\\\\\"\\\\\\...(") repeat', function() {
-		chai.assert.equal('lime,url,repeat', CSSUsage.CSSValues.createValueArray('lime url(")...\\\\\\"\\\\\\...(") repeat','background').join(','));
+		chai.assert.equal('lime,url(),repeat', CSSUsage.CSSValues.createValueArray('lime url(")...\\\\\\"\\\\\\...(") repeat','background').join(','));
 	});
 	it('background-image: -webkit-gradient(linear, left bottom, left top, from(#5AE), to(#036))', function() {
-		chai.assert.equal('-webkit-gradient', CSSUsage.CSSValues.createValueArray('-webkit-gradient(linear, left bottom, left top, from(#5AE), to(#036))','background-image').join(','));
+		chai.assert.equal('-webkit-gradient()', CSSUsage.CSSValues.createValueArray('-webkit-gradient(linear, left bottom, left top, from(#5AE), to(#036))','background-image').join(','));
 	});
 	it('margin-left: calc(-1 * (100% - 15px))', function() {
-		chai.assert.equal('calc', CSSUsage.CSSValues.createValueArray('calc(-1 * (100% - 15px))','margin-left').join(','));
+		chai.assert.equal('calc()', CSSUsage.CSSValues.createValueArray('calc(-1 * (100% - 15px))','margin-left').join(','));
 	});
 });
 
 // Function Notation
 describe('Function Values', function() {
     it('rotate()', function() {
-        chai.assert.equal('rotate', CSSUsage.CSSValues.createValueArray("rotate(90deg)")[0]);
+        chai.assert.equal('rotate()', CSSUsage.CSSValues.createValueArray("rotate(90deg)")[0]);
     });
     it('hsla()', function() {
-        chai.assert.equal('hsla', CSSUsage.CSSValues.createValueArray("hsla(120, 100%, 50%, .75)")[0]);
+        chai.assert.equal('hsla()', CSSUsage.CSSValues.createValueArray("hsla(120, 100%, 50%, .75)")[0]);
     });
     it('hsl()', function() {
-        chai.assert.equal('hsl', CSSUsage.CSSValues.createValueArray("hsl(120, 100%, 50%)")[0]);
+        chai.assert.equal('hsl()', CSSUsage.CSSValues.createValueArray("hsl(120, 100%, 50%)")[0]);
     });
     it('rgba()', function() {
-        chai.assert.equal('rgba', CSSUsage.CSSValues.createValueArray("rgba(200, 54, 54, 0.5)")[0]);
+        chai.assert.equal('rgba()', CSSUsage.CSSValues.createValueArray("rgba(200, 54, 54, 0.5)")[0]);
     });
     it('matrix3d()', function() {
-        chai.assert.equal('matrix3d', CSSUsage.CSSValues.createValueArray("matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1)")[0]);
+        chai.assert.equal('matrix3d()', CSSUsage.CSSValues.createValueArray("matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1)")[0]);
     });
     it('matrix()', function() {
-        chai.assert.equal('matrix', CSSUsage.CSSValues.createValueArray("matrix(1, 0, 0, 1, 0, 0)")[0]);
+        chai.assert.equal('matrix()', CSSUsage.CSSValues.createValueArray("matrix(1, 0, 0, 1, 0, 0)")[0]);
     });
     it('var()', function() {
-        chai.assert.equal('var', CSSUsage.CSSValues.createValueArray("var(--primary-color)"));
+        chai.assert.equal('var()', CSSUsage.CSSValues.createValueArray("var(--primary-color)"));
     })
 });
 
@@ -120,21 +120,21 @@ describe('Matchable Selectors', function(){
     });
 });
 
-describe('Anonymized Selectors', function(){
-    it('#id1>#id2+#id3 -> #id > #id + #id', function() {
-        chai.assert.equal('#id > #id + #id', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('#id1>#id2+#id3')[0]);
+describe('Generalized Selectors', function(){
+    it('#id1>#id2+#id3 -> #i > #i + #i', function() {
+        chai.assert.equal('#i > #i + #i', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('#id1>#id2+#id3')[0]);
     });
-    it('div.box:hover -> div.class:hover', function() {
-        chai.assert.equal('div.class:hover', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('div.box:hover')[0]);
+    it('div.box:hover -> div.c:hover', function() {
+        chai.assert.equal('div.c:hover', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('div.box:hover')[0]);
     });
-    it('.class1.class2.class3 -> .class.class.class', function() {
-        chai.assert.equal('.class.class.class', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('.class1.class2.class3')[0]);
+    it('.class1.class2.class3 -> .c.c.c', function() {
+        chai.assert.equal('.c.c.c', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('.class1.class2.class3')[0]);
     });
-    it('.class1 .class2 .class3 -> .class .class .class', function() {
-        chai.assert.equal('.class .class .class', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('.class1 .class2 .class3')[0]);
+    it('.class1 .class2 .class3 -> .c .c .c', function() {
+        chai.assert.equal('.c .c .c', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('.class1 .class2 .class3')[0]);
     });
-    it('.-class1 ._class2 .Class3 -> .class .class .class', function() {
-        chai.assert.equal('.class .class .class', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('.-class1 ._class2 .Class3')[0]);
+    it('.-class1 ._class2 .Class3 -> .c .c .c', function() {
+        chai.assert.equal('.c .c .c', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('.-class1 ._class2 .Class3')[0]);
     });
     it(':nth-child(2n+1) -> :nth-child', function() {
         chai.assert.equal(':nth-child', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf(':nth-child(2n+1)')[0]);
@@ -142,8 +142,8 @@ describe('Anonymized Selectors', function(){
     it(':not([attribute*="-3-"]) -> :not', function() {
         chai.assert.equal(':not', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf(':not([attribute*="-3-"])')[0]);
     });
-    it('div.a#b[c][d].e#f -> div#id#id.class.class[att][att]', function() {
-        chai.assert.equal('div#id#id.class.class[att][att]', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('div.a#b[c][d].e#f')[0]);
+    it('div.a#b[c][d].e#f -> div#i#i.c.c[a][a]', function() {
+        chai.assert.equal('div#i#i.c.c[a][a]', CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf('div.a#b[c][d].e#f')[0]);
     });
 });
 
@@ -159,9 +159,9 @@ describe('Normalizing Values', function() {
         chai.assert.equal('word', CSSUsage.CSSValues.parseValues(" word "));
     });
     it('grid-template: bracket identifiers', function() {
-        chai.assert.equal('[names]', CSSUsage.CSSValues.parseValues('[start]','grid-template'));
+        chai.assert.equal('<line-names>', CSSUsage.CSSValues.parseValues('[start]','grid-template'));
     });
     it('--var: bracket islands', function() {
-        chai.assert.equal('{...}', CSSUsage.CSSValues.parseValues('{toto:true}','--var'));
+        chai.assert.equal('<square-brackets-block>', CSSUsage.CSSValues.parseValues('{toto:true}','--var'));
     });
 });
