@@ -9,14 +9,13 @@ This is a script that will iterate over the document.styleSheets object and dete
 #### Why did you make this?
 
 In order to help in planning decisions, it can be useful to know which feature or bug fix will make the biggest impact.
-We, up until this point, we able to know
-via a variety of different sources, what CSS was declared but not necessarily what was actually used by the browser.
+Up until this point we knew what CSS was declared but not necessarily what was actually used by the browser.
 
 What it does and doesn't do
 ---------------------------
 
 There are pros and cons to any approach you take to gather telemetry.
-This is not the only approach we will take but thought this is a good starting point to providing our telemetry externally
+This is not the only approach we will take and think it is a good starting point to providing our telemetry externally
 for partners, other UAs, standards bodies, and web developers.
 
 Contributing
@@ -24,7 +23,7 @@ Contributing
 
 #### Getting Started
 
-We highly recommend any advancements that you can make to the script, we only expect it to get better with the community providing pull requests.
+We highly recommend any advancements that you can make to the script. We expect it to only get better with the community providing pull requests.
 To get started you'll need to install [node](https://nodejs.org/) and [git](http://www.git-scm.com/) then do the following:
 
 1. Fork the repo (see this page for [help](https://help.github.com/articles/fork-a-repo/))
