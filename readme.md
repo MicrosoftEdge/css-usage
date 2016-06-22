@@ -54,3 +54,6 @@ There are many reasons for this:
   * We want this data to be useful to many different demographics (Standards Bodies, Browser Vendors, Web Developers, etc)
   * We don't want to provide too much data that the site becomes unusable
   * There is overhead on Microsoft to add the new data to the site in a meaningful and intutive way so every change will have to answer this question (so be prepared to defend it)
+
+### Code of Conduct
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
