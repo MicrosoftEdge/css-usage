@@ -22,6 +22,8 @@ void function() { try {
 		
 		// Don't run if we don't have lodash
 		if (!window.CSSUsageLodash) throw new Error("CSSUsage: missing CSSUsageLodash dependency");
+
+		if (!window.HtmlUsage) throw new Error("APIUsage: missing HtmlUsage dependancy");
 		
 		// Do not allow buggy trim() to bother usage
 		if((''+String.prototype.trim).indexOf("[native code]") == -1) {
@@ -37,7 +39,7 @@ void function() { try {
 	// Prepare our global namespace
 	//
 	void function() {
-		window.CSSUsage = {};
+		window.CSSUsage = {};		
 		window.CSSUsageResults = {
 			
 			// this will contain the usage stats of various at-rules and rules
@@ -1248,6 +1250,7 @@ void function() { try {
 			CSSUsage.StyleWalker.ruleAnalyzers.push(CSSUsage.PropertyValuesAnalyzer);
 			CSSUsage.StyleWalker.ruleAnalyzers.push(CSSUsage.SelectorAnalyzer);
 			CSSUsage.StyleWalker.elementAnalyzers.push(CSSUsage.DOMClassAnalyzer);
+			CSSUsage.StyleWalker.elementAnalyzers.push(HtmlUsage.GetNodeName);
 
 			// perform analysis
 			CSSUsage.StyleWalker.walkOverDomElements();

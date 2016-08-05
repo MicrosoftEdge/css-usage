@@ -8,6 +8,7 @@ module.exports = function(grunt) {
             src: [
 			  'src/lodash.js',
 			  'src/cssShorthands.js',
+              'src/htmlUsage.js',
               'src/cssUsage.js',
             ],
             dest: 'cssUsage.src.js'
@@ -17,12 +18,12 @@ module.exports = function(grunt) {
         options: {
             compact: true,
             comments: false,
-            sourceMap: false,
+            sourceMap: true,
             presets: ['es2015']
         },
         dist: {
             files: {
-                'cssUsage.min.js': ['cssUsage.src.js']
+                'cssUsage.src.js': ['cssUsage.min.js']
             }
         }
     },
@@ -35,7 +36,7 @@ module.exports = function(grunt) {
       }
     }
   });
-
+  
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-babel');
