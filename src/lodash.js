@@ -35,7 +35,8 @@
 	
 	function filter(source, shouldValueBeIncluded) {
 		var clone = new Array(source.length), i=0;
-		for(var value of source) {
+		for(var s = 0; s <= source.length; s++) {
+			var value = source[s];
 			if(shouldValueBeIncluded(value)) {
 				clone[i++] = value
 			}
@@ -45,7 +46,8 @@
 	}
 	
 	function reduce(source, computeReduction, reduction) {
-		for(var value of source) {
+		for(var s = 0; s <= source.length; s++) {
+			var value = source[s];
 			reduction = computeReduction(reduction, value);
 		}
 		return reduction;

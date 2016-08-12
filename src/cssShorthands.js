@@ -113,7 +113,8 @@ void function () {
 		var prefix = prefixData[1]||'', prefixFreeProperty = prefixData[2]||'';
 		
 		result = [];
-		for(var shorthand in shorthands) {
+		for(var sh = 0; sh <= shorthands.length; sh++) {
+            var shorthand = shorthands[sh];
 			if(this.expand(shorthand).indexOf(prefixFreeProperty) >= 0) {
 				result.push(prefix+shorthand);
 				result.push.apply(result,this.unexpand(prefix+shorthand));

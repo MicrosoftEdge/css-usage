@@ -16,14 +16,14 @@ module.exports = function(grunt) {
     },
     babel: {
         options: {
-            compact: true,
+            compact: false,
             comments: false,
             sourceMap: true,
             presets: ['es2015']
         },
         dist: {
             files: {
-                'cssUsage.src.js': ['cssUsage.min.js']
+                'cssUsage.min.js': ['cssUsage.src.js']
             }
         }
     },
@@ -40,5 +40,5 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-babel');
-  grunt.registerTask('default', ['concat:src','babel:dist','uglify:dist']);
+  grunt.registerTask('default', ['concat:src','babel:dist']);
 };
