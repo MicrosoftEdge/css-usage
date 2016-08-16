@@ -247,7 +247,8 @@ void function() { try {
 
 			// Loop through the elements
 			var elements = [].slice.call(document.all,0);
-			for(var i=elements.length; i--;) { var element=elements[i];
+			for(var i = 0; i < elements.length; i++) { 
+				var element=elements[i];
 			
 				// Analyze the element
 				runElementAnalyzers(element, index);
@@ -280,7 +281,7 @@ void function() { try {
 			}
 			
 			// Run all rule analyzers
-			for(var i = 0; i <= CSSUsage.StyleWalker.ruleAnalyzers.length; i++) {
+			for(var i = 0; i < CSSUsage.StyleWalker.ruleAnalyzers.length; i++) {
 				var runAnalyzer = CSSUsage.StyleWalker.ruleAnalyzers[i];
 				runAnalyzer(style, selectorText, matchedElements, type, isInline);
 			}
@@ -291,9 +292,9 @@ void function() { try {
 		 * Given an element and its data, send it to all element analyzers
 		 */
 		function runElementAnalyzers(element, index, depth) {
-			for(var i = 0; i <= CSSUsage.StyleWalker.ruleAnalyzers.length; i++) {
-				var runAnalyzer = CSSUsage.StyleWalker.ruleAnalyzers[i];
-				runAnalyzer(element,index,depth);
+			for(var i = 0; i < CSSUsage.StyleWalker.elementAnalyzers.length; i++) {
+				var runAnalyzer = CSSUsage.StyleWalker.elementAnalyzers[i];
+				runAnalyzer(element, index, depth);
 			}
 		}
 		
@@ -583,7 +584,7 @@ void function() { try {
 			var match; while(match = validValuesExtractor.exec(cssText)) {
 				validValues += match[1] + ' ';
 			}
-			for(var i = 0; i <= values.length; i++) {
+			for(var i = 0; i < values.length; i++) {
 				var value = values[i];
 				if(validValues.indexOf(' '+value+' ')==-1) return false;
 			}
@@ -618,7 +619,7 @@ void function() { try {
 			));
 			
 			// Increment the occurence counter of found generalized selectors
-			for(var i = 0; i <= generalizedSelectorsData.length; i++) {
+			for(var i = 0; i < generalizedSelectorsData.length; i++) {
 				var generalizedSelectorData = generalizedSelectorsData[i];
 				generalizedSelectorData.count++
 			}
@@ -656,7 +657,7 @@ void function() { try {
 				}
 				
 				// log the property usage per selector
-				for(var gs = 0; gs <= generalizedSelectorsData.length; gs++) {
+				for(var gs = 0; gs < generalizedSelectorsData.length; gs++) {
 					var generalizedSelectorData = generalizedSelectorsData[gs];
 					// get the datastore for current property
 					var propStats = generalizedSelectorData.props[normalizedKey] || (generalizedSelectorData.props[normalizedKey] = {count:0,values:Object.create(null)});
@@ -665,7 +666,7 @@ void function() { try {
 					propStats.count++;
 					
 					// we also saw a bunch of values
-					for(var v = 0; v <= values.length; v++) {
+					for(var v = 0; v < values.length; v++) {
 						var value = values[v];				
 						// increment the counts for those by one, too
 						if(value.length>0) {
@@ -689,7 +690,7 @@ void function() { try {
 					}
 					
 					// update the occurence counts of the property and value
-					for(var e = 0; e <= matchedElements.length; e++) {
+					for(var e = 0; e < matchedElements.length; e++) {
 						var element = matchedElements[e];
 
 						// check what the elements already contributed for this property
@@ -700,7 +701,7 @@ void function() { try {
 						if(knownValues.length == 0) { propObject.count += 1; }
 
 						// add newly found values too
-						for(var v = 0; v <= values.length; v++) {
+						for(var v = 0; v < values.length; v++) {
 							var value = values[v];
 							if(knownValues.indexOf(value) >= 0) { return; }
 							propObject.values[value] = (propObject.values[value]|0) + 1;
@@ -842,7 +843,7 @@ void function() { try {
 			var oldValue; do { // Yeah this is a very inefficient bubble sort. I know.
 				
 				oldValue = value;
-				for(var i = 0; i <= SORT_REGEXPS.length; i++) {
+				for(var i = 0; i < SORT_REGEXPS.length; i++) {
 					var wrongPair = SORT_REGEXPS[i];
 					value = value.replace(wrongPair,'$2$1');
 				}
@@ -895,7 +896,7 @@ void function() { try {
 		 */
 		function extractFeature(feature, selector, counters) {
 			var instances = selector.match(feature)||[];
-			for(var i = 0; i <= instances.length; i++) {
+			for(var i = 0; i < instances.length; i++) {
 				var instance = instances[i];
 				instance = instance.substr(1);
 				counters[instance] = (counters[instance]|0) + 1;
@@ -937,7 +938,7 @@ void function() { try {
 			// collect classes used in the wild
 			if(element.className) {
 				var elementClasses = element.classList;
-				for(var cl = 0; cl <= elementClasses.length; cl++) {
+				for(var cl = 0; cl < elementClasses.length; cl++) {
 					var c = elementClasses[cl];
 					domClasses[c] = (domClasses[c]|0) + 1;
 				}
@@ -1070,7 +1071,7 @@ void function() { try {
 				
 				var ModernizerUsages = {count:0,values:{/*  "js":1,  "no-js":2  */}};
 				var trackedClasses = ["js","ambientlight","applicationcache","audio","batteryapi","blobconstructor","canvas","canvastext","contenteditable","contextmenu","cookies","cors","cryptography","customprotocolhandler","customevent","dart","dataview","emoji","eventlistener","exiforientation","flash","fullscreen","gamepads","geolocation","hashchange","hiddenscroll","history","htmlimports","ie8compat","indexeddb","indexeddbblob","input","search","inputtypes","intl","json","olreversed","mathml","notification","pagevisibility","performance","pointerevents","pointerlock","postmessage","proximity","queryselector","quotamanagement","requestanimationframe","serviceworker","svg","templatestrings","touchevents","typedarrays","unicoderange","unicode","userdata","vibrate","video","vml","webintents","animation","webgl","websockets","xdomainrequest","adownload","audioloop","audiopreload","webaudio","lowbattery","canvasblending","todataurljpeg,todataurlpng,todataurlwebp","canvaswinding","getrandomvalues","cssall","cssanimations","appearance","backdropfilter","backgroundblendmode","backgroundcliptext","bgpositionshorthand","bgpositionxy","bgrepeatspace,bgrepeatround","backgroundsize","bgsizecover","borderimage","borderradius","boxshadow","boxsizing","csscalc","checked","csschunit","csscolumns","cubicbezierrange","display-runin","displaytable","ellipsis","cssescape","cssexunit","cssfilters","flexbox","flexboxlegacy","flexboxtweener","flexwrap","fontface","generatedcontent","cssgradients","hsla","csshyphens,softhyphens,softhyphensfind","cssinvalid","lastchild","cssmask","mediaqueries","multiplebgs","nthchild","objectfit","opacity","overflowscrolling","csspointerevents","csspositionsticky","csspseudoanimations","csspseudotransitions","cssreflections","regions","cssremunit","cssresize","rgba","cssscrollbar","shapes","siblinggeneral","subpixelfont","supports","target","textalignlast","textshadow","csstransforms","csstransforms3d","preserve3d","csstransitions","userselect","cssvalid","cssvhunit","cssvmaxunit","cssvminunit","cssvwunit","willchange","wrapflow","classlist","createelementattrs,createelement-attrs","dataset","documentfragment","hidden","microdata","mutationobserver","bdi","datalistelem","details","outputelem","picture","progressbar,meter","ruby","template","time","texttrackapi,track","unknownelements","es5array","es5date","es5function","es5object","es5","strictmode","es5string","es5syntax","es5undefined","es6array","contains","generators","es6math","es6number","es6object","promises","es6string","devicemotion,deviceorientation","oninput","filereader","filesystem","capture","fileinput","directory","formattribute","localizednumber","placeholder","requestautocomplete","formvalidation","sandbox","seamless","srcdoc","apng","jpeg2000","jpegxr","sizes","srcset","webpalpha","webpanimation","webplossless,webp-lossless","webp","inputformaction","inputformenctype","inputformmethod","inputformtarget","beacon","lowbandwidth","eventsource","fetch","xhrresponsetypearraybuffer","xhrresponsetypeblob","xhrresponsetypedocument","xhrresponsetypejson","xhrresponsetypetext","xhrresponsetype","xhr2","scriptasync","scriptdefer","speechrecognition","speechsynthesis","localstorage","sessionstorage","websqldatabase","stylescoped","svgasimg","svgclippaths","svgfilters","svgforeignobject","inlinesvg","smil","textareamaxlength","bloburls","datauri","urlparser","videoautoplay","videoloop","videopreload","webglextensions","datachannel","getusermedia","peerconnection","websocketsbinary","atob-btoa","framed","matchmedia","blobworkers","dataworkers","sharedworkers","transferables","webworkers"];
-				for(var tc = 0; tc <= trackedClasses.length; tc++) {
+				for(var tc = 0; tc < trackedClasses.length; tc++) {
 					var c = trackedClasses[tc];
 					countInstancesOfTheClass(c); 
 					countInstancesOfTheClass('no-'+c);
@@ -1098,7 +1099,7 @@ void function() { try {
 				
 				for(var i = 12+1; --i;) {
 					var classesToLookUp = ['s','m','l'];
-					for(var d = 0; d <= classesToLookUp.length; d++) {
+					for(var d = 0; d < classesToLookUp.length; d++) {
 						var s = classesToLookUp[d];
 						if(document.querySelector(".container > .row > .col."+s+""+i)) {
 							return true;
@@ -1134,11 +1135,11 @@ void function() { try {
 				
 				var classesToLookUp = ["one-whole","one-half","one-third","two-thirds","one-quarter","two-quarters","one-half","three-quarters","one-fifth","two-fifths","three-fifths","four-fifths","one-sixth","two-sixths","one-third","three-sixths","one-half","four-sixths","two-thirds","five-sixths","one-eighth","two-eighths","one-quarter","three-eighths","four-eighths","one-half","five-eighths","six-eighths","three-quarters","seven-eighths","one-tenth","two-tenths","one-fifth","three-tenths","four-tenths","two-fifths","five-tenths","one-half","six-tenths","three-fifths","seven-tenths","eight-tenths","four-fifths","nine-tenths","one-twelfth","two-twelfths","one-sixth","three-twelfths","one-quarter","four-twelfths","one-third","five-twelfths","six-twelfths","one-half","seven-twelfths","eight-twelfths","two-thirds","nine-twelfths","three-quarters","ten-twelfths","five-sixths","eleven-twelfths"];
 
-				for(var cu = 0; cu <= classesToLookUp.length; cu++ ) {
+				for(var cu = 0; cu < classesToLookUp.length; cu++ ) {
 					var fraction = classesToLookUp[cu];
 
 					var subClassesToLookUp = ["","palm-","lap-","portable-","desk-"];
-					for(var sc = 0; sc <= subClassesToLookUp.length; sc++) {
+					for(var sc = 0; sc < subClassesToLookUp.length; sc++) {
 						var ns = subClassesToLookUp[sc];
 						if(document.querySelector(".grid > .grid__item."+ns+fraction)) {
 							return true;
@@ -1157,7 +1158,7 @@ void function() { try {
 				}
 				
 				var classesToLookUp = ["one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve"];
-				for(var cl = 0; cl <= classesToLookUp.length; cl++ ) {
+				for(var cl = 0; cl < classesToLookUp.length; cl++ ) {
 					var fraction = classesToLookUp[cl];
 					if(document.querySelector(".row > .columns."+fraction)) {
 						return true;
