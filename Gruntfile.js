@@ -9,7 +9,11 @@ module.exports = function(grunt) {
 			  'src/lodash.js',
 			  'src/cssShorthands.js',
               'src/htmlUsage.js',
-              'src/cssUsage.js',
+              'src/cssUsage.js',              
+              'src/fwks/*',
+              'src/fwkUsage.js',   
+              'src/patterns.js',
+              'src/patternUsage.js'
             ],
             dest: 'cssUsage.src.js'
         }
