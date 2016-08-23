@@ -1217,7 +1217,7 @@ void function() { try {
 				// classes stats
 				ClassesUsed: domClassesArray.length,
 				ClassesRecognized: Object.keys(cssClasses).length,
-				ClassesUsedRecognized: filter(domClassesArray, c => cssClasses[c]).length,
+				ClassesUsedRecognized: filter(domClassesArray, c => cssClasses[c]).length,				
 			};
 
 			results = getFwkUsage(results, cssLonelyClassGates, domClasses, domIds, cssLonelyIdGates, cssClasses);
@@ -1282,6 +1282,9 @@ void function() { try {
 
 			// Update duration
 			CSSUsageResults.duration = (performance.now() - startTime)|0;
+
+			// Add in HTML Usage
+			CSSUsageResults.HtmlUsage = window.HtmlUsage;
 
 			// DO SOMETHING WITH THE CSS OBJECT HERE
 			window.debugCSSUsage = true;
