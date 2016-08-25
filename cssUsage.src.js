@@ -215,7 +215,9 @@ void function() {
                         "disabled",
                         "draggable",
                         "lang",
-                        "role"
+                        "role",
+                        "content",
+                        "name"
                         ];
 
         for(var i = 0; i < element.attributes.length; i++) {
@@ -224,12 +226,21 @@ void function() {
             // Only keep attributes that do not contain a dash unless they're in the whitelist
             if(att.nodeName.indexOf('-') == -1 || whitelist.indexOf('aria-') > -1) {
                 var tempAttr = {name: att.nodeName, tag: node, value: ""};
+                var storeAttrValue = true;
 
-                if(whitelist.indexOf(att.nodeName) > -1) {
+                // We only want to gather values for the name attributes
+                // on the meta tag
+                if(att.nodeName == "name" && node != "META") {
+                    storeAttrValue = false;
+                }
+
+                if (whitelist.indexOf(att.nodeName) > -1) {
                     tempAttr.value = att.value;
                 }
 
-                window.HtmlUsageResults.attributes.push(tempAttr);
+                if(storeAttrValue) {
+                    window.HtmlUsageResults.attributes.push(tempAttr);
+                }
             }
         }
     }
@@ -1299,9 +1310,6 @@ void function() { try {
 
 			// Update duration
 			CSSUsageResults.duration = (performance.now() - startTime)|0;
-
-			// Add in HTML Usage
-			CSSUsageResults.HtmlUsageResults = window.HtmlUsageResults;
 
 			// DO SOMETHING WITH THE CSS OBJECT HERE
 			window.debugCSSUsage = true;

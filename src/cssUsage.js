@@ -1064,9 +1064,6 @@ void function() { try {
 			// Update duration
 			CSSUsageResults.duration = (performance.now() - startTime)|0;
 
-			// Add in HTML Usage
-			CSSUsageResults.HtmlUsageResults = window.HtmlUsageResults;
-
 			// DO SOMETHING WITH THE CSS OBJECT HERE
 			window.debugCSSUsage = true;
 			if(window.debugCSSUsage) console.log(CSSUsageResults);
