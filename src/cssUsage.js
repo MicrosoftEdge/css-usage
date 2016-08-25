@@ -39,7 +39,22 @@ void function() { try {
 	// Prepare our global namespace
 	//
 	void function() {
-		window.CSSUsage = {};		
+		window.HtmlUsageResults = {
+			// this will contain all of the HTML tags used on a page
+			tags: [], /*
+			tags ~= [nodeName] */
+
+			// this will contain all of the attributes used on an HTML tag
+			// and their values if they are in the whitelist
+			attributes: [] /*
+			attributes ~= {
+				name: <string>, // The name of the attribute 
+				tag: <string>,  // The tag that the attr was used on
+				value: <string> // The value of the attr
+			} */
+		};
+
+		window.CSSUsage = {};
 		window.CSSUsageResults = {
 			
 			// this will contain the usage stats of various at-rules and rules
@@ -1050,7 +1065,7 @@ void function() { try {
 			CSSUsageResults.duration = (performance.now() - startTime)|0;
 
 			// Add in HTML Usage
-			CSSUsageResults.HtmlUsage = window.HtmlUsage;
+			CSSUsageResults.HtmlUsageResults = window.HtmlUsageResults;
 
 			// DO SOMETHING WITH THE CSS OBJECT HERE
 			window.debugCSSUsage = true;
