@@ -48,6 +48,11 @@ void function() {
                     storeAttrValue = false;
                 }
 
+                // var att = object[attributeName]||(object[attributeName]={});
+                // var attTag = att[tagName]||(att[tagName]={});
+                // var attTagValue = attTag[value]||(attTag[value]=0);
+                // attTag[value]++;
+
                 if (whitelist.indexOf(att.nodeName) > -1) {
                     tempAttr.value = att.value;
                 }
