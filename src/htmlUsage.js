@@ -1,4 +1,5 @@
 void function() {
+
     window.HtmlUsage = {};
 
     // This function has been added to the elementAnalyzers in
@@ -6,7 +7,10 @@ void function() {
     // <param name="element"> is an HTMLElement passed in by elementAnalyzers
     window.HtmlUsage.GetNodeName = function (element) {
         var node = element.nodeName;
-        window.HtmlUsageResults.tags.push(node);
+
+        var tags = HtmlUsageResults.tags || (HtmlUsageResults.tags = {});
+        var tag = tags[node] || (tags[node] = 0);
+        tags[node]++;
 
         GetAttributes(element, node);
     }
@@ -39,27 +43,19 @@ void function() {
 
             // Only keep attributes that do not contain a dash unless they're in the whitelist
             if(att.nodeName.indexOf('-') == -1 || whitelist.indexOf('aria-') > -1) {
-                var tempAttr = {name: att.nodeName, tag: node, value: ""};
-                var storeAttrValue = true;
 
-                // We only want to gather values for the name attributes
-                // on the meta tag
-                if(att.nodeName == "name" && node != "META") {
-                    storeAttrValue = false;
+                var attributes = HtmlUsageResults.attributes || (HtmlUsageResults.attributes = {});
+                var attributeTag = attributes[node] || (attributes[node] = {});
+                var attribute = attributeTag[att.nodeName] || (attributeTag[att.nodeName] = { count: 0, values: {}});        
+                
+
+                if (whitelist.indexOf(att.nodeName) > -1 || (att.nodeName == "name" && node == "META")) {
+                    var attributeValue = attribute.values[att.value];
+
+                    attribute.values[att.value] = 1;
                 }
-
-                // var att = object[attributeName]||(object[attributeName]={});
-                // var attTag = att[tagName]||(att[tagName]={});
-                // var attTagValue = attTag[value]||(attTag[value]=0);
-                // attTag[value]++;
-
-                if (whitelist.indexOf(att.nodeName) > -1) {
-                    tempAttr.value = att.value;
-                }
-
-                if(storeAttrValue) {
-                    window.HtmlUsageResults.attributes.push(tempAttr);
-                }
+                
+                attribute.count++;
             }
         }
     }

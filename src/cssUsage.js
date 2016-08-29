@@ -38,15 +38,15 @@ void function() { try {
 	//
 	// Prepare our global namespace
 	//
-	void function() {
+	void function() {		
 		window.HtmlUsageResults = {
 			// this will contain all of the HTML tags used on a page
-			tags: [], /*
+			tags: {}, /*
 			tags ~= [nodeName] */
 
 			// this will contain all of the attributes used on an HTML tag
 			// and their values if they are in the whitelist
-			attributes: [] /*
+			attributes: {} /*
 			attributes ~= {
 				name: <string>, // The name of the attribute 
 				tag: <string>,  // The tag that the attr was used on
