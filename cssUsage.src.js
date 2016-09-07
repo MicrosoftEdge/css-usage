@@ -184,6 +184,259 @@ void function () {
 }.call(window.CSSShorthands={});
 
 
+// http://blueprintcss.org/tests/parts/grid.html
+var hasBluePrintUsage = function() {
+    
+    if(!document.querySelector(".container")) {
+        return false;
+    }
+    
+    for(var i = 24+1; --i;) {
+        if(document.querySelector(".container > .span-"+i)) {
+            return true;
+        }
+    }
+    return false;
+    
+}
+//
+// report how many times the classes in the following arrays have been used in the dom
+// (bootstrap stats)
+//
+
+var detectedBootstrapGridUsages = function(domClasses) {
+    var _ = window.CSSUsageLodash;
+	var reduce = _.reduce.bind(_);
+    var trackedClasses = [];
+    
+    var sizes = ['xs','sm','md','lg'];
+    for(var i = sizes.length; i--;) { var size = sizes[i];
+        for(var j = 12+1; --j;) {
+            trackedClasses.push('col-'+size+'-'+j);
+            for(var k = 12+1; --k;) {
+                trackedClasses.push('col-'+size+'-'+j+'-offset-'+k);
+                trackedClasses.push('col-'+size+'-'+j+'-push-'+k);
+                trackedClasses.push('col-'+size+'-'+j+'-pull-'+k);
+            }
+        }
+    }
+    
+    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
+    
+};
+
+var detectedBootstrapFormUsages = function(domClasses) {
+    var _ = window.CSSUsageLodash;
+	var reduce = _.reduce.bind(_);
+    var trackedClasses = [
+        'form-group', 'form-group-xs', 'form-group-sm', 'form-group-md', 'form-group-lg',
+        'form-control', 'form-horizontal', 'form-inline',
+        'btn','btn-primary','btn-secondary','btn-success','btn-warning','btn-danger','btn-error'
+    ];
+    
+    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
+    
+};
+
+var detectedBootstrapAlertUsages = function(domClasses) {
+    var _ = window.CSSUsageLodash;
+	var reduce = _.reduce.bind(_);
+    var trackedClasses = [
+        'alert','alert-primary','alert-secondary','alert-success','alert-warning','alert-danger','alert-error'
+    ];
+    
+    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
+    
+};
+
+var detectedBootstrapFloatUsages = function(domClasses) {
+    var _ = window.CSSUsageLodash;
+	var reduce = _.reduce.bind(_);
+    var trackedClasses = [
+        'pull-left','pull-right',
+    ];
+    
+    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
+    
+};
+// https://github.com/Dogfalo/materialize/blob/master/sass/components/_grid.scss
+var hasDogfaloMaterializeUsage = function() {
+    
+    if(!document.querySelector(".container > .row > .col")) {
+        return false;
+    }
+    
+    for(var i = 12+1; --i;) {
+        var classesToLookUp = ['s','m','l'];
+        for(var d = 0; d < classesToLookUp.length; d++) {
+            var s = classesToLookUp[d];
+            if(document.querySelector(".container > .row > .col."+s+""+i)) {
+                return true;
+            }
+        }
+    }
+    return false;
+    
+}
+// http://www.gumbyframework.com/docs/grid/#!/basic-grid
+var hasGrumbyUsage = function() {
+    
+    if(!document.querySelector(".row .columns")) {
+        return false;
+    }
+    
+    var classesToLookUp = ["one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve"];
+    for(var cl = 0; cl < classesToLookUp.length; cl++ ) {
+        var fraction = classesToLookUp[cl];
+        if(document.querySelector(".row > .columns."+fraction)) {
+            return true;
+        }
+    }
+    return false;
+    
+}
+// https://raw.githubusercontent.com/csswizardry/inuit.css/master/generic/_widths.scss
+var hasInuitUsage = function() {
+    
+    if(!document.querySelector(".grid .grid__item")) {
+        return false;
+    }
+    
+    var classesToLookUp = ["one-whole","one-half","one-third","two-thirds","one-quarter","two-quarters","one-half","three-quarters","one-fifth","two-fifths","three-fifths","four-fifths","one-sixth","two-sixths","one-third","three-sixths","one-half","four-sixths","two-thirds","five-sixths","one-eighth","two-eighths","one-quarter","three-eighths","four-eighths","one-half","five-eighths","six-eighths","three-quarters","seven-eighths","one-tenth","two-tenths","one-fifth","three-tenths","four-tenths","two-fifths","five-tenths","one-half","six-tenths","three-fifths","seven-tenths","eight-tenths","four-fifths","nine-tenths","one-twelfth","two-twelfths","one-sixth","three-twelfths","one-quarter","four-twelfths","one-third","five-twelfths","six-twelfths","one-half","seven-twelfths","eight-twelfths","two-thirds","nine-twelfths","three-quarters","ten-twelfths","five-sixths","eleven-twelfths"];
+
+    for(var cu = 0; cu < classesToLookUp.length; cu++ ) {
+        var fraction = classesToLookUp[cu];
+
+        var subClassesToLookUp = ["","palm-","lap-","portable-","desk-"];
+        for(var sc = 0; sc < subClassesToLookUp.length; sc++) {
+            var ns = subClassesToLookUp[sc];
+            if(document.querySelector(".grid > .grid__item."+ns+fraction)) {
+                return true;
+            }
+        }
+    }
+    return false;
+    
+}
+var getLonelyGatesUsage = function (cssLonelyClassGates, domClasses, domIds, cssLonelyIdGates) {
+
+    var _ = window.CSSUsageLodash;
+
+    if((cssLonelyClassGates || domClasses || domIds || cssLonelyIdGates) == undefined) return;
+    
+    // get arrays of the .class gates used ({"hover":5} => ["hover"]), filter irrelevant entries
+    var cssUniqueLonelyClassGatesArray = Object.keys(cssLonelyClassGates);
+    var cssUniqueLonelyClassGatesUsedArray = _(cssUniqueLonelyClassGatesArray).filter((c) => domClasses[c]).value();
+    var cssUniqueLonelyClassGatesUsedWorthArray = _(cssUniqueLonelyClassGatesUsedArray).filter((c)=>(cssLonelyClassGates[c]>9)).value();
+    if(window.debugCSSUsage) console.log(cssLonelyClassGates);
+    if(window.debugCSSUsage) console.log(cssUniqueLonelyClassGatesUsedWorthArray);
+
+    // get arrays of the #id gates used ({"hover":5} => ["hover"]), filter irrelevant entries
+    var cssUniqueLonelyIdGatesArray = Object.keys(cssLonelyIdGates);
+    var cssUniqueLonelyIdGatesUsedArray = _(cssUniqueLonelyIdGatesArray).filter((c) => domIds[c]).value();
+    var cssUniqueLonelyIdGatesUsedWorthArray = _(cssUniqueLonelyIdGatesUsedArray).filter((c)=>(cssLonelyIdGates[c]>9)).value();
+    if(window.debugCSSUsage) console.log(cssLonelyIdGates);
+    if(window.debugCSSUsage) console.log(cssUniqueLonelyIdGatesUsedWorthArray);
+}
+//
+// report how many times the classes in the following arrays have been used as css gate
+// (modernizer stats)
+//
+
+// https://modernizr.com/docs#features
+var detectedModernizerUsages = function(cssLonelyClassGates) {
+
+    if((cssLonelyClassGates) == undefined) return;
+    
+    var ModernizerUsages = {count:0,values:{/*  "js":1,  "no-js":2  */}};
+    var trackedClasses = ["js","ambientlight","applicationcache","audio","batteryapi","blobconstructor","canvas","canvastext","contenteditable","contextmenu","cookies","cors","cryptography","customprotocolhandler","customevent","dart","dataview","emoji","eventlistener","exiforientation","flash","fullscreen","gamepads","geolocation","hashchange","hiddenscroll","history","htmlimports","ie8compat","indexeddb","indexeddbblob","input","search","inputtypes","intl","json","olreversed","mathml","notification","pagevisibility","performance","pointerevents","pointerlock","postmessage","proximity","queryselector","quotamanagement","requestanimationframe","serviceworker","svg","templatestrings","touchevents","typedarrays","unicoderange","unicode","userdata","vibrate","video","vml","webintents","animation","webgl","websockets","xdomainrequest","adownload","audioloop","audiopreload","webaudio","lowbattery","canvasblending","todataurljpeg,todataurlpng,todataurlwebp","canvaswinding","getrandomvalues","cssall","cssanimations","appearance","backdropfilter","backgroundblendmode","backgroundcliptext","bgpositionshorthand","bgpositionxy","bgrepeatspace,bgrepeatround","backgroundsize","bgsizecover","borderimage","borderradius","boxshadow","boxsizing","csscalc","checked","csschunit","csscolumns","cubicbezierrange","display-runin","displaytable","ellipsis","cssescape","cssexunit","cssfilters","flexbox","flexboxlegacy","flexboxtweener","flexwrap","fontface","generatedcontent","cssgradients","hsla","csshyphens,softhyphens,softhyphensfind","cssinvalid","lastchild","cssmask","mediaqueries","multiplebgs","nthchild","objectfit","opacity","overflowscrolling","csspointerevents","csspositionsticky","csspseudoanimations","csspseudotransitions","cssreflections","regions","cssremunit","cssresize","rgba","cssscrollbar","shapes","siblinggeneral","subpixelfont","supports","target","textalignlast","textshadow","csstransforms","csstransforms3d","preserve3d","csstransitions","userselect","cssvalid","cssvhunit","cssvmaxunit","cssvminunit","cssvwunit","willchange","wrapflow","classlist","createelementattrs,createelement-attrs","dataset","documentfragment","hidden","microdata","mutationobserver","bdi","datalistelem","details","outputelem","picture","progressbar,meter","ruby","template","time","texttrackapi,track","unknownelements","es5array","es5date","es5function","es5object","es5","strictmode","es5string","es5syntax","es5undefined","es6array","contains","generators","es6math","es6number","es6object","promises","es6string","devicemotion,deviceorientation","oninput","filereader","filesystem","capture","fileinput","directory","formattribute","localizednumber","placeholder","requestautocomplete","formvalidation","sandbox","seamless","srcdoc","apng","jpeg2000","jpegxr","sizes","srcset","webpalpha","webpanimation","webplossless,webp-lossless","webp","inputformaction","inputformenctype","inputformmethod","inputformtarget","beacon","lowbandwidth","eventsource","fetch","xhrresponsetypearraybuffer","xhrresponsetypeblob","xhrresponsetypedocument","xhrresponsetypejson","xhrresponsetypetext","xhrresponsetype","xhr2","scriptasync","scriptdefer","speechrecognition","speechsynthesis","localstorage","sessionstorage","websqldatabase","stylescoped","svgasimg","svgclippaths","svgfilters","svgforeignobject","inlinesvg","smil","textareamaxlength","bloburls","datauri","urlparser","videoautoplay","videoloop","videopreload","webglextensions","datachannel","getusermedia","peerconnection","websocketsbinary","atob-btoa","framed","matchmedia","blobworkers","dataworkers","sharedworkers","transferables","webworkers"];
+    for(var tc = 0; tc < trackedClasses.length; tc++) {
+        var c = trackedClasses[tc];
+        countInstancesOfTheClass(c); 
+        countInstancesOfTheClass('no-'+c);
+    }
+    return ModernizerUsages;
+    
+    function countInstancesOfTheClass(c) {
+        var count = cssLonelyClassGates[c]; if(!count) return; 
+        ModernizerUsages.count += count; 
+        ModernizerUsages.values[c]=count; 
+    }
+    
+}
+function getFwkUsage(results, cssLonelyClassGates, domClasses, domIds, cssLonelyIdGates, cssClasses) {
+
+    // Modernizer
+    getLonelyGatesUsage(cssLonelyClassGates, domClasses, domIds, cssLonelyIdGates);
+    detectedModernizerUsages(cssLonelyClassGates);
+    results.FwkModernizer = !!window.Modernizer;
+    results.FwkModernizerDOMUsages = detectedModernizerUsages(domClasses);
+	results.FwkModernizerCSSUsages = detectedModernizerUsages(cssLonelyClassGates);
+
+    // Bootstrap
+    results.FwkBootstrap = !!((window.jQuery||window.$) && (window.jQuery||window.$).fn && (window.jQuery||window.$).fn.modal)|0;
+    results.FwkBootstrapGridUsage = detectedBootstrapGridUsages(domClasses);
+    results.FwkBootstrapFormUsage = detectedBootstrapFormUsages(domClasses);
+    results.FwkBootstrapFloatUsage = detectedBootstrapFloatUsages(domClasses);
+    results.FwkBootstrapAlertUsage = detectedBootstrapAlertUsages(domClasses);    
+    results.FwkBootstrapGridRecognized = detectedBootstrapGridUsages(cssClasses);
+    results.FwkBootstrapFormRecognized = detectedBootstrapFormUsages(cssClasses);
+    results.FwkBootstrapFloatRecognized = detectedBootstrapFloatUsages(cssClasses);
+    results.FwkBootstrapAlertRecognized = detectedBootstrapAlertUsages(cssClasses);
+
+    // Grumby
+    results.FwkGrumby = hasGrumbyUsage()|0;
+
+    // Inuit
+    results.FwkInuit = hasInuitUsage()|0;
+
+    // Blueprint
+    results.FwkBluePrint = hasBluePrintUsage()|0;
+
+    // Dog Falo
+    results.FwkDogfaloMaterialize = hasDogfaloMaterializeUsage()|0;
+
+    return results;
+}
+//
+// report how many times the classes in the following arrays have been used in the dom
+// (general stats)
+//
+
+/** count how many times the usual clearfix classes are used */
+var detectedClearfixUsages = function(domClasses) {
+
+    var _ = window.CSSUsageLodash;
+	var reduce = _.reduce.bind(_);
+    
+    var trackedClasses = [
+        'clearfix','clear',
+    ];
+    
+    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
+    
+};
+
+/** count how many times the usual hide/show classes are used */
+var detectedVisibilityUsages = function(domClasses) {
+    var _ = window.CSSUsageLodash;
+	var reduce = _.reduce.bind(_);
+    
+    var trackedClasses = [
+        'show', 'hide', 'visible', 'hidden', 
+    ];
+    
+    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
+    
+};
+function getPatternUsage(results, domClasses, cssClasses) {
+    results.PatClearfixUsage = detectedClearfixUsages(domClasses);
+	results.PatVisibilityUsage = detectedVisibilityUsages(domClasses);
+    results.PatClearfixRecognized = detectedClearfixUsages(cssClasses);
+    results.PatVisibilityRecognized = detectedVisibilityUsages(cssClasses);
+
+    return results;
+}
 void function() {
 
     window.HtmlUsage = {};
@@ -1324,256 +1577,3 @@ void function() { try {
 	}();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
-// http://blueprintcss.org/tests/parts/grid.html
-var hasBluePrintUsage = function() {
-    
-    if(!document.querySelector(".container")) {
-        return false;
-    }
-    
-    for(var i = 24+1; --i;) {
-        if(document.querySelector(".container > .span-"+i)) {
-            return true;
-        }
-    }
-    return false;
-    
-}
-//
-// report how many times the classes in the following arrays have been used in the dom
-// (bootstrap stats)
-//
-
-var detectedBootstrapGridUsages = function(domClasses) {
-    var _ = window.CSSUsageLodash;
-	var reduce = _.reduce.bind(_);
-    var trackedClasses = [];
-    
-    var sizes = ['xs','sm','md','lg'];
-    for(var i = sizes.length; i--;) { var size = sizes[i];
-        for(var j = 12+1; --j;) {
-            trackedClasses.push('col-'+size+'-'+j);
-            for(var k = 12+1; --k;) {
-                trackedClasses.push('col-'+size+'-'+j+'-offset-'+k);
-                trackedClasses.push('col-'+size+'-'+j+'-push-'+k);
-                trackedClasses.push('col-'+size+'-'+j+'-pull-'+k);
-            }
-        }
-    }
-    
-    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
-    
-};
-
-var detectedBootstrapFormUsages = function(domClasses) {
-    var _ = window.CSSUsageLodash;
-	var reduce = _.reduce.bind(_);
-    var trackedClasses = [
-        'form-group', 'form-group-xs', 'form-group-sm', 'form-group-md', 'form-group-lg',
-        'form-control', 'form-horizontal', 'form-inline',
-        'btn','btn-primary','btn-secondary','btn-success','btn-warning','btn-danger','btn-error'
-    ];
-    
-    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
-    
-};
-
-var detectedBootstrapAlertUsages = function(domClasses) {
-    var _ = window.CSSUsageLodash;
-	var reduce = _.reduce.bind(_);
-    var trackedClasses = [
-        'alert','alert-primary','alert-secondary','alert-success','alert-warning','alert-danger','alert-error'
-    ];
-    
-    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
-    
-};
-
-var detectedBootstrapFloatUsages = function(domClasses) {
-    var _ = window.CSSUsageLodash;
-	var reduce = _.reduce.bind(_);
-    var trackedClasses = [
-        'pull-left','pull-right',
-    ];
-    
-    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
-    
-};
-// https://github.com/Dogfalo/materialize/blob/master/sass/components/_grid.scss
-var hasDogfaloMaterializeUsage = function() {
-    
-    if(!document.querySelector(".container > .row > .col")) {
-        return false;
-    }
-    
-    for(var i = 12+1; --i;) {
-        var classesToLookUp = ['s','m','l'];
-        for(var d = 0; d < classesToLookUp.length; d++) {
-            var s = classesToLookUp[d];
-            if(document.querySelector(".container > .row > .col."+s+""+i)) {
-                return true;
-            }
-        }
-    }
-    return false;
-    
-}
-// http://www.gumbyframework.com/docs/grid/#!/basic-grid
-var hasGrumbyUsage = function() {
-    
-    if(!document.querySelector(".row .columns")) {
-        return false;
-    }
-    
-    var classesToLookUp = ["one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve"];
-    for(var cl = 0; cl < classesToLookUp.length; cl++ ) {
-        var fraction = classesToLookUp[cl];
-        if(document.querySelector(".row > .columns."+fraction)) {
-            return true;
-        }
-    }
-    return false;
-    
-}
-// https://raw.githubusercontent.com/csswizardry/inuit.css/master/generic/_widths.scss
-var hasInuitUsage = function() {
-    
-    if(!document.querySelector(".grid .grid__item")) {
-        return false;
-    }
-    
-    var classesToLookUp = ["one-whole","one-half","one-third","two-thirds","one-quarter","two-quarters","one-half","three-quarters","one-fifth","two-fifths","three-fifths","four-fifths","one-sixth","two-sixths","one-third","three-sixths","one-half","four-sixths","two-thirds","five-sixths","one-eighth","two-eighths","one-quarter","three-eighths","four-eighths","one-half","five-eighths","six-eighths","three-quarters","seven-eighths","one-tenth","two-tenths","one-fifth","three-tenths","four-tenths","two-fifths","five-tenths","one-half","six-tenths","three-fifths","seven-tenths","eight-tenths","four-fifths","nine-tenths","one-twelfth","two-twelfths","one-sixth","three-twelfths","one-quarter","four-twelfths","one-third","five-twelfths","six-twelfths","one-half","seven-twelfths","eight-twelfths","two-thirds","nine-twelfths","three-quarters","ten-twelfths","five-sixths","eleven-twelfths"];
-
-    for(var cu = 0; cu < classesToLookUp.length; cu++ ) {
-        var fraction = classesToLookUp[cu];
-
-        var subClassesToLookUp = ["","palm-","lap-","portable-","desk-"];
-        for(var sc = 0; sc < subClassesToLookUp.length; sc++) {
-            var ns = subClassesToLookUp[sc];
-            if(document.querySelector(".grid > .grid__item."+ns+fraction)) {
-                return true;
-            }
-        }
-    }
-    return false;
-    
-}
-var getLonelyGatesUsage = function (cssLonelyClassGates, domClasses, domIds, cssLonelyIdGates) {
-
-    var _ = window.CSSUsageLodash;
-
-    if((cssLonelyClassGates || domClasses || domIds || cssLonelyIdGates) == undefined) return;
-    
-    // get arrays of the .class gates used ({"hover":5} => ["hover"]), filter irrelevant entries
-    var cssUniqueLonelyClassGatesArray = Object.keys(cssLonelyClassGates);
-    var cssUniqueLonelyClassGatesUsedArray = _(cssUniqueLonelyClassGatesArray).filter((c) => domClasses[c]).value();
-    var cssUniqueLonelyClassGatesUsedWorthArray = _(cssUniqueLonelyClassGatesUsedArray).filter((c)=>(cssLonelyClassGates[c]>9)).value();
-    if(window.debugCSSUsage) console.log(cssLonelyClassGates);
-    if(window.debugCSSUsage) console.log(cssUniqueLonelyClassGatesUsedWorthArray);
-
-    // get arrays of the #id gates used ({"hover":5} => ["hover"]), filter irrelevant entries
-    var cssUniqueLonelyIdGatesArray = Object.keys(cssLonelyIdGates);
-    var cssUniqueLonelyIdGatesUsedArray = _(cssUniqueLonelyIdGatesArray).filter((c) => domIds[c]).value();
-    var cssUniqueLonelyIdGatesUsedWorthArray = _(cssUniqueLonelyIdGatesUsedArray).filter((c)=>(cssLonelyIdGates[c]>9)).value();
-    if(window.debugCSSUsage) console.log(cssLonelyIdGates);
-    if(window.debugCSSUsage) console.log(cssUniqueLonelyIdGatesUsedWorthArray);
-}
-//
-// report how many times the classes in the following arrays have been used as css gate
-// (modernizer stats)
-//
-
-// https://modernizr.com/docs#features
-var detectedModernizerUsages = function(cssLonelyClassGates) {
-
-    if((cssLonelyClassGates) == undefined) return;
-    
-    var ModernizerUsages = {count:0,values:{/*  "js":1,  "no-js":2  */}};
-    var trackedClasses = ["js","ambientlight","applicationcache","audio","batteryapi","blobconstructor","canvas","canvastext","contenteditable","contextmenu","cookies","cors","cryptography","customprotocolhandler","customevent","dart","dataview","emoji","eventlistener","exiforientation","flash","fullscreen","gamepads","geolocation","hashchange","hiddenscroll","history","htmlimports","ie8compat","indexeddb","indexeddbblob","input","search","inputtypes","intl","json","olreversed","mathml","notification","pagevisibility","performance","pointerevents","pointerlock","postmessage","proximity","queryselector","quotamanagement","requestanimationframe","serviceworker","svg","templatestrings","touchevents","typedarrays","unicoderange","unicode","userdata","vibrate","video","vml","webintents","animation","webgl","websockets","xdomainrequest","adownload","audioloop","audiopreload","webaudio","lowbattery","canvasblending","todataurljpeg,todataurlpng,todataurlwebp","canvaswinding","getrandomvalues","cssall","cssanimations","appearance","backdropfilter","backgroundblendmode","backgroundcliptext","bgpositionshorthand","bgpositionxy","bgrepeatspace,bgrepeatround","backgroundsize","bgsizecover","borderimage","borderradius","boxshadow","boxsizing","csscalc","checked","csschunit","csscolumns","cubicbezierrange","display-runin","displaytable","ellipsis","cssescape","cssexunit","cssfilters","flexbox","flexboxlegacy","flexboxtweener","flexwrap","fontface","generatedcontent","cssgradients","hsla","csshyphens,softhyphens,softhyphensfind","cssinvalid","lastchild","cssmask","mediaqueries","multiplebgs","nthchild","objectfit","opacity","overflowscrolling","csspointerevents","csspositionsticky","csspseudoanimations","csspseudotransitions","cssreflections","regions","cssremunit","cssresize","rgba","cssscrollbar","shapes","siblinggeneral","subpixelfont","supports","target","textalignlast","textshadow","csstransforms","csstransforms3d","preserve3d","csstransitions","userselect","cssvalid","cssvhunit","cssvmaxunit","cssvminunit","cssvwunit","willchange","wrapflow","classlist","createelementattrs,createelement-attrs","dataset","documentfragment","hidden","microdata","mutationobserver","bdi","datalistelem","details","outputelem","picture","progressbar,meter","ruby","template","time","texttrackapi,track","unknownelements","es5array","es5date","es5function","es5object","es5","strictmode","es5string","es5syntax","es5undefined","es6array","contains","generators","es6math","es6number","es6object","promises","es6string","devicemotion,deviceorientation","oninput","filereader","filesystem","capture","fileinput","directory","formattribute","localizednumber","placeholder","requestautocomplete","formvalidation","sandbox","seamless","srcdoc","apng","jpeg2000","jpegxr","sizes","srcset","webpalpha","webpanimation","webplossless,webp-lossless","webp","inputformaction","inputformenctype","inputformmethod","inputformtarget","beacon","lowbandwidth","eventsource","fetch","xhrresponsetypearraybuffer","xhrresponsetypeblob","xhrresponsetypedocument","xhrresponsetypejson","xhrresponsetypetext","xhrresponsetype","xhr2","scriptasync","scriptdefer","speechrecognition","speechsynthesis","localstorage","sessionstorage","websqldatabase","stylescoped","svgasimg","svgclippaths","svgfilters","svgforeignobject","inlinesvg","smil","textareamaxlength","bloburls","datauri","urlparser","videoautoplay","videoloop","videopreload","webglextensions","datachannel","getusermedia","peerconnection","websocketsbinary","atob-btoa","framed","matchmedia","blobworkers","dataworkers","sharedworkers","transferables","webworkers"];
-    for(var tc = 0; tc < trackedClasses.length; tc++) {
-        var c = trackedClasses[tc];
-        countInstancesOfTheClass(c); 
-        countInstancesOfTheClass('no-'+c);
-    }
-    return ModernizerUsages;
-    
-    function countInstancesOfTheClass(c) {
-        var count = cssLonelyClassGates[c]; if(!count) return; 
-        ModernizerUsages.count += count; 
-        ModernizerUsages.values[c]=count; 
-    }
-    
-}
-function getFwkUsage(results, cssLonelyClassGates, domClasses, domIds, cssLonelyIdGates, cssClasses) {
-
-    // Modernizer
-    getLonelyGatesUsage(cssLonelyClassGates, domClasses, domIds, cssLonelyIdGates);
-    detectedModernizerUsages(cssLonelyClassGates);
-    results.FwkModernizer = !!window.Modernizer;
-    results.FwkModernizerDOMUsages = detectedModernizerUsages(domClasses);
-	results.FwkModernizerCSSUsages = detectedModernizerUsages(cssLonelyClassGates);
-
-    // Bootstrap
-    results.FwkBootstrap = !!((window.jQuery||window.$) && (window.jQuery||window.$).fn && (window.jQuery||window.$).fn.modal)|0;
-    results.FwkBootstrapGridUsage = detectedBootstrapGridUsages(domClasses);
-    results.FwkBootstrapFormUsage = detectedBootstrapFormUsages(domClasses);
-    results.FwkBootstrapFloatUsage = detectedBootstrapFloatUsages(domClasses);
-    results.FwkBootstrapAlertUsage = detectedBootstrapAlertUsages(domClasses);    
-    results.FwkBootstrapGridRecognized = detectedBootstrapGridUsages(cssClasses);
-    results.FwkBootstrapFormRecognized = detectedBootstrapFormUsages(cssClasses);
-    results.FwkBootstrapFloatRecognized = detectedBootstrapFloatUsages(cssClasses);
-    results.FwkBootstrapAlertRecognized = detectedBootstrapAlertUsages(cssClasses);
-
-    // Grumby
-    results.FwkGrumby = hasGrumbyUsage()|0;
-
-    // Inuit
-    results.FwkInuit = hasInuitUsage()|0;
-
-    // Blueprint
-    results.FwkBluePrint = hasBluePrintUsage()|0;
-
-    // Dog Falo
-    results.FwkDogfaloMaterialize = hasDogfaloMaterializeUsage()|0;
-
-    return results;
-}
-//
-// report how many times the classes in the following arrays have been used in the dom
-// (general stats)
-//
-
-/** count how many times the usual clearfix classes are used */
-var detectedClearfixUsages = function(domClasses) {
-
-    var _ = window.CSSUsageLodash;
-	var reduce = _.reduce.bind(_);
-    
-    var trackedClasses = [
-        'clearfix','clear',
-    ];
-    
-    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
-    
-};
-
-/** count how many times the usual hide/show classes are used */
-var detectedVisibilityUsages = function(domClasses) {
-    var _ = window.CSSUsageLodash;
-	var reduce = _.reduce.bind(_);
-    
-    var trackedClasses = [
-        'show', 'hide', 'visible', 'hidden', 
-    ];
-    
-    return reduce(trackedClasses, (a,b) => a+(domClasses[b]|0), 0);
-    
-};
-function getPatternUsage(results, domClasses, cssClasses) {
-    results.PatClearfixUsage = detectedClearfixUsages(domClasses);
-	results.PatVisibilityUsage = detectedVisibilityUsages(domClasses);
-    results.PatClearfixRecognized = detectedClearfixUsages(cssClasses);
-    results.PatVisibilityRecognized = detectedVisibilityUsages(cssClasses);
-
-    return results;
-}
