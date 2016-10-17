@@ -54,6 +54,11 @@ void function() { try {
 			} */
 		};
 
+		window.RecipeResults = {};
+		window.Recipes = {
+			recipes: []
+		};
+
 		window.CSSUsage = {};
 		window.CSSUsageResults = {
 			
@@ -124,7 +129,9 @@ void function() { try {
 			// This array contains the list of functions being run on each DOM element of the page
 			// [ function(element) { ...} ]
 			elementAnalyzers: [],
-			
+
+			recipesToRun: [],
+
 			// 
 			walkOverCssStyles: walkOverCssStyles,
 			walkOverDomElements: walkOverDomElements,
@@ -135,6 +142,7 @@ void function() { try {
 			amountOfSelectors: 0,
 		}
 		
+		var hasWalkedDomElementsOnce = false;
 		// holds @keyframes temporarily while we wait to know how much they are used
 		var keyframes = Object.create(null);
 		
@@ -258,7 +266,10 @@ void function() { try {
 		 * as well as rule analyzers for inline styles
 		 */
 		function walkOverDomElements(obj, index, depth) {
+			var recipesToRun = CSSUsage.StyleWalker.recipesToRun;			
 			obj = obj || document.documentElement; index = index|0; depth = depth|0;
+
+			if(!walkOverDomElements) walkOverDomElements = true;
 
 			// Loop through the elements
 			var elements = [].slice.call(document.all,0);
@@ -269,15 +280,19 @@ void function() { try {
 				runElementAnalyzers(element, index);
 				
 				// Analyze its style, if any
-				if (element.hasAttribute('style')) {
-					
-					// Inline styles count like a style rule with no selector but one matched element
-					var ruleType = 1;
-					var isInline = true;
-					var selectorText = '@inline:'+element.tagName;
-					var matchedElements = [element];
-					runRuleAnalyzers(element.style, selectorText, matchedElements, ruleType, isInline);
-					
+				if(!walkOverDomElements) {
+					if (element.hasAttribute('style')) {					
+						// Inline styles count like a style rule with no selector but one matched element
+						var ruleType = 1;
+						var isInline = true;
+						var selectorText = '@inline:'+element.tagName;
+						var matchedElements = [element];
+						runRuleAnalyzers(element.style, selectorText, matchedElements, ruleType, isInline);					
+					}
+				} else { // We've already walked the DOM crawler 
+					for(var r = 0; r < recipesToRun.length ; r++) {
+						recipesToRun[r](element);
+					}
 				}
 			}
 			
@@ -323,7 +338,6 @@ void function() { try {
 			}
 			return array;
 		}
-
 	}();
 
 	//
@@ -1053,7 +1067,7 @@ void function() { try {
 			CSSUsage.StyleWalker.ruleAnalyzers.push(CSSUsage.PropertyValuesAnalyzer);
 			CSSUsage.StyleWalker.ruleAnalyzers.push(CSSUsage.SelectorAnalyzer);
 			CSSUsage.StyleWalker.elementAnalyzers.push(CSSUsage.DOMClassAnalyzer);
-			CSSUsage.StyleWalker.elementAnalyzers.push(HtmlUsage.GetNodeName);
+			CSSUsage.StyleWalker.elementAnalyzers.push(HtmlUsage.GetNodeName);			
 
 			// perform analysis
 			CSSUsage.StyleWalker.walkOverDomElements();
