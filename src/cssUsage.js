@@ -265,9 +265,9 @@ void function() { try {
 		 * dom elements and then call the element analyzers currently registered,
 		 * as well as rule analyzers for inline styles
 		 */
-		function walkOverDomElements(obj, index, depth) {
+		function walkOverDomElements(obj, index) {
 			var recipesToRun = CSSUsage.StyleWalker.recipesToRun;			
-			obj = obj || document.documentElement; index = index|0; depth = depth|0;
+			obj = obj || document.documentElement; index = index|0;
 
 			if(!walkOverDomElements) walkOverDomElements = true;
 
@@ -289,9 +289,11 @@ void function() { try {
 						var matchedElements = [element];
 						runRuleAnalyzers(element.style, selectorText, matchedElements, ruleType, isInline);					
 					}
-				} else { // We've already walked the DOM crawler 
+				} else { // We've already walked the DOM crawler and need to run the recipes
 					for(var r = 0; r < recipesToRun.length ; r++) {
-						recipesToRun[r](element);
+						var recipeToRun = recipesToRun[r];
+						var results = RecipeResults[recipeToRun.name] || (RecipeResults[recipeToRun.name]={});
+						recipeToRun(element, results);
 					}
 				}
 			}
@@ -1071,9 +1073,12 @@ void function() { try {
 
 			// perform analysis
 			CSSUsage.StyleWalker.walkOverDomElements();
-			CSSUsage.StyleWalker.walkOverCssStyles();
+			CSSUsage.StyleWalker.walkOverCssStyles();			
 			CSSUsage.PropertyValuesAnalyzer.finalize();
 			CSSUsage.SelectorAnalyzer.finalize();
+
+			// Walk over the dom elements again for Recipes
+			CSSUsage.StyleWalker.walkOverDomElements();
 
 			// Update duration
 			CSSUsageResults.duration = (performance.now() - startTime)|0;
