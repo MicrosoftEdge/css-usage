@@ -131,6 +131,7 @@ void function() { try {
 			elementAnalyzers: [],
 
 			recipesToRun: [],
+			runRecipes: false,
 
 			// 
 			walkOverCssStyles: walkOverCssStyles,
@@ -268,7 +269,6 @@ void function() { try {
 		function walkOverDomElements(obj, index) {
 			var recipesToRun = CSSUsage.StyleWalker.recipesToRun;			
 			obj = obj || document.documentElement; index = index|0;
-			var alreadyWalked = false;
 
 			// Loop through the elements
 			var elements = [].slice.call(document.all,0);
@@ -279,8 +279,7 @@ void function() { try {
 				runElementAnalyzers(element, index);
 				
 				// Analyze its style, if any
-				if(!alreadyWalked) {
-					alreadyWalked = true;
+				if(!CSSUsage.StyleWalker.runRecipes) {
 					if (element.hasAttribute('style')) {					
 						// Inline styles count like a style rule with no selector but one matched element
 						var ruleType = 1;
@@ -293,7 +292,7 @@ void function() { try {
 					for(var r = 0; r < recipesToRun.length ; r++) {
 						var recipeToRun = recipesToRun[r];
 						var results = RecipeResults[recipeToRun.name] || (RecipeResults[recipeToRun.name]={});
-						recipeToRun(element, results);
+						recipeToRun(element, results, true);
 					}
 				}
 			}
@@ -1078,6 +1077,7 @@ void function() { try {
 			CSSUsage.SelectorAnalyzer.finalize();
 
 			// Walk over the dom elements again for Recipes
+			CSSUsage.StyleWalker.runRecipes = true;
 			CSSUsage.StyleWalker.walkOverDomElements();
 
 			// Update duration
