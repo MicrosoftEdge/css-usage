@@ -268,8 +268,7 @@ void function() { try {
 		function walkOverDomElements(obj, index) {
 			var recipesToRun = CSSUsage.StyleWalker.recipesToRun;			
 			obj = obj || document.documentElement; index = index|0;
-
-			if(!walkOverDomElements) walkOverDomElements = true;
+			var alreadyWalked = false;
 
 			// Loop through the elements
 			var elements = [].slice.call(document.all,0);
@@ -280,7 +279,8 @@ void function() { try {
 				runElementAnalyzers(element, index);
 				
 				// Analyze its style, if any
-				if(!walkOverDomElements) {
+				if(!alreadyWalked) {
+					alreadyWalked = true;
 					if (element.hasAttribute('style')) {					
 						// Inline styles count like a style rule with no selector but one matched element
 						var ruleType = 1;
