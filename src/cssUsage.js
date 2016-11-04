@@ -681,9 +681,10 @@ void function() { try {
 				}
 				
 				// divide the value into simplified components
-				var values = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
-				for(var j=values.length; j--;) {
-					values[j] = CSSUsage.CSSValues.parseValues(values[j],normalizedKey)
+				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
+				var values = new Array();
+				for(var j=specifiedValuesArray.length; j--;) {
+					values.push(CSSUsage.CSSValues.parseValues(specifiedValuesArray[j],normalizedKey));
 				}
 				
 				// log the property usage per selector
@@ -726,7 +727,18 @@ void function() { try {
 						// check what the elements already contributed for this property
 						var cssUsageMeta = element.CSSUsage || (element.CSSUsage=Object.create(null));
 						var knownValues = cssUsageMeta[normalizedKey] || (cssUsageMeta[normalizedKey] = []);
+
+						// For recipes, at times we want to look at the specified values as well so hang
+						// these on the element so we don't have to recompute them
+						knownValues.valuesArray = knownValues.valuesArray || (knownValues.valuesArray = []);
 						
+						for(var sv = 0; sv < specifiedValuesArray.length; sv++) {
+							var currentSV = specifiedValuesArray[sv];
+							if(knownValues.valuesArray.indexOf(currentSV) == -1) {
+								knownValues.valuesArray.push(currentSV)
+							}
+						}
+
 						// increment the amount of affected elements which we didn't count yet
 						if(knownValues.length == 0) { propObject.count += 1; }
 
@@ -736,7 +748,6 @@ void function() { try {
 							if(knownValues.indexOf(value) >= 0) { return; }
 							propObject.values[value] = (propObject.values[value]|0) + 1;
 							knownValues.push(value);
-
 						}
 						
 					}

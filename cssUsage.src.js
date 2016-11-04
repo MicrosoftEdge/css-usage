@@ -602,6 +602,7 @@ void function() { try {
 			elementAnalyzers: [],
 
 			recipesToRun: [],
+			runRecipes: false,
 
 			// 
 			walkOverCssStyles: walkOverCssStyles,
@@ -736,11 +737,9 @@ void function() { try {
 		 * dom elements and then call the element analyzers currently registered,
 		 * as well as rule analyzers for inline styles
 		 */
-		function walkOverDomElements(obj, index, depth) {
+		function walkOverDomElements(obj, index) {
 			var recipesToRun = CSSUsage.StyleWalker.recipesToRun;			
-			obj = obj || document.documentElement; index = index|0; depth = depth|0;
-
-			if(!walkOverDomElements) walkOverDomElements = true;
+			obj = obj || document.documentElement; index = index|0;
 
 			// Loop through the elements
 			var elements = [].slice.call(document.all,0);
@@ -751,7 +750,7 @@ void function() { try {
 				runElementAnalyzers(element, index);
 				
 				// Analyze its style, if any
-				if(!walkOverDomElements) {
+				if(!CSSUsage.StyleWalker.runRecipes) {
 					if (element.hasAttribute('style')) {					
 						// Inline styles count like a style rule with no selector but one matched element
 						var ruleType = 1;
@@ -760,9 +759,11 @@ void function() { try {
 						var matchedElements = [element];
 						runRuleAnalyzers(element.style, selectorText, matchedElements, ruleType, isInline);					
 					}
-				} else { // We've already walked the DOM crawler 
+				} else { // We've already walked the DOM crawler and need to run the recipes
 					for(var r = 0; r < recipesToRun.length ; r++) {
-						recipesToRun[r](element);
+						var recipeToRun = recipesToRun[r];
+						var results = RecipeResults[recipeToRun.name] || (RecipeResults[recipeToRun.name]={});
+						recipeToRun(element, results, true);
 					}
 				}
 			}
@@ -1151,9 +1152,10 @@ void function() { try {
 				}
 				
 				// divide the value into simplified components
-				var values = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
-				for(var j=values.length; j--;) {
-					values[j] = CSSUsage.CSSValues.parseValues(values[j],normalizedKey)
+				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
+				var values = new Array();
+				for(var j=specifiedValuesArray.length; j--;) {
+					values.push(CSSUsage.CSSValues.parseValues(specifiedValuesArray[j],normalizedKey));
 				}
 				
 				// log the property usage per selector
@@ -1196,7 +1198,15 @@ void function() { try {
 						// check what the elements already contributed for this property
 						var cssUsageMeta = element.CSSUsage || (element.CSSUsage=Object.create(null));
 						var knownValues = cssUsageMeta[normalizedKey] || (cssUsageMeta[normalizedKey] = []);
+						knownValues.valuesArray = knownValues.valuesArray || (knownValues.valuesArray = []);
 						
+						for(var sv = 0; sv < specifiedValuesArray.length; sv++) {
+							var currentSV = specifiedValuesArray[sv];
+							if(knownValues.valuesArray.indexOf(currentSV) == -1) {
+								knownValues.valuesArray.push(currentSV)
+							}
+						}
+
 						// increment the amount of affected elements which we didn't count yet
 						if(knownValues.length == 0) { propObject.count += 1; }
 
@@ -1542,9 +1552,13 @@ void function() { try {
 
 			// perform analysis
 			CSSUsage.StyleWalker.walkOverDomElements();
-			CSSUsage.StyleWalker.walkOverCssStyles();
+			CSSUsage.StyleWalker.walkOverCssStyles();			
 			CSSUsage.PropertyValuesAnalyzer.finalize();
 			CSSUsage.SelectorAnalyzer.finalize();
+
+			// Walk over the dom elements again for Recipes
+			CSSUsage.StyleWalker.runRecipes = true;
+			CSSUsage.StyleWalker.walkOverDomElements();
 
 			// Update duration
 			CSSUsageResults.duration = (performance.now() - startTime)|0;
@@ -1561,17 +1575,91 @@ void function() { try {
 	}();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
+
+/* 
+    RECIPE: Metaviewport
+    -------------------------------------------------------------
+    Author: Greg Whitworth
+    Description: This will provide the values for the meta tag
+    that also uses a content value with the values we're interested in.
+*/
+
 void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function (/*HTML DOM Element*/ element) {
-        var recipeResult = {};
+    window.CSSUsage.StyleWalker.recipesToRun.push( function metaviewport(/*HTML DOM Element*/ element, results) {
+        var needles = ["width", "height", "initial-scale", "minimum-scale", "maximum-scale", "user-scalable"];
 
         if(element.nodeName == "META") {
             for(var n = 0; n < element.attributes.length; n++) {
-                console.log(element.attributes[n]);
                 if(element.attributes[n].name == "content") {
                     
+                    for(var needle = 0; needle < needles.length; needle++) {
+                        var value = element.attributes[n].value;
+
+                        if(value.indexOf(needles[needle] != -1)) {
+                            results[value] = results[value] || { count: 0 };
+                            results[value].count++;
+                            break;
+                        }
+                    }
                 }
             }    
         }
+
+        return results;
     });
 }();
+/* 
+    RECIPE: PADDING HACK
+    -------------------------------------------------------------
+    Author: Greg Whitworth
+    Description: The padding hack is utilized in CSS by setting
+    a bottom padding with a percentage value of great than 50%
+    as this forces the box to set its height to that of the width
+    and artificially creating aspect ratio based on its contents.
+*/
+
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function paddingHack(/*HTML DOM Element*/ element, results) {
+
+        // Bail if the element doesn't have the props we're looking for
+        if(!element.CSSUsage || !(element.CSSUsage["padding-bottom"] || element.CSSUsage["padding-top"])) return;
+        
+        var values = [];     
+
+        // Build up a stack of values to interrogate
+        if(element.CSSUsage["padding-top"]) {
+            values = values.concat(element.CSSUsage["padding-top"].valuesArray);         
+        }
+        
+        if(element.CSSUsage["padding-bottom"]) {
+            values = values.concat(element.CSSUsage["padding-bottom"].valuesArray); 
+        }
+
+        for(var i = 0; i < values.length; i++) {
+            if(values[i].indexOf('%')) {
+                var value = values[i].replace('%', "");
+                value = parseFloat(value);
+
+                if(value > 50) {
+                    results[value] = results[value] || { count: 0 };
+                    results[value].count++;
+                }
+            }
+        }
+
+        return results;
+    });
+}();
+/* 
+    RECIPE: <NAME OF RECIPE>
+    -------------------------------------------------------------
+    Author: <YOUR NAME>
+    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
+
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function <NameYourRecipe>( element, results) {
+        return results;
+    });
+}();
+
+*/

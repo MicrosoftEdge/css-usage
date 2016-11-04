@@ -1,3 +1,11 @@
+/* 
+    RECIPE: Metaviewport
+    -------------------------------------------------------------
+    Author: Greg Whitworth
+    Description: This will provide the values for the meta tag
+    that also uses a content value with the values we're interested in.
+*/
+
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function metaviewport(/*HTML DOM Element*/ element, results) {
         var needles = ["width", "height", "initial-scale", "minimum-scale", "maximum-scale", "user-scalable"];
