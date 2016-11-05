@@ -459,12 +459,11 @@ void function() {
             var att = element.attributes[i];
 
             // Only keep attributes that do not contain a dash unless they're in the whitelist
-            if(att.nodeName.indexOf('-') == -1) {
-
+            if(att.nodeName.indexOf('data-') == -1) {
                 var attributes = HtmlUsageResults.attributes || (HtmlUsageResults.attributes = {});
-                var attributeTag = attributes[node] || (attributes[node] = {});
-                var attribute = attributeTag[att.nodeName] || (attributeTag[att.nodeName] = { count: 0, values: {}});                
-                attribute.count++;
+                var attribute = attributes[att.nodeName] || (attributes[att.nodeName] = {});
+                var attributeTag = attribute[node] || (attribute[node] = {count: 0});             
+                attributeTag.count++;
             }
         }
     }
@@ -1198,6 +1197,9 @@ void function() { try {
 						// check what the elements already contributed for this property
 						var cssUsageMeta = element.CSSUsage || (element.CSSUsage=Object.create(null));
 						var knownValues = cssUsageMeta[normalizedKey] || (cssUsageMeta[normalizedKey] = []);
+
+						// For recipes, at times we want to look at the specified values as well so hang
+						// these on the element so we don't have to recompute them
 						knownValues.valuesArray = knownValues.valuesArray || (knownValues.valuesArray = []);
 						
 						for(var sv = 0; sv < specifiedValuesArray.length; sv++) {
@@ -1216,7 +1218,6 @@ void function() { try {
 							if(knownValues.indexOf(value) >= 0) { return; }
 							propObject.values[value] = (propObject.values[value]|0) + 1;
 							knownValues.push(value);
-
 						}
 						
 					}
@@ -1575,7 +1576,6 @@ void function() { try {
 	}();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
-
 /* 
     RECIPE: Metaviewport
     -------------------------------------------------------------
