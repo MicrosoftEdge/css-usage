@@ -20,12 +20,11 @@ void function() {
             var att = element.attributes[i];
 
             // Only keep attributes that do not contain a dash unless they're in the whitelist
-            if(att.nodeName.indexOf('-') == -1) {
-
+            if(att.nodeName.indexOf('data-') == -1) {
                 var attributes = HtmlUsageResults.attributes || (HtmlUsageResults.attributes = {});
-                var attributeTag = attributes[node] || (attributes[node] = {});
-                var attribute = attributeTag[att.nodeName] || (attributeTag[att.nodeName] = { count: 0, values: {}});                
-                attribute.count++;
+                var attribute = attributes[att.nodeName] || (attributes[att.nodeName] = {});
+                var attributeTag = attribute[node] || (attribute[node] = {count: 0});             
+                attributeTag.count++;
             }
         }
     }
