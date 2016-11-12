@@ -1072,6 +1072,13 @@ void function() { try {
 			// Prevent this code from running when the page has no stylesheet (probably a redirect page)
 			if(document.styleSheets.length == 0) { return; }
 
+			// Check to see if you're on a Firefox failure page
+			if(document.styleSheets.length == 1) {
+				if(document.styleSheets[0].href.indexOf('aboutNetError') != -1) {
+					return;
+				}
+			}
+
 			// Keep track of duration
 			var startTime = performance.now();
 

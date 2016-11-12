@@ -1198,6 +1198,9 @@ void function() { try {
 						// check what the elements already contributed for this property
 						var cssUsageMeta = element.CSSUsage || (element.CSSUsage=Object.create(null));
 						var knownValues = cssUsageMeta[normalizedKey] || (cssUsageMeta[normalizedKey] = []);
+
+						// For recipes, at times we want to look at the specified values as well so hang
+						// these on the element so we don't have to recompute them
 						knownValues.valuesArray = knownValues.valuesArray || (knownValues.valuesArray = []);
 						
 						for(var sv = 0; sv < specifiedValuesArray.length; sv++) {
@@ -1216,7 +1219,6 @@ void function() { try {
 							if(knownValues.indexOf(value) >= 0) { return; }
 							propObject.values[value] = (propObject.values[value]|0) + 1;
 							knownValues.push(value);
-
 						}
 						
 					}
@@ -1540,6 +1542,13 @@ void function() { try {
 			
 			// Prevent this code from running when the page has no stylesheet (probably a redirect page)
 			if(document.styleSheets.length == 0) { return; }
+
+			// Check to see if you're on a Firefox failure page
+			if(document.styleSheets.length == 1) {
+				if(document.styleSheets[0].href.indexOf('aboutNetError') != -1) {
+					return;
+				}
+			}
 
 			// Keep track of duration
 			var startTime = performance.now();
