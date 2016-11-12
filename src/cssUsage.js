@@ -1073,7 +1073,7 @@ void function() { try {
 			if(document.styleSheets.length == 0) { return; }
 
 			// Check to see if you're on a Firefox failure page
-			if(document.styleSheets.length == 1) {
+			if(document.styleSheets.length == 1 && browserIsFirefox) {
 				if(document.styleSheets[0].href.indexOf('aboutNetError') != -1) {
 					return;
 				}
