@@ -273,13 +273,13 @@ void function() { try {
 			// Loop through the elements
 			var elements = [].slice.call(document.all,0);
 			for(var i = 0; i < elements.length; i++) { 
-				var element=elements[i];
-			
-				// Analyze the element
-				runElementAnalyzers(element, index);
+				var element=elements[i];			
 				
 				// Analyze its style, if any
 				if(!CSSUsage.StyleWalker.runRecipes) {
+					// Analyze the element
+					runElementAnalyzers(element, index);
+
 					if (element.hasAttribute('style')) {					
 						// Inline styles count like a style rule with no selector but one matched element
 						var ruleType = 1;

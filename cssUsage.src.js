@@ -445,6 +445,12 @@ void function() {
     // CSSUsage.js under onready()
     // <param name="element"> is an HTMLElement passed in by elementAnalyzers
     window.HtmlUsage.GetNodeName = function (element) {
+
+        // If the browser doesn't recognize the element - throw it away
+        if(element instanceof HTMLUnknownElement) {
+            return;
+        }
+
         var node = element.nodeName;
 
         var tags = HtmlUsageResults.tags || (HtmlUsageResults.tags = {});
@@ -743,13 +749,13 @@ void function() { try {
 			// Loop through the elements
 			var elements = [].slice.call(document.all,0);
 			for(var i = 0; i < elements.length; i++) { 
-				var element=elements[i];
-			
-				// Analyze the element
-				runElementAnalyzers(element, index);
+				var element=elements[i];			
 				
 				// Analyze its style, if any
 				if(!CSSUsage.StyleWalker.runRecipes) {
+					// Analyze the element
+					runElementAnalyzers(element, index);
+
 					if (element.hasAttribute('style')) {					
 						// Inline styles count like a style rule with no selector but one matched element
 						var ruleType = 1;
@@ -1583,7 +1589,6 @@ void function() { try {
 	}();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
-
 /* 
     RECIPE: Metaviewport
     -------------------------------------------------------------

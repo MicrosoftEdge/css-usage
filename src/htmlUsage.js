@@ -6,6 +6,12 @@ void function() {
     // CSSUsage.js under onready()
     // <param name="element"> is an HTMLElement passed in by elementAnalyzers
     window.HtmlUsage.GetNodeName = function (element) {
+
+        // If the browser doesn't recognize the element - throw it away
+        if(element instanceof HTMLUnknownElement) {
+            return;
+        }
+
         var node = element.nodeName;
 
         var tags = HtmlUsageResults.tags || (HtmlUsageResults.tags = {});
