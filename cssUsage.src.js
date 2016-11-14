@@ -488,9 +488,9 @@ void function() {
             return false;
         }
 
-        /*if(typeof(element[attname]) == "undefined") {
+        if(typeof(element[attname]) == "undefined") {
             return false;
-        }*/
+        }
 
         return true;
     }
