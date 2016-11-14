@@ -25,13 +25,34 @@ void function() {
         for(var i = 0; i < element.attributes.length; i++) {
             var att = element.attributes[i];
 
-            // Only keep attributes that do not contain a dash unless they're in the whitelist
-            if(att.nodeName.indexOf('data-') == -1) {
+            if(IsValidAttribute(element, att.nodeName)) {
                 var attributes = HtmlUsageResults.attributes || (HtmlUsageResults.attributes = {});
                 var attribute = attributes[att.nodeName] || (attributes[att.nodeName] = {});
                 var attributeTag = attribute[node] || (attribute[node] = {count: 0});             
                 attributeTag.count++;
             }
         }
+    }
+
+    function IsValidAttribute(element, attname) {
+        // We need to convert className
+        if(attname == "class") {
+            attname = "className";
+        } 
+
+        if(attname == "classname") {
+            return false;
+        }
+
+        // Only keep attributes that are not data
+        if(attname.indexOf('data-') != -1) {
+            return false;
+        }
+
+        /*if(typeof(element[attname]) == "undefined") {
+            return false;
+        }*/
+
+        return true;
     }
 }();
