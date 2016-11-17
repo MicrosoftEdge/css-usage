@@ -9,7 +9,7 @@
 */
 
 void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function paddingHack(/*HTML DOM Element*/ element, results) {
+    window.CSSUsage.StyleWalker.recipesToRun.push(function paddingHack(/*HTML DOM Element*/ element, results) {
 
         // Bail if the element doesn't have the props we're looking for
         if(!element.CSSUsage || !(element.CSSUsage["padding-bottom"] || element.CSSUsage["padding-top"])) return;
@@ -26,7 +26,7 @@ void function() {
         }
 
         for(var i = 0; i < values.length; i++) {
-            if(values[i].indexOf('%')) {
+            if(values[i].indexOf('%') != -1) {
                 var value = values[i].replace('%', "");
                 value = parseFloat(value);
 
