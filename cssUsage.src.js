@@ -1550,8 +1550,9 @@ void function() {
             var relValue = element.getAttribute('rel');
             if (relValue == 'manifest')
             {
-                var hrefValue = element.getAttribute('href');
-                results[window.location.href] = { manifesthref: hrefValue };
+                var value = element.getAttribute('href');
+                results[value] = results[value] || { count: 0 };
+                results[value].count++;
             }
         }
 
