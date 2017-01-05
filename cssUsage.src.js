@@ -1559,6 +1559,7 @@ void function() {
         return results;
     });
 }();
+
 /* 
     RECIPE: Metaviewport
     -------------------------------------------------------------
@@ -1599,14 +1600,22 @@ void function() {
     a bottom padding with a percentage value of great than 50%
     as this forces the box to set its height to that of the width
     and artificially creating aspect ratio based on its contents.
+
+    This is a variant of the other padding hack recipe looking for
+    % padding that is utilized on a flex item.
 */
 
 void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push(function paddingHack(/*HTML DOM Element*/ element, results) {
+    window.CSSUsage.StyleWalker.recipesToRun.push(function paddingHackOnFlexItem(/*HTML DOM Element*/ element, results) {
 
         // Bail if the element doesn't have the props we're looking for
         if(!element.CSSUsage || !(element.CSSUsage["padding-bottom"] || element.CSSUsage["padding-top"])) return;
         
+        // Bail if the element isn't a flex item
+        var parent = element.parentNode;
+        var display = window.getComputedStyle(parent).getPropertyValue("display");
+        if(display != "flex") return;
+
         var values = [];     
 
         // Build up a stack of values to interrogate
@@ -1633,19 +1642,6 @@ void function() {
         return results;
     });
 }();
-/* 
-    RECIPE: <NAME OF RECIPE>
-    -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function <NameYourRecipe>( element, results) {
-        return results;
-    });
-}();
-
-*/
 //
 // Execution scheduler:
 // This is where we decide what to run, and when
