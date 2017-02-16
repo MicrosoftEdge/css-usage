@@ -9,7 +9,7 @@ void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function paymentrequest(/*HTML DOM Element*/ element, results) {
 
         if(element.nodeName == "SCRIPT") {
-            if (element.innerText.indexof("PaymentRequest") != -1) {
+            if (element.innerText.indexOf("PaymentRequest") != -1) {
                 results["use"] = results["use"] || { count: 0 };
                 results["use"].count++;
             }
