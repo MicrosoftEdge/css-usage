@@ -1563,6 +1563,26 @@ void function() {
 /* 
     RECIPE: Metaviewport
     -------------------------------------------------------------
+    Author: Mustapha Jaber
+    Description: Get count of media elements on page like video, audio, object.
+*/
+
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function mediaelements(/*HTML DOM Element*/ element, results) {
+        if(element.nodeName == "OBJECT" || element.nodeName == "VIDEO" || element.nodeName == "AUDIO") {
+            for(var n = 0; n < element.attributes.length; n++) {
+                var value = element.attributes[n].value;
+                results[value] = results[value] || { count: 0 };
+                results[value].count++;
+            }    
+        }
+
+        return results;
+    });
+}();
+/* 
+    RECIPE: Metaviewport
+    -------------------------------------------------------------
     Author: Greg Whitworth
     Description: This will provide the values for the meta tag
     that also uses a content value with the values we're interested in.
