@@ -1570,18 +1570,13 @@ void function() {
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function mediaelements(/*HTML DOM Element*/ element, results) {
         var nodeName = element.nodeName;
-        if (nodeName == "OBJECT") {
-            results[nodeName] = results[nodeName] || { count: 0, width: element.width, height: element.height, classid: element.attributes['classid'].value };
-            results[nodeName].count++;
-        }
-        else if(nodeName == "VIDEO") {
-            results[nodeName] = results[nodeName] || { count: 0, width: element.width, height: element.height, src: element.src };
-            results[nodeName].count++;
-        }
-        else if (nodeName == "AUDIO")
+        if (nodeName == "OBJECT" || nodeName == "VIDEO" || nodeName == "AUDIO")
         {
-            results[nodeName] = results[nodeName] || { count: 0, src: element.src };
+            results[nodeName] = results[nodeName] || { count: 0,  };
             results[nodeName].count++;
+            for (var n = 0; n < element.attributes.length; n++) {
+                results[nodeName][element.attributes[n].name] = element.attributes[n].value;
+            }
         }
 
         return results;
@@ -1663,6 +1658,26 @@ void function() {
                     results[value] = results[value] || { count: 0 };
                     results[value].count++;
                 }
+            }
+        }
+
+        return results;
+    });
+}();
+/* 
+    RECIPE: Payment Request
+    -------------------------------------------------------------
+    Author: Stanley Hon
+    Description: This counts any page that includes any script references to PaymentRequest
+*/
+
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function paymentrequest(/*HTML DOM Element*/ element, results) {
+
+        if(element.nodeName == "SCRIPT") {
+            if (element.innerText.indexOf("PaymentRequest") != -1) {
+                results["use"] = results["use"] || { count: 0 };
+                results["use"].count++;
             }
         }
 
