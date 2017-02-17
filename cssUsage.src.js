@@ -1569,12 +1569,19 @@ void function() {
 
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function mediaelements(/*HTML DOM Element*/ element, results) {
-        if(element.nodeName == "OBJECT" || element.nodeName == "VIDEO" || element.nodeName == "AUDIO") {
-            for(var n = 0; n < element.attributes.length; n++) {
-                var value = element.attributes[n].value;
-                results[value] = results[value] || { count: 0 };
-                results[value].count++;
-            }    
+        var nodeName = element.nodeName;
+        if (nodeName == "OBJECT") {
+            results[nodeName] = results[nodeName] || { count: 0, width: element.width, height: element.height, classid: element.attributes['classid'].value };
+            results[nodeName].count++;
+        }
+        else if(nodeName == "VIDEO") {
+            results[nodeName] = results[nodeName] || { count: 0, width: element.width, height: element.height, src: element.src };
+            results[nodeName].count++;
+        }
+        else if (nodeName == "AUDIO")
+        {
+            results[nodeName] = results[nodeName] || { count: 0, src: element.src };
+            results[nodeName].count++;
         }
 
         return results;
