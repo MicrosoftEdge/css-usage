@@ -8,7 +8,7 @@
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function mediaelements(/*HTML DOM Element*/ element, results) {
         var nodeName = element.nodeName;
-        if (nodeName == "OBJECT" || nodeName == "VIDEO" || nodeName == "AUDIO")
+        if (nodeName == "OBJECT" || nodeName == "VIDEO" || nodeName == "AUDIO" || nodeName == "EMBED")
         {
             results[nodeName] = results[nodeName] || { count: 0,  };
             results[nodeName].count++;
