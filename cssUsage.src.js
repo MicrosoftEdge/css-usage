@@ -1536,29 +1536,6 @@ void function() { try {
 	}();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
-/* 
-    RECIPE: APP MANIFEST
-    -------------------------------------------------------------
-    Author: Joel Kucera
-    Description: This recipe looks for app manifest declarations.
-        ex, <link rel='manifest' href='/manifest.json'>
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push(function appManifest(element, results) {
-        if(element.nodeName == 'LINK') {
-            var relValue = element.getAttribute('rel');
-            if (relValue == 'manifest')
-            {
-                var value = element.getAttribute('href');
-                results[value] = results[value] || { count: 0 };
-                results[value].count++;
-            }
-        }
-
-        return results;
-    });
-}();
 
 /* 
     RECIPE: Metaviewport
@@ -1576,88 +1553,6 @@ void function() {
             results[nodeName].count++;
             for (var n = 0; n < element.attributes.length; n++) {
                 results[nodeName][element.attributes[n].name] = element.attributes[n].value;
-            }
-        }
-
-        return results;
-    });
-}();
-/* 
-    RECIPE: Metaviewport
-    -------------------------------------------------------------
-    Author: Greg Whitworth
-    Description: This will provide the values for the meta tag
-    that also uses a content value with the values we're interested in.
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function metaviewport(/*HTML DOM Element*/ element, results) {
-        var needles = ["width", "height", "initial-scale", "minimum-scale", "maximum-scale", "user-scalable"];
-
-        if(element.nodeName == "META") {
-            for(var n = 0; n < element.attributes.length; n++) {
-                if(element.attributes[n].name == "content") {
-                                      
-                    for(var needle = 0; needle < needles.length; needle++) {
-                        var value = element.attributes[n].value;
-
-                        if(value.indexOf(needles[needle]) != -1) {
-                            results[value] = results[value] || { count: 0 };
-                            results[value].count++;
-                            break;
-                        }
-                    }
-                }
-            }    
-        }
-
-        return results;
-    });
-}();
-/* 
-    RECIPE: PADDING HACK
-    -------------------------------------------------------------
-    Author: Greg Whitworth
-    Description: The padding hack is utilized in CSS by setting
-    a bottom padding with a percentage value of great than 50%
-    as this forces the box to set its height to that of the width
-    and artificially creating aspect ratio based on its contents.
-
-    This is a variant of the other padding hack recipe looking for
-    % padding that is utilized on a flex item.
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push(function paddingHackOnFlexItem(/*HTML DOM Element*/ element, results) {
-
-        // Bail if the element doesn't have the props we're looking for
-        if(!element.CSSUsage || !(element.CSSUsage["padding-bottom"] || element.CSSUsage["padding-top"])) return;
-        
-        // Bail if the element isn't a flex item
-        var parent = element.parentNode;
-        var display = window.getComputedStyle(parent).getPropertyValue("display");
-        if(display != "flex") return;
-
-        var values = [];     
-
-        // Build up a stack of values to interrogate
-        if(element.CSSUsage["padding-top"]) {
-            values = values.concat(element.CSSUsage["padding-top"].valuesArray);         
-        }
-        
-        if(element.CSSUsage["padding-bottom"]) {
-            values = values.concat(element.CSSUsage["padding-bottom"].valuesArray); 
-        }
-
-        for(var i = 0; i < values.length; i++) {
-            if(values[i].indexOf('%') != -1) {
-                var value = values[i].replace('%', "");
-                value = parseFloat(value);
-
-                if(value > 50) {
-                    results[value] = results[value] || { count: 0 };
-                    results[value].count++;
-                }
             }
         }
 
