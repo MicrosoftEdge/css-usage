@@ -4,14 +4,34 @@
     <title>Media elements test</title>
     <link type="text/css" href="../test-page/style.css" media="all" rel="stylesheet" />
     <script src="../../cssUsage.src.js"></script>
+    <style>
+        .feature_wrapper {
+            border-style:solid;
+            display:inline-block;
+            margin-bottom:15px;
+        }
+    </style>
 </head>
 <body>
     <div class="wrapper">
         <h1>Testing Media Elements</h1>
-        <video id="videoTag" src="" height="300" width="300"></video>
-        <video id="videoTag2" src="" height="500" width="500"></video>
-        <audio id="audioTag" src=""></audio>
-        <object id="objectTag" height="200" width="200" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"></object>
+        <video id="videoTag1" src="video1.mpg4" controls="controls" height="300" width="300" class="feature_wrapper"></video>
+        <video id="videoTag2" src="video2.mpg4" height="400" controls="controls" width="400" class="feature_wrapper"></video>
+        <audio id="audioTag" src="audio.mp3" controls="controls" class="feature_wrapper"></audio>
+        <object id="objectTag" height="200" width="200" data="test.swf" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" class="feature_wrapper"></object>
+        <embed id="embedTag" height="200" width="200" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" class="feature_wrapper" src="test.swf"/>
+        <!-- Flash download content -->
+        <div id="flashDownload" style="width: 526px; height: 155px; overflow: auto; text-align:center;" class="feature_wrapper">
+            <h2 style="color:black;">Insufficient Flash Player Requirements</h2>
+            <div>
+                <p>Click below to download the latest version of Flash</p>
+                <p>
+                    <a href="http://get.adobe.com/flashplayer/" target="_blank">
+                        <img style="display:block; margin-left: auto; margin-right: auto; padding-top: 10px;" alt="Get Adobe Flash Player" src="http://a.espncdn.com/espn3/images/watchespn/get_adobe_flash_player.png">
+                    </a>
+                </p>
+            </div>
+        </div>
     </div>
 </body>
 </html>
