@@ -6,8 +6,8 @@ module.exports = function(grunt) {
     concat: {
         src: {
             src: [
-			  'src/lodash.js',
-			  'src/cssShorthands.js',                                     
+			        'src/lodash.js',
+			        'src/cssShorthands.js',                                     
               'src/fwks/*',              
               'src/fwkUsage.js',               
               'src/patterns.js',
@@ -15,13 +15,28 @@ module.exports = function(grunt) {
               'src/htmlUsage.js',              
               'src/cssUsage.js',
               'src/recipes/*',    
-              'src/init.js'     
+              'src/init.js',
+              'src/crawl/prepareTsv.js'
             ],
             dest: 'cssUsage.src.js'
         }
+    },
+    strip_code: {
+      options: {
+        blocks: [
+          {
+            start_block: "/* Start Recipe Removal Block */",
+            end_block: "/* End Recipe Removal Block */"
+          }
+        ],
+        your_target: {
+            src: 'cssUsage.src.js'
+        }
+      } // end options
     }
   });
   
   grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.registerTask('default', ['concat:src']);
+  grunt.loadNpmTasks('grunt-strip-code');
+  grunt.registerTask('default', ['concat', 'strip_code']);
 };
