@@ -1556,7 +1556,6 @@ void function() {
         // Bail if the element doesn't have the props we're looking for
         if(!element.CSSUsage || !(element.CSSUsage["max-height"])) return;
 
-        console.log('I have max height');
         var replacedElems = ["INPUT", "TEXTAREA", "IMG"];
         var maxHeight = element.CSSUsage['max-height'];
         var height = element.CSSUsage['height'];
@@ -1569,7 +1568,7 @@ void function() {
                 return;
             }
 
-            // TSV eg: 5 INPUT count MaxHeightPercentOnReplacedElem
+            // TSV eg: 5 recipe MaxHeightPercentOnReplacedElem IMG count
             results[element.nodeName] = results[element.nodeName] || { count: 0 };
             results[element.nodeName].count++;
         }

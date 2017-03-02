@@ -17,7 +17,6 @@ void function() {
         // Bail if the element doesn't have the props we're looking for
         if(!element.CSSUsage || !(element.CSSUsage["max-height"])) return;
 
-        console.log('I have max height');
         var replacedElems = ["INPUT", "TEXTAREA", "IMG"];
         var maxHeight = element.CSSUsage['max-height'];
         var height = element.CSSUsage['height'];
