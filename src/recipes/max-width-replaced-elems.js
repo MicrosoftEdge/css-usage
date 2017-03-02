@@ -1,9 +1,9 @@
 /* 
-    RECIPE: Max-height on Replaced Elements
+    RECIPE: Max-width on Replaced Elements
     -------------------------------------------------------------
     Author: Greg Whitworth
     Description: This is investigation for the CSSWG looking into
-    max-height with a % on a replaced element. If the results return
+    max-width with a % on a replaced element. If the results return
     too large we may want to take the next step to roughly determine
     if one of the parent's are depending on the sizing of its child.
     For example, abspos, table cell, floats, etc. That will be more
@@ -18,10 +18,10 @@ void function() {
         if(!element.CSSUsage || !(element.CSSUsage["max-width"])) return;
 
         var replacedElems = ["INPUT", "TEXTAREA"];
-        var maxHeight = element.CSSUsage['max-width'];
-        var height = element.CSSUsage['width'];
+        var maxWidth = element.CSSUsage['max-width'];
+        var width = element.CSSUsage['width'];
 
-        if(height != undefined) return; // We only want auto sized boxes
+        if(width != undefined) return; // We only want auto sized boxes
 
         if(replacedElems.includes(element.nodeName)) {
 
@@ -29,7 +29,7 @@ void function() {
                 return;
             }
 
-            // TSV eg: 5 recipe MaxHeightPercentOnReplacedElem IMG count
+            // TSV eg: 5 recipe MaxWidthPercentOnReplacedElem INPUT count
             results[element.nodeName] = results[element.nodeName] || { count: 0 };
             results[element.nodeName].count++;
         }
