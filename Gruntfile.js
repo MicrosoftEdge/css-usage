@@ -23,16 +23,16 @@ module.exports = function(grunt) {
     },
     strip_code: {
       options: {
-        blocks: [
-          {
-            start_block: "/* Start Recipe Removal Block */",
-            end_block: "/* End Recipe Removal Block */"
-          }
-        ],
-        your_target: {
-            src: 'cssUsage.src.js'
-        }
-      } // end options
+        patterns: [
+          /currentRowTemplate.push\(\'(css|dom|html)\'\);/g,
+          /convertToTSV\(INSTRUMENTATION_RESULTS\[\'(css|dom|html)\'\]\);\n\s+currentRowTemplate.pop\(\);/g
+        ]
+      },
+      your_target: {
+        files: [
+          {src: 'cssUsage.src.js', dest: 'Recipe.min.js'}
+        ]
+      }
     }
   });
   

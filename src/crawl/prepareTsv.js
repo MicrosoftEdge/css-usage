@@ -92,7 +92,6 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 		convertToTSV({identifier: INSTRUMENTATION_RESULTS.UASTRING});
 		currentRowTemplate.pop();
 		
-		/* Start Recipe Removal Block */
 		currentRowTemplate.push('css');
 		convertToTSV(INSTRUMENTATION_RESULTS['css']);
 		currentRowTemplate.pop();
@@ -104,7 +103,6 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 		currentRowTemplate.push('html');
 		convertToTSV(INSTRUMENTATION_RESULTS['html']);
 		currentRowTemplate.pop();
-		/* End Recipe Removal Block */
 
 		currentRowTemplate.push('recipe');
 		convertToTSV(INSTRUMENTATION_RESULTS['recipe']);

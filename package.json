@@ -2,14 +2,17 @@
   "name": "ms-edge-css-usage",
   "main": "src/cssUsage.js",
   "version": "0.1.0",
+  "scripts": {
+    "build": "grunt"
+  },
   "devDependencies": {
     "babel-preset-es2015": "^6.0.15",
     "chai": "^3.0.0",
-    "grunt": "^0.4.5",
+    "grunt": "^1.0.0",
     "grunt-babel": "^6.0.0",
-    "grunt-contrib-concat": "^0.5.1",
-    "grunt-contrib-uglify": "^0.9.1",
-    "grunt-mocha": "^0.4.12",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-uglify": "^2.1.0",
+    "grunt-mocha": "^1.0.4",
     "grunt-strip-code": "^1.0.4",
     "http-server": "^0.8.0",
     "mocha": "^2.2.5",
