@@ -21,7 +21,10 @@ void function() {
         var maxWidth = element.CSSUsage['max-width'];
         var width = element.CSSUsage['width'];
 
-        if(width != undefined) return; // We only want auto sized boxes
+        if(!maxWidth.includes('%')) return;
+
+         // We only want auto sized boxes
+        if(width && !width.includes('auto')) return;
 
         if(replacedElems.includes(element.nodeName)) {
 
