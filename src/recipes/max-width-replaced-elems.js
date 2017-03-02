@@ -13,13 +13,13 @@
 */
 
 void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function MaxHeightPercentOnReplacedElem(element, results) {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function MaxWidthPercentOnReplacedElem(element, results) {
         // Bail if the element doesn't have the props we're looking for
-        if(!element.CSSUsage || !(element.CSSUsage["max-height"])) return;
+        if(!element.CSSUsage || !(element.CSSUsage["max-width"])) return;
 
-        var replacedElems = ["INPUT", "TEXTAREA", "IMG"];
-        var maxHeight = element.CSSUsage['max-height'];
-        var height = element.CSSUsage['height'];
+        var replacedElems = ["INPUT", "TEXTAREA"];
+        var maxHeight = element.CSSUsage['max-width'];
+        var height = element.CSSUsage['width'];
 
         if(height != undefined) return; // We only want auto sized boxes
 
