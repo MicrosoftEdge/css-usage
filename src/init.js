@@ -53,7 +53,7 @@ void function() {
 
         // perform analysis
         CSSUsage.StyleWalker.walkOverDomElements();
-        CSSUsage.StyleWalker.walkOverCssStyles();			
+        CSSUsage.StyleWalker.walkOverCssStyles();
         CSSUsage.PropertyValuesAnalyzer.finalize();
         CSSUsage.SelectorAnalyzer.finalize();
 
@@ -65,12 +65,9 @@ void function() {
         CSSUsageResults.duration = (performance.now() - startTime)|0;
 
         // DO SOMETHING WITH THE CSS OBJECT HERE
-        if(window.debugCSSUsage) console.log(CSSUsageResults);
+        window.debugCSSUsage = false;
         if(window.onCSSUsageResults) {
             window.onCSSUsageResults(CSSUsageResults);
-        };
-        
+        }  
     }
-
-
 }();

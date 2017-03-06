@@ -38,7 +38,8 @@ void function() { try {
 	//
 	// Prepare our global namespace
 	//
-	void function() {		
+	void function() {
+		if(window.debugCSSUsage) console.log("STAGE: Building up namespace");
 		window.HtmlUsageResults = {
 			// this will contain all of the HTML tags used on a page
 			tags: {}, /*
@@ -152,6 +153,7 @@ void function() { try {
 		 * walk through the stylerules and run analyzers
 		 */
 		function walkOverCssStyles() {
+			if(window.debugCSSUsage) console.log("STAGE: Walking over styles");
 			var styleSheets = document.styleSheets;
 
 			// Loop through StyeSheets
@@ -165,7 +167,7 @@ void function() { try {
 					}
 				}
 				catch (e) {
-					console.log(e, e.stack);
+					if(window.debugCSSUsage) console.log(e, e.stack);
 				}
 			}
 			
@@ -186,6 +188,7 @@ void function() { try {
 		 * rules and then call the rule analyzers currently registered
 		 */
 		function walkOverCssRules(/*CSSRuleList*/ cssRules, styleSheet, parentMatchedElements) {
+			if(window.debugCSSUsage) console.log("STAGE: Walking over rules");
 			for (var ruleIndex = cssRules.length; ruleIndex--;) {
 
 				// Loop through the rules
@@ -267,6 +270,7 @@ void function() { try {
 		 * as well as rule analyzers for inline styles
 		 */
 		function walkOverDomElements(obj, index) {
+			if(window.debugCSSUsage) console.log("STAGE: Walking over DOM elements");
 			var recipesToRun = CSSUsage.StyleWalker.recipesToRun;			
 			obj = obj || document.documentElement; index = index|0;
 
@@ -777,8 +781,7 @@ void function() { try {
 				
 			}
 			
-			removeAnimationNames();
-			
+			removeAnimationNames();			
 		}
 
 		//-------------------------------------------------------------------------
@@ -1031,7 +1034,7 @@ void function() { try {
 			results = getPatternUsage(results, domClasses, cssClasses);
 			
 			CSSUsageResults.usages = results;
-			if(window.debugCSSUsage) console.log(CSSUsageResults.usages);
+			if(window.debugCSSUsage) if(window.debugCSSUsage) console.log(CSSUsageResults.usages);
 		}
 
 		

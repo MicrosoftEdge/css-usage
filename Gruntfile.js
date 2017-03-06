@@ -15,8 +15,8 @@ module.exports = function(grunt) {
               'src/htmlUsage.js',              
               'src/cssUsage.js',
               'src/recipes/*',    
-              'src/init.js',
-              'src/crawl/prepareTsv.js'
+              'src/crawl/prepareTsv.js',
+              'src/init.js'              
             ],
             dest: 'cssUsage.src.js'
         }

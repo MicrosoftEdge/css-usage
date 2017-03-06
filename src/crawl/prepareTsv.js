@@ -47,7 +47,6 @@ void function() {
 }();
 
 window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
-
 	// Collect the results (css)
 	INSTRUMENTATION_RESULTS.css = CSSUsageResults;
 	INSTRUMENTATION_RESULTS.html = HtmlUsageResults;
@@ -66,17 +65,35 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 	
 	// Convert into one signle tsv file
 	var tsvString = INSTRUMENTATION_RESULTS_TSV.map((row) => (row.join('\t'))).join('\n');
-	if(window.debugCSSUsage) console.log(tsvString);
+	appendTSV(tsvString);
 	
 	// Add it to the document dom
-	var output = document.createElement('script');
-	output.id = "css-usage-tsv-results";
-	output.textContent = tsvString;
-    output.type = 'text/plain';
-    document.querySelector('head').appendChild(output);
+	function appendTSV(content) {
+		if(window.debugCSSUsage) console.log("Trying to append");
+		var output = document.createElement('script');
+		output.id = "css-usage-tsv-results";
+		output.textContent = tsvString;
+		output.type = 'text/plain';
+		document.querySelector('head').appendChild(output);
+		var successfulAppend = checkAppend();
+	}
+
+	function checkAppend() {
+		if(window.debugCSSUsage) if(window.debugCSSUsage) console.log("Checking append");
+		var elem = document.getElementById('css-usage-tsv-results');
+		if(elem === null) {
+			if(window.debugCSSUsage) console.log("Element not appended");
+			if(window.debugCSSUsage) console.log("Trying to append again");
+			appendTSV();
+		}
+		else {
+			if(window.debugCSSUsage) console.log("Element successfully found");
+		}
+	}
 
 	/** convert the instrumentation results to a spreadsheet for analysis */
 	function convertToTSV(INSTRUMENTATION_RESULTS) {
+		if(window.debugCSSUsage) console.log("Converting to TSV");
 		
 		var VALUE_COLUMN = 4;
 		var finishedRows = [];
