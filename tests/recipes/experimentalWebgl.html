@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Media elements test</title>
+    <link type="text/css" href="../test-page/style.css" media="all" rel="stylesheet" />
+    <style>
+        .feature_wrapper {
+            border-style:solid;
+            display:inline-block;
+            margin-bottom:15px;
+        }
+    </style>
+    <script src="../../Recipe.min.js" data-crawler="1"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <h1>Testing experimental WebGL usage in script</h1>        
+    </div>
+    <script>
+        function IsExperimentalWebGlSupported()
+        {
+            try {
+                if (a.getContext("experimental-webgl"))
+                    return true;
+            } catch(exception) { }
+        }
+    </script>
+</body>
+</html>
