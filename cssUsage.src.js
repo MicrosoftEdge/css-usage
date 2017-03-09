@@ -1555,7 +1555,7 @@ void function() {
         {
             results[nodeName] = results[nodeName] || { count: 0, };
             // if inline script. ensure that it's not our recipe script and look for string of interest
-            if (element.text !== undefined && element.text.indexOf("experimentalWebgl") != -1 && element.text.indexOf(script) != -1)
+            if (element.text !== undefined && element.text.indexOf(script) != -1)
             {
                 results[nodeName].count++;
             }
