@@ -1541,40 +1541,6 @@ void function() { try {
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
 /* 
-    RECIPE: Experimental WebGL
-    -------------------------------------------------------------
-    Author: Mustapha Jaber
-    Description: Find use of experimental-webgl in script.
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function experimentalWebgl(/*HTML DOM Element*/ element, results) {
-        var nodeName = element.nodeName;
-        var script = "experimental-webgl"
-        if (nodeName == "SCRIPT")
-        {
-            results[nodeName] = results[nodeName] || { count: 0, };
-            // if inline script. ensure that it's not our recipe script and look for string of interest
-            if (element.text !== undefined && element.text.indexOf(script) != -1)
-            {
-                results[nodeName].count++;
-            }
-            else if (element.src !== undefined && element.src != "")
-            {
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", element.src, false);
-                //xhr.setRequestHeader("Content-type", "text/javascript");
-                xhr.send();
-                if (xhr.status === 200 && xhr.responseText.indexOf(script) != -1)
-                {
-                    results[nodeName].count++;
-                }
-            }
-        }
-        return results;
-    });
-}();
-/* 
     RECIPE: Max-width on Replaced Elements
     -------------------------------------------------------------
     Author: Greg Whitworth
@@ -1608,47 +1574,48 @@ void function() {
                 return;
             }
 
+            var s2fParent = parentIsPotentialShrinkToFit(element);
+            if(s2fParent == undefined) return;
+
             // TSV eg: 5 recipe MaxWidthPercentOnReplacedElem INPUT count
-            results[element.nodeName] = results[element.nodeName] || { count: 0 };
+            results[element.nodeName] = results[element.nodeName] || { 
+                                                                        count: 0, 
+                                                                        html: {}, 
+                                                                        parent: {} 
+                                                                    };
+
+            results[element.nodeName].html[element.outerHTML] = "outerHTML";
+            results[element.nodeName].parent[s2fParent.nodeName] = results[element.nodeName].parent[s2fParent.nodeName] || { classes: "", id: "" }
+            results[element.nodeName].parent[s2fParent.nodeName].classes = [...s2fParent.classList].join();
+            results[element.nodeName].parent[s2fParent.nodeName].id = s2fParent.id;
             results[element.nodeName].count++;
         }
 
         return results;
     });
-}();
-/* 
-    RECIPE: Payment Request
-    -------------------------------------------------------------
-    Author: Stanley Hon
-    Description: This counts any page that includes any script references to PaymentRequest
-*/
 
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function paymentrequest(/*HTML DOM Element*/ element, results) {
+    function parentIsPotentialShrinkToFit(elem) {
+        var parent = elem.parentNode;
 
-        if(element.nodeName == "SCRIPT") {
-            if (element.innerText.indexOf("PaymentRequest") != -1) {
-                results["use"] = results["use"] || { count: 0 };
-                results["use"].count++;
+        if(parent != undefined && parent.nodeName != '#document') {
+            var gcs = window.getComputedStyle(parent);
+
+            // Check that a parent is potentially shrink to fit
+            if(gcs.float == ('right') ||
+               gcs.float == ('left') ||
+               gcs.display == ('table-cell') || 
+               gcs.display == ('flex') ||
+               gcs.position == ('fixed') ||
+               gcs.position == ('absolute')
+            ) {
+                return parent;
+            }
+            else {
+                return parentIsPotentialShrinkToFit(parent);
             }
         }
-
-        return results;
-    });
+    }
 }();
-/* 
-    RECIPE: <NAME OF RECIPE>
-    -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function <NameYourRecipe>( element, results) {
-        return results;
-    });
-}();
-
-*/
 //
 // This file is only here to create the TSV
 // necessary to collect the data from the crawler
