@@ -1553,86 +1553,29 @@ void function() {
         var script = "experimental-webgl"
         if (nodeName == "SCRIPT")
         {
-            results[nodeName] = results[nodeName] || { count: 0, };
             // if inline script. ensure that it's not our recipe script and look for string of interest
             if (element.text !== undefined && element.text.indexOf(script) != -1)
             {
+                results[nodeName] = results[nodeName] || { count: 0, };
                 results[nodeName].count++;
             }
             else if (element.src !== undefined && element.src != "")
             {
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", element.src, false);
-                //xhr.setRequestHeader("Content-type", "text/javascript");
-                xhr.send();
-                if (xhr.status === 200 && xhr.responseText.indexOf(script) != -1)
+                try
                 {
-                    results[nodeName].count++;
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("GET", element.src, false);
+                    //xhr.setRequestHeader("Content-type", "text/javascript");
+                    xhr.send();
+                    if (xhr.status === 200 && xhr.responseText.indexOf(script) != -1) {
+                        results[nodeName] = results[nodeName] || { count: 0, };
+                        results[nodeName].count++;
+                    }
                 }
+                // ignore failure to get script content
+                catch(ex) {}
             }
         }
-        return results;
-    });
-}();
-/* 
-    RECIPE: Max-width on Replaced Elements
-    -------------------------------------------------------------
-    Author: Greg Whitworth
-    Description: This is investigation for the CSSWG looking into
-    max-width with a % on a replaced element. If the results return
-    too large we may want to take the next step to roughly determine
-    if one of the parent's are depending on the sizing of its child.
-    For example, abspos, table cell, floats, etc. That will be more
-    computationally extensive so we'll start a simpler investigation first.
-
-    Action Link: https://log.csswg.org/irc.w3.org/css/2017-03-01/#e778075
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function MaxWidthPercentOnReplacedElem(element, results) {
-        // Bail if the element doesn't have the props we're looking for
-        if(!element.CSSUsage || !(element.CSSUsage["max-width"])) return;
-
-        var replacedElems = ["INPUT", "TEXTAREA"];
-        var maxWidth = element.CSSUsage['max-width'];
-        var width = element.CSSUsage['width'];
-
-        if(!maxWidth.includes('%')) return;
-
-         // We only want auto sized boxes
-        if(width && !width.includes('auto')) return;
-
-        if(replacedElems.includes(element.nodeName)) {
-
-            if(element.nodeName == "INPUT" && element.type != "text") {
-                return;
-            }
-
-            // TSV eg: 5 recipe MaxWidthPercentOnReplacedElem INPUT count
-            results[element.nodeName] = results[element.nodeName] || { count: 0 };
-            results[element.nodeName].count++;
-        }
-
-        return results;
-    });
-}();
-/* 
-    RECIPE: Payment Request
-    -------------------------------------------------------------
-    Author: Stanley Hon
-    Description: This counts any page that includes any script references to PaymentRequest
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function paymentrequest(/*HTML DOM Element*/ element, results) {
-
-        if(element.nodeName == "SCRIPT") {
-            if (element.innerText.indexOf("PaymentRequest") != -1) {
-                results["use"] = results["use"] || { count: 0 };
-                results["use"].count++;
-            }
-        }
-
         return results;
     });
 }();
