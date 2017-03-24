@@ -1,5 +1,5 @@
 /* 
-    RECIPE: <NAME OF RECIPE>
+    RECIPE: SVGUsedOnImage
     -------------------------------------------------------------
     Author: <YOUR NAME>
     Description: <WHAT IS YOUR RECIPE LOOKING FOR>
