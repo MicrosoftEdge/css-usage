@@ -1556,7 +1556,7 @@ void function() {
             for(var n = 0; n < x.length; n++){
                 var value = element.CSSUsage[Object.keys(element.CSSUsage)[n]] //Grab the value of each item in the object
                 //we want to know which are urls
-                var patt = new RegExp("url\((data\:image\/svg\+xml.+)|(.+\.svg.?)\)");
+                var patt = new RegExp(/url\((data\:image\/svg\+xml.+)|(.+\.svg.?)\)/);
                 if(patt.test(value)){
                     results['SVGInUrl'] = results['SVGInUrl'] || {count : 0}
                     results['SVGInUrl'].count++;
@@ -1630,11 +1630,16 @@ void function() {
 
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function SVGUsedOnHtmlElementSrc( element, results) {
+        var patt = new RegExp(/data\:image\/svg\+xml.+/);
         for(var n = 0; n < element.attributes.length; n++) {
             if(element.attributes[n].name == "src") {
                 if(element.attributes[n].value.indexOf(".svg") != -1){
                     results['SVGUsedOnHtmlElementSrc'] = results['SVGUsedOnHtmlElementSrc'] || { count: 0 };
                     results['SVGUsedOnHtmlElementSrc'].count++;
+                    break;
+                } else if (patt.test(element.attributes[n].value)){
+                    results['SVGUsedOnHtmlElementSrcExplicit'] = results['SVGUsedOnHtmlElementSrcExplicit'] || {count : 0}
+                    results['SVGUsedOnHtmlElementSrcExplicit'].count++;
                     break;
                 }
             }
