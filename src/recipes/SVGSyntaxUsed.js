@@ -8,8 +8,8 @@
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function SVGSyntaxUsed( element, results) {
         if(element.nodeName == "svg") {
-            results['svgHTML'] = results['svgHTML'] || { count: 0 };
-            results['svgHTML'].count++;
+            results['SVGSyntaxUsed'] = results['SVGSyntaxUsed'] || { count: 0 };
+            results['SVGSyntaxUsed'].count++;
         }
         
         return results;
