@@ -459,6 +459,9 @@ void function() { try {
 						value = value.replace(/('|‘|’|")/g, "");
 					}
 					
+					// Collapse whitespace
+					value = value.trim().replace(/\s+/g, " ");
+
 					// Divide at commas to separate different font names
 					value = value.split(/\s*,\s*/g);
 
@@ -483,6 +486,9 @@ void function() { try {
 					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
 					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
 
+					// Collapse whitespace
+					value = value.trim().replace(/\s+/g, " ");
+
 					// Divide at commas and spaces to separate different values
 					value = value.split(/\s*(?:,|[/])\s*|\s+/g);
 					break;
@@ -492,9 +498,6 @@ void function() { try {
 					
 					// Don't divide commas and spaces if we want the inside of Url values
 					if(!wewantinsidesofurls){
-						// Divide at commas and spaces to separate different values
-						value = value.split(/\s*(?:,|[/])\s*|\s+/g);
-
 						// Replace strings by dummies
 						value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
 									 			.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
@@ -504,10 +507,15 @@ void function() { try {
 							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
 							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
 						}
+
+						// Collapse whitespace
+						value = value.trim().replace(/\s+/g, " ");
+
+						// Divide at commas and spaces to separate different values
+						value = value.split(/\s*(?:,|[/])\s*|\s+/g);
 					}
 			}
-			// Collapse whitespace
-			value = value.trim().replace(/\s+/g, " ");
+			
 
 			// This fixes a bug where there is only one item and it's not split by the value.split
 			// What ends up happening is that this function returns a string, not an array. 
