@@ -750,8 +750,6 @@ void function() { try {
 						// these on the element so we don't have to recompute them
 						knownValues.valuesArray = knownValues.valuesArray || (knownValues.valuesArray = []);
 						
-
-						//TODO: Why is this ruining everything?
 						for(var sv = 0; sv < specifiedValuesArray.length; sv++) {
 							var currentSV = specifiedValuesArray[sv];
 							if(knownValues.valuesArray.indexOf(currentSV) == -1) {
