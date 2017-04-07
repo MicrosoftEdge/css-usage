@@ -936,7 +936,7 @@ void function() { try {
 		/**
 		 * This will transform a value into an array of value identifiers
 		 */ 
-		function createValueArray(value, propertyName) { 
+		function createValueArray(value, propertyName, wewantinsidesofurls) { 
 
 			// Trim value on the edges
 			value = value.trim();
@@ -958,17 +958,19 @@ void function() { try {
 					
 					// Divide at commas to separate different font names
 					value = value.split(/\s*,\s*/g);
+
+					// Divide at commas and spaces to separate different values
+					value = value.split(/\s*(?:,|[/])\s*|\s+/g);
 					return value;
-					
 				case '--var':
 				
-					// // Replace strings by dummies
-					// value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
-					// value = value.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
+					// Replace strings by dummies
+					value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
+					value = value.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
 					
-					// // Replace url(...) functions by dummies
-					// value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
-					// value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
+					// Replace url(...) functions by dummies
+					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
+					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
 				
 					// Remove group contents (...), {...} and [...]
 					value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
@@ -977,28 +979,39 @@ void function() { try {
 					value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
 					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
 					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
-					
+
+					// Divide at commas and spaces to separate different values
+					value = value.split(/\s*(?:,|[/])\s*|\s+/g);
 					break;
 					
 				default:
 				
-					// // Replace strings by dummies
-					// value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
-					// 			 .replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
 					
-					// // Replace url(...) functions by dummies
-					// if (value.indexOf("(") != -1) {
-					// 	value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
-					// 	value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
-					// }
-					
+					// Don't divide commas and spaces if we want the inside of Url values
+					if(!wewantinsidesofurls){
+						// Divide at commas and spaces to separate different values
+						value = value.split(/\s*(?:,|[/])\s*|\s+/g);
+
+						// Replace strings by dummies
+						value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
+									 			.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
+						
+						// Replace url(...) functions by dummies
+						if (value.indexOf("(") != -1) {
+							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
+							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
+						}
+					}
 			}
-			
 			// Collapse whitespace
 			value = value.trim().replace(/\s+/g, " ");
-			
-			// Divide at commas and spaces to separate different values
-			value = value.split(/\s*(?:,|[/])\s*|\s+/g);
+
+			// This fixes a bug where there is only one item and it's not split by the value.split
+			// What ends up happening is that this function returns a string, not an array. 
+			// That ruins everything because when we do .length in the for loop after this, it returns the length of the string, not the array. Ugh.			
+			if( typeof value === 'string' ) {
+    			value = [ value ];
+			}
 			
 			return value;
 		}
@@ -1182,7 +1195,8 @@ void function() { try {
 				}
 				
 				// divide the value into simplified components
-				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
+				var wewantinsidesofurls = true;
+				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey, wewantinsidesofurls);
 				var values = new Array();
 				for(var j=specifiedValuesArray.length; j--;) {
 					values.push(CSSUsage.CSSValues.parseValues(specifiedValuesArray[j],normalizedKey));
@@ -1233,6 +1247,8 @@ void function() { try {
 						// these on the element so we don't have to recompute them
 						knownValues.valuesArray = knownValues.valuesArray || (knownValues.valuesArray = []);
 						
+
+						//TODO: Why is this ruining everything?
 						for(var sv = 0; sv < specifiedValuesArray.length; sv++) {
 							var currentSV = specifiedValuesArray[sv];
 							if(knownValues.valuesArray.indexOf(currentSV) == -1) {
@@ -1556,10 +1572,14 @@ void function() {
             for(var n = 0; n < x.length; n++){
                 var value = element.CSSUsage[Object.keys(element.CSSUsage)[n]] //Grab the value of each item in the object
                 //we want to know which are urls
-                var patt = new RegExp(/url\((data\:image\/svg\+xml.+)|(.+\.svg.?)\)/);
-                if(patt.test(value)){
+                if(/url\((.+\.svg.?)\)/.test(value)){
                     results['SVGInUrl'] = results['SVGInUrl'] || {count : 0}
                     results['SVGInUrl'].count++;
+                    break;
+                // } else if (/url\((data\:image\/svg\+xml.+)\)/.test(value)){
+                } else if (/svg\+xml\;base64/.test(value)){
+                    results['SVGInUrlExplicit'] = results['SVGInUrlExplicit'] || {count : 0}
+                    results['SVGInUrlExplicit'].count++;
                     break;
                 }
             }

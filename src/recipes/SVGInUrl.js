@@ -14,10 +14,14 @@ void function() {
             for(var n = 0; n < x.length; n++){
                 var value = element.CSSUsage[Object.keys(element.CSSUsage)[n]] //Grab the value of each item in the object
                 //we want to know which are urls
-                var patt = new RegExp(/url\((data\:image\/svg\+xml.+)|(.+\.svg.?)\)/);
-                if(patt.test(value)){
+                if(/url\((.+\.svg.?)\)/.test(value)){
                     results['SVGInUrl'] = results['SVGInUrl'] || {count : 0}
                     results['SVGInUrl'].count++;
+                    break;
+                // } else if (/url\((data\:image\/svg\+xml.+)\)/.test(value)){
+                } else if (/svg\+xml\;base64/.test(value)){
+                    results['SVGInUrlExplicit'] = results['SVGInUrlExplicit'] || {count : 0}
+                    results['SVGInUrlExplicit'].count++;
                     break;
                 }
             }
