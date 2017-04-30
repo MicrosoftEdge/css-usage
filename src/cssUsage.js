@@ -352,8 +352,7 @@ void function() { try {
 
 		CSSUsage.CSSValues = {
 			createValueArray: createValueArray,
-			parseValues: parseValues,
-			normalizeValue: createValueArray
+			parseValues: parseValues
 		};
 
 		/**
@@ -371,6 +370,9 @@ void function() { try {
 			// Map colors to a standard value (eg: white, blue, yellow)
 			if (isKeywordColor(value)) { return "<color-keyword>"; }
 			value = value.replace(/[#][0-9a-fA-F]+/g, '#xxyyzz');
+
+			// Remove comments and !important
+			value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
 			
 			// Escapce identifiers containing numbers
 			var numbers = ['ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE'];
@@ -393,18 +395,19 @@ void function() { try {
 			value = numbers.reduce(
 				(m,nstr,nint)=>m.replace(RegExp(nstr,'g'),nint),
 				value
-			)
+			)		
 			
-			// Remove quotes
-			value = value.replace(/('|‘|’|")/g, "");
-			
-			//
 			switch(propertyName) {
 				case 'counter-increment':
 				case 'counter-reset':
 					
 					// Anonymize the user identifier
 					value = value.replace(/[-_a-zA-Z0-9]+/g,' <custom-ident> ');
+					break;
+
+				case 'font-family':
+					// Remove quotes
+					value = value.replace(/('|‘|’|")/g, "");
 					break;
 					
 				case 'grid':
@@ -416,8 +419,15 @@ void function() { try {
 					// Anonymize line names
 					value = value.replace(/\[[-_a-zA-Z0-9 ]+\]/g,' <line-names> ');
 					break;
+
+				case '--var':									
+					// Replace strings by dummies
+					value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
+					value = value.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
 					
-				case '--var':
+					// Replace url(...) functions by dummies
+					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
+					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
 				
 					// Replace (...), {...} and [...]
 					value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
@@ -427,7 +437,10 @@ void function() { try {
 					value = value.replace(/\{(?:[^()]+|\{(?:[^()]+|\{(?:[^()]+|\{(?:[^()]+|\{(?:[^()]*)\})*\})*\})*\})*\}/g, " <square-brackets-block> ");
 					value = value.replace(/\{(?:[^()]+|\{(?:[^()]+|\{(?:[^()]+|\{(?:[^()]+|\{(?:[^()]*)\})*\})*\})*\})*\}/g, " <square-brackets-block> ");
 					break;
-					
+
+				default:
+					value = cleanFunctionValues(value);
+					break;
 			}
 			 
 			return value.trim();
@@ -439,7 +452,7 @@ void function() { try {
 		/**
 		 * This will transform a value into an array of value identifiers
 		 */ 
-		function createValueArray(value, propertyName) {
+		function createValueArray(value, propertyName, createArr) {
 
 			// Trim value on the edges
 			value = value.trim();
@@ -447,62 +460,41 @@ void function() { try {
 			// Normalize letter-casing
 			value = value.toLowerCase();
 			
-			// Remove comments and !important
-			value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
-			
 			// Do the right thing in function of the property
 			switch(propertyName) {
-				case 'font-family':
-					
-					// Remove various quotes
-					if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
-						value = value.replace(/('|‘|’|")/g, "");
-					}
-					
+				case 'font-family':					
 					// Divide at commas to separate different font names
 					value = value.split(/\s*,\s*/g);
-					return value;
-					
-				case '--var':
-				
-					// Replace strings by dummies
-					value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
-					value = value.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
-					
-					// Replace url(...) functions by dummies
-					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
-					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
-					
-					// Remove group contents (...), {...} and [...]
-					value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
-					value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
-					value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
-					value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
-					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
-					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
-					
 					break;
-					
 				default:
-				
-					// Replace strings by dummies
-					value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
-								 .replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
+					// Collapse whitespace
+					value = value.trim().replace(/\s+/g, " ");
 					
-					// Replace url(...) functions by dummies
-					if (value.indexOf("(") != -1) {
-						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
-						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
-					}
-					
+					// Divide at commas and spaces to separate different values
+					value = value.split(/\s*(?:,|[/])\s*|\s(?![^\(]*\))/g);
+					break;							
+			}			
+			
+			return value;
+		}
+
+		// This will take a string and convert it to <string>	
+		function convertStringToTyped(value) {
+			// Replace strings by dummies
+			return value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
+						   .replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
+		}
+
+		// This will clear any CSS function() to just 
+		// the name and the open and closing paren
+		function cleanFunctionValues(value) {
+			value = convertStringToTyped(value);
+
+			// Replace url(...) functions by dummies
+			if (value.indexOf("(") != -1) {
+				value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
+				value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
 			}
-			
-			// Collapse whitespace
-			value = value.trim().replace(/\s+/g, " ");
-			
-			// Divide at commas and spaces to separate different values
-			value = value.split(/\s*(?:,|[/])\s*|\s+/g);
-			
 			return value;
 		}
 
