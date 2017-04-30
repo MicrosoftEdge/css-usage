@@ -41,15 +41,14 @@ describe('Basic Values', function(){
 // Webkit Values
 describe('Prefixed Values', function(){
     it('-webkit-linear-gradient()', function(){
-        chai.assert.equal(["-webkit-linear-gradient()"][0], CSSUsage.CSSValues.createValueArray("-webkit-linear-gradient(red, blue)")[0]);
+        chai.assert.equal("-webkit-linear-gradient()", CSSUsage.CSSValues.parseValues("-webkit-linear-gradient(red, blue)"));
     });
 });
 
 // Shorthands
 describe('Shorthand & Complex Values', function() {
     it('background', function() {
-        chai.assert.equal('linear-gradient()', CSSUsage.CSSValues.createValueArray('linear-gradient( 45deg, blue, red ) no-repeat')[0]);
-        chai.assert.equal('no-repeat', CSSUsage.CSSValues.createValueArray('linear-gradient( 45deg, blue, red ) no-repeat')[1]);
+        chai.assert.equal('linear-gradient()   no-repeat', CSSUsage.CSSValues.parseValues('linear-gradient( 45deg, blue, red ) no-repeat'));
     });
     it('font-family: initial testing of comma seperated vals', function() {
         chai.assert.equal('baskerville,baskerville old face,hoefler text,garamond,times new roman,serif', CSSUsage.CSSValues.createValueArray('Baskerville,Baskerville Old Face,Hoefler Text,Garamond,Times New Roman,serif','font-family').join(','));
@@ -61,38 +60,38 @@ describe('Shorthand & Complex Values', function() {
         chai.assert.equal('3px,blue,1em,red', CSSUsage.CSSValues.createValueArray('3px blue , 1em red','box-shadow').join(','));
     });
 	it('background: lime url(")...\\\\\\"\\\\\\...(") repeat', function() {
-		chai.assert.equal('lime,url(),repeat', CSSUsage.CSSValues.createValueArray('lime url(")...\\\\\\"\\\\\\...(") repeat','background').join(','));
+		chai.assert.equal('lime url()   repeat', CSSUsage.CSSValues.parseValues('lime url(")...\\\\\\"\\\\\\...(") repeat','background'));
 	});
 	it('background-image: -webkit-gradient(linear, left bottom, left top, from(#5AE), to(#036))', function() {
-		chai.assert.equal('-webkit-gradient()', CSSUsage.CSSValues.createValueArray('-webkit-gradient(linear, left bottom, left top, from(#5AE), to(#036))','background-image').join(','));
+		chai.assert.equal('-webkit-gradient()', CSSUsage.CSSValues.parseValues('-webkit-gradient(linear, left bottom, left top, from(#5AE), to(#036))','background-image'));
 	});
 	it('margin-left: calc(-1 * (100% - 15px))', function() {
-		chai.assert.equal('calc()', CSSUsage.CSSValues.createValueArray('calc(-1 * (100% - 15px))','margin-left').join(','));
+		chai.assert.equal('calc()', CSSUsage.CSSValues.parseValues('calc(-1 * (100% - 15px))','margin-left'));
 	});
 });
 
 // Function Notation
 describe('Function Values', function() {
     it('rotate()', function() {
-        chai.assert.equal('rotate()', CSSUsage.CSSValues.createValueArray("rotate(90deg)")[0]);
+        chai.assert.equal('rotate()', CSSUsage.CSSValues.parseValues("rotate(90deg)"));
     });
     it('hsla()', function() {
-        chai.assert.equal('hsla()', CSSUsage.CSSValues.createValueArray("hsla(120, 100%, 50%, .75)")[0]);
+        chai.assert.equal('hsla()', CSSUsage.CSSValues.parseValues("hsla(120, 100%, 50%, .75)"));
     });
     it('hsl()', function() {
-        chai.assert.equal('hsl()', CSSUsage.CSSValues.createValueArray("hsl(120, 100%, 50%)")[0]);
+        chai.assert.equal('hsl()', CSSUsage.CSSValues.parseValues("hsl(120, 100%, 50%)"));
     });
     it('rgba()', function() {
-        chai.assert.equal('rgba()', CSSUsage.CSSValues.createValueArray("rgba(200, 54, 54, 0.5)")[0]);
+        chai.assert.equal('rgba()', CSSUsage.CSSValues.parseValues("rgba(200, 54, 54, 0.5)"));
     });
     it('matrix3d()', function() {
-        chai.assert.equal('matrix3d()', CSSUsage.CSSValues.createValueArray("matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1)")[0]);
+        chai.assert.equal('matrix3d()', CSSUsage.CSSValues.parseValues("matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1)"));
     });
     it('matrix()', function() {
-        chai.assert.equal('matrix()', CSSUsage.CSSValues.createValueArray("matrix(1, 0, 0, 1, 0, 0)")[0]);
+        chai.assert.equal('matrix()', CSSUsage.CSSValues.parseValues("matrix(1, 0, 0, 1, 0, 0)"));
     });
     it('var()', function() {
-        chai.assert.equal('var()', CSSUsage.CSSValues.createValueArray("var(--primary-color)"));
+        chai.assert.equal('var()', CSSUsage.CSSValues.parseValues("var(--primary-color)"));
     })
 });
 
