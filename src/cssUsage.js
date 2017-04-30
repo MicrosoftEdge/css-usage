@@ -367,6 +367,9 @@ void function() { try {
 			// Map colors to a standard value (eg: white, blue, yellow)
 			if (isKeywordColor(value)) { return "<color-keyword>"; }
 			value = value.replace(/[#][0-9a-fA-F]+/g, '#xxyyzz');
+
+			// Remove comments and !important
+			value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
 			
 			// Escapce identifiers containing numbers
 			var numbers = ['ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE'];
@@ -443,18 +446,9 @@ void function() { try {
 			// Normalize letter-casing
 			value = value.toLowerCase();
 			
-			// Remove comments and !important
-			value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
-			
 			// Do the right thing in function of the property
 			switch(propertyName) {
-				case 'font-family':
-					
-					// Remove various quotes
-					if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
-						value = value.replace(/('|‘|’|")/g, "");
-					}
-					
+				case 'font-family':					
 					// Divide at commas to separate different font names
 					value = value.split(/\s*,\s*/g);
 					return value;
