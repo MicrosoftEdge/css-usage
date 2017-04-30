@@ -3,6 +3,15 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    watch: {
+      scripts: {
+        files: ['src/*.js'],
+        tasks: ['concat'],
+        options: {
+          spawn: false,
+        },
+      },
+    },
     concat: {
         src: {
             src: [
@@ -23,5 +32,6 @@ module.exports = function(grunt) {
   });
   
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.registerTask('default', ['concat:src']);
 };
