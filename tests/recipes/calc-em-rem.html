@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <link type="text/css" href="../test-page/style.css" media="all" rel="stylesheet" />
+    <script src="../../Recipe.min.js"></script>
+    <title>Calc rem or em</title>
+    <style>
+        div {
+            width: calc(1rem + 2em);
+        }
+        .one {
+            height: calc(5px + (5rem + 2px))
+        }
+    </style>
+</head>
+<body>
+    <div class="one">One</div>
+    <div class="two">Two</div>
+    <div style="width: 2rem; height: 3em">Testing rem &amp; em outside of calc</div>
+</body>
+</html>
