@@ -1,11 +1,9 @@
 /* 
-    RECIPE: PADDING HACK
+    RECIPE: Calc using REM or EM units
     -------------------------------------------------------------
     Author: Greg Whitworth
-    Description: The padding hack is utilized in CSS by setting
-    a bottom padding with a percentage value of great than 50%
-    as this forces the box to set its height to that of the width
-    and artificially creating aspect ratio based on its contents.
+    Description: We have a regression that affects the resolution
+    of rem or em units within a calc() function.
 */
 
 void function() {
