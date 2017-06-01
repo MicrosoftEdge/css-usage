@@ -37,7 +37,7 @@ void function() {
 
         // Check to see if you're on a Firefox failure page
         if(document.styleSheets.length == 1 && browserIsFirefox) {
-            if(document.styleSheets[0].href.indexOf('aboutNetError') != -1) {
+            if(document.styleSheets[0].href !== null && document.styleSheets[0].href.indexOf('aboutNetError') != -1) {
                 return;
             }
         }
