@@ -16,7 +16,8 @@ void function() {
         {url:"https://www.mozilla.org/en-US/firefox/", name:"Firefox"}, 
         {url:"https://www.apple.com/safari/", name:"Safari"}, 
         {url:"https://support.apple.com/en-us/HT204416", name:"Safari"},
-        {url:"http://www.opera.com/download", name:"Opera"}];
+        {url:"http://www.opera.com/download", name:"Opera"},
+        {url:"https://www.microsoft.com/en-us/download/details.aspx?id=48126", name:"Edge"}];
         for(var j = 0; j < linkList.length; j++) {
             if(element.getAttribute("href") != null) {
                 if(element.getAttribute("href").indexOf(linkList[j].url) != -1 ) {
