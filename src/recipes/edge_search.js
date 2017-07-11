@@ -6,7 +6,7 @@
 
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function edge_search ( element, results) {
-        if (element.textContent.includes("Edge"))
+        if (element.textContent.includes("Edge"/i))
         {
             results["edge"] = results["edge"] || {count: 0};
             results["edge"]++;
