@@ -1541,31 +1541,91 @@ void function() { try {
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
 /* 
-    RECIPE: z-index on static flex items
+    RECIPE: browserDownloadUrls
     -------------------------------------------------------------
-    Author: Francois Remy
-    Description: Get count of flex items who should create a stacking context but do not really
+    Author: Morgan, Lia, Joel, Malick
+    Description: Looks for the download urls of other browsers
+*/
+
+
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function browserDownloadUrls( element, results) {
+        //tests for browser download urls
+        var linkList = [{url:"https://www.google.com/chrome/", name:"Chrome"}, 
+        {url:"https://www.google.com/intl/en/chrome/browser/desktop/index.html", name:"Chrome"},
+        {url:"https://support.microsoft.com/en-us/help/17621/internet-explorer-downloads", name:"InternetExplorer"}, 
+        {url:"http://windows.microsoft.com/en-US/internet-explorer/downloads/ie", name:"InternetExplorer"}, 
+        {url:"https://www.mozilla.org/en-US/firefox/", name:"Firefox"}, 
+        {url:"https://www.apple.com/safari/", name:"Safari"}, 
+        {url:"https://support.apple.com/en-us/HT204416", name:"Safari"},
+        {url:"http://www.opera.com/download", name:"Opera"},
+        {url:"https://www.microsoft.com/en-us/download/details.aspx?id=48126", name:"Edge"}];
+        for(var j = 0; j < linkList.length; j++) {
+            if(element.getAttribute("href") != null) {
+                if(element.getAttribute("href").indexOf(linkList[j].url) != -1 ) {
+                    results[linkList[j].name] = results[linkList[j].name] || {count: 0};
+                    results[linkList[j].name].count++;
+                }
+            }
+            if (element.src != null) {
+                if(element.src.indexOf(linkList[j].url) != -1 ) {
+                    results[linkList[j].name] = results[linkList[j].name] || {count: 0};
+                    results[linkList[j].name].count++;
+                }
+            }
+        }
+    });
+}();
+/* 
+    RECIPE: imgEdgeSearch
+    -------------------------------------------------------------
+    Author: Morgan, Lia, Joel, Malick
+    Description: Looking for sites that do not include edge as a supported browser
 */
 
 void function() {
-
-    window.CSSUsage.StyleWalker.recipesToRun.push( function zstaticflex(/*HTML DOM Element*/ element, results) {
-        if(!element.parentElement) return;
-
-        // the problem happens if the element is a flex item with static position and non-auto z-index
-        if(getComputedStyle(element.parentElement).display != 'flex') return results;
-        if(getComputedStyle(element).position != 'static') return results;
-        if(getComputedStyle(element).zIndex != 'auto') {
-            results.likely = 1;
+    window.CSSUsage.StyleWalker.recipesToRun.push( function imgEdgeSearch( element, results) {
+        //tests for images
+        if(element.nodeName == "IMG") {
+            var browsers = ["internet explorer","ie","firefox","chrome","safari","edge", "opera"];
+            for(var i = 0; i < browsers.length; i++) {
+                if(element.getAttribute("alt").toLowerCase().indexOf(browsers[i]) != -1|| element.getAttribute("src").toLowerCase().indexOf(browsers[i]) != -1) {
+                    results[browsers[i]] = results[browsers[i]] || {count: 0};
+                    results[browsers[i]].count++;
+                }
+            
+            }   
         }
 
-        // the problem might happen if z-index could ever be non-auto
-        if(element.CSSUsage["z-index"] && element.CSSUsage["z-index"].valuesArray.length > 0) {
-            results.possible = 1;
-        }
-
+        return results;
     });
 }();
+/* 
+    RECIPE: unsupported browser
+    -------------------------------------------------------------
+    Author: Morgan Graham, Lia Hiscock
+    Description: Looking for phrases that tell users that Edge is not supported, or to switch browers. 
+*/
+
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function unsupportedBrowser( element, results) {        
+        //tests for phrases
+        var switchPhraseString = new RegExp("(Switch to|Get|Download|Install)(\\w|\\s)+(Google|Chrome|Safari|firefox|Opera|Internet Explorer|IE)","i");
+        var supportedPhraseString = new RegExp("(browser|Edge)(\\w|\\s)+(isn't|not|no longer)(\\w|\\s)+(supported|compatible)", "i");
+        var needles = [{str:switchPhraseString, name:"switchPhrase"},
+                        {str:supportedPhraseString, name:"supportedPhrase"}];;
+
+        for(var i = 0; i < needles.length; i++) {
+            if((needles[i].str).test(element.textContent)) {
+                results[needles[i].name] = results[needles[i].name] || {count: 0};
+                results[needles[i].name].count++;
+            }
+        }
+        
+        return results;
+    });
+}();
+
 
 //
 // This file is only here to create the TSV
