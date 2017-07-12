@@ -1551,34 +1551,44 @@ void function() {
         if (element.textContent.includes("Edge"))
         {
             results["edge"] = results["edge"] || {count: 0};
-            results["edge"]++;
+            results["edge"].count++;
         }
         return results;
     });
 }();
 
 /* 
-    RECIPE: <NAME OF RECIPE>
+    RECIPE: SupportedBrowserPage
     -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
+    Author: Malick Sere, Lia Hiscock, Joel Ramos, Morgan Graham
+    Description: This recipe looks for strings that would indicate that a page is a "supported browser" page.
 */    
 
 
 
 void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function SupportedBrowser( element, results) {
-        var str = element.textContent;
-        var find = new RegExp("((Supported|Compatible|Recommended|Required) (Desktop)?.{0,15}Browser)|(Browser (Support|Recommendation|Compatibility|Requirement))","i");
-        if(find.test(str))
+    window.CSSUsage.StyleWalker.recipesToRun.push( function SupportedBrowserPage( element, results) {
+        
+        if(element.nodeName == "H1" || element.nodeName == "TITLE")
         {
-            results["browserPage"] = results["browserPage"] || {count:0};
-            results.browserPage.count++;
-        }
-
-        return results;
+            var str = element.textContent;
+            var find = new RegExp(/((Supported|Compatible|Recommended|Required)[\w\s]{0,15} Browser)|(Browser (Support|Recommendation|Compatibility|Requirement))/gi);
+            var matches = str.match(find);
+            if(matches !== null)
+            {
+                results["browserPage"] = results["browserPage"] || {values:[]};
+                for(var i = 0; i < matches.length; i++) 
+                {
+                    results["browserPage"].values[matches[i]] = results["browserPage"].values[matches[i]] || {count: 0};
+                    results["browserPage"].values[matches[i]].count++;
+                }
+                return results;
+            }
+        }   
     });
 }();
+
+
 
 
 /* 
