@@ -14,9 +14,16 @@ void function() {
                         {str:supportedPhraseString, name:"supportedPhrase"}];;
 
         for(var i = 0; i < needles.length; i++) {
-            if((needles[i].str).test(element.textContent)) {
-                results[needles[i].name] = results[needles[i].name] || {count: 0};
+            var matches = element.textContent.match(needles[i].str);
+            
+            if(matches !== null) {
+                results[needles[i].name] = results[needles[i].name] || {count: 0, values: []};
                 results[needles[i].name].count++;
+
+                for(var m = 0; m < matches.length; m++) {
+                    results[needles[i].name].values[matches[m]] = results[needles[i].name].values[matches[m]] || {count: 0};
+                    results[needles[i].name].values[matches[m]].count++;
+                }
             }
         }
         
