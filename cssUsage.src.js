@@ -1541,23 +1541,6 @@ void function() { try {
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
 /* 
-    RECIPE: <NAME OF RECIPE>
-    -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function edge_search ( element, results) {
-        if (element.textContent.includes("Edge"))
-        {
-            results["edge"] = results["edge"] || {count: 0};
-            results["edge"].count++;
-        }
-        return results;
-    });
-}();
-
-/* 
     RECIPE: SupportedBrowserPage
     -------------------------------------------------------------
     Author: Malick Sere, Lia Hiscock, Joel Ramos, Morgan Graham
@@ -1569,7 +1552,7 @@ void function() {
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function SupportedBrowserPage( element, results) {
         
-        if(element.nodeName == "H1" || element.nodeName == "TITLE")
+        if(element.nodeName !== "HTML" && element.nodeName !== "SCRIPT" && element.nodeName !== "BODY" )
         {
             var str = element.textContent;
             var find = new RegExp(/((Supported|Compatible|Recommended|Required)[\w\s]{0,15} Browser)|(Browser (Support|Recommendation|Compatibility|Requirement))/gi);

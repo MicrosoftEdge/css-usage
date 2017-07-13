@@ -10,7 +10,7 @@
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function SupportedBrowserPage( element, results) {
         
-        if(element.nodeName == "H1" || element.nodeName == "TITLE")
+        if(element.nodeName !== "HTML" && element.nodeName !== "SCRIPT" && element.nodeName !== "BODY" )
         {
             var str = element.textContent;
             var find = new RegExp(/((Supported|Compatible|Recommended|Required)[\w\s]{0,15} Browser)|(Browser (Support|Recommendation|Compatibility|Requirement))/gi);
