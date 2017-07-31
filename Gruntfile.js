@@ -25,7 +25,7 @@ module.exports = function(grunt) {
       options: {
         patterns: [
           /currentRowTemplate.push\(\'(css|dom|html)\'\);/g,
-          /convertToTSV\(INSTRUMENTATION_RESULTS\[\'(css|dom|html)\'\]\);\n\s+currentRowTemplate.pop\(\);/g
+          /convertToTSV\(INSTRUMENTATION_RESULTS\[\'(css|dom|html)\'\]\);[\n\r]+\s+currentRowTemplate.pop\(\);/g
         ]
       },
       your_target: {
