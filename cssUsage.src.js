@@ -1551,7 +1551,15 @@ void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function paymentRequest(/*HTML DOM Element*/ element, results) {
         var nodeName = element.nodeName;
         var script = "RequestPayment"
-        if (nodeName == "SCRIPT")
+        if (window.proxylog !== undefined)
+        {
+	    window.proxylog.forEach( function(key)
+            {
+                results[key] = results[nodeName] || { count: 0, };
+                results[key].count++;
+            });
+        }
+        else if (nodeName == "SCRIPT")
         {
             results[nodeName] = results[nodeName] || { count: 0, };
             // if inline script. ensure that it's not our recipe script and look for string of interest
