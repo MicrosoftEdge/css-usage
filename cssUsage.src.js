@@ -1541,6 +1541,115 @@ void function() { try {
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
 /* 
+    RECIPE: object_fit_object_position
+    -------------------------------------------------------------
+    Author: joevery
+    Description: Get count of how many times object-fit and object-position CSS properties are used on websites and classify by HTML tag.
+*/
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push(
+        function object_fit_object_position(element, results) 
+        {
+            // Need this to ensure no errors on html and head tags when running the code below.
+            if (!element.CSSUsage) return;
+
+            if (element.CSSUsage["object-fit"])
+            {
+                // Allows counting of number of HTML tags using object-fit CSS property on page.
+                results["object-fit"] = results["object-fit"] || { count: 0, };
+                results["object-fit"].count++;
+
+                // Classify count by HTML tag.
+                var nodeName = element.nodeName;
+                results["object-fit"][nodeName] = results["object-fit"][nodeName] || { count: 0, };
+                results["object-fit"][nodeName].count++;
+            }
+
+            if (element.CSSUsage["object-position"])
+            {
+                // Allows counting of number of HTML tags using object-position CSS property on page.
+                results["object-position"] = results["object-position"] || { count: 0, };
+                results["object-position"].count++;
+
+                // Classify count by HTML tag.
+                var nodeName = element.nodeName;
+                results["object-position"][nodeName] = results["object-position"][nodeName] || { count: 0, };
+                results["object-position"][nodeName].count++;
+            }
+
+            return results;
+        });
+}();
+
+/* 
+    RECIPE: object_fit_onvideo
+    -------------------------------------------------------------
+    Author: joevery
+    Description: Get count of how many times object-fit CSS property is used on a video element on websites.
+*/
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push(
+        function object_fit_onvideo(element, results) 
+        {
+            var nodeName = element.nodeName;
+
+            if (nodeName == "VIDEO")
+            {
+                if (element.CSSUsage["object-fit"])
+                {
+                    var key = "VIDEO" + "_" + "object-fit";
+                    results[key] = results[key] || { count: 0, };
+                    results[key].count++;
+                }
+            }
+            return results;
+        });
+}();
+
+/* 
+    RECIPE: position-sticky_ancestry-tree
+    -------------------------------------------------------------
+    Author: joevery
+    Description: Get count of how many times position CSS property with value sticky are used on websites and classify by HTML tag.
+*/
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push(
+        function position_sticky_ancestry_tree(element, results) 
+        {
+            // Need this to ensure no errors on html and head tags when running the code below.
+            if (!element.CSSUsage) return;
+
+            if (element.CSSUsage["position"] == "sticky")
+            {
+                var nodeName = element.nodeName;
+
+                var ancestryTreeArray = [nodeName];
+
+                var currentParent = element.parentElement;
+
+                while (currentParent)
+                {
+                    ancestryTreeArray.push(currentParent.nodeName);
+                    currentParent = currentParent.parentElement;
+                }
+
+                var ancestryTree = ancestryTreeArray.join("-");
+
+                results["sticky"] = results["sticky"] || { count: 0, };
+                results["sticky"].count++;
+
+                results["sticky"][nodeName] = results["sticky"][nodeName] || { count: 0, };
+                results["sticky"][nodeName].count++;
+
+                results["sticky"][nodeName][ancestryTree] = results["sticky"][nodeName][ancestryTree] || { count: 0, };
+                results["sticky"][nodeName][ancestryTree].count++;
+            }
+
+            return results;
+        });
+}();
+
+/* 
     RECIPE: z-index on static flex items
     -------------------------------------------------------------
     Author: Francois Remy

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Object fit and object position test</title>
+    <link type="text/css" href="../test-page/style.css" media="all" rel="stylesheet" />
+    <style>
+        .feature_wrapper {
+            border-style: solid;
+            display: inline-block;
+            margin-bottom: 15px;
+            object-fit: none;
+            object-position: top left;
+        }
+    </style>
+    <script src="../../Recipe.min.js"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <h1>Object fit and object position test</h1>
+        <div id="nested-div1">
+            <video id="videoTag1" src="" controls="controls" height="300" width="300" class="feature_wrapper"></video>
+            <img id="imgTag1" height="300" width="300" class="feature_wrapper" />
+        </div>
+        <div id="nested-div2">
+            <video id="videoTag2" src="" controls="controls" height="300" width="300" style="object-fit:cover"></video>
+            <img id="imgTag2" height="300" width="300" style="object-position: bottom right" />
+        </div>
+        <div id="nested-div3">
+            <picture style="object-position: top right">
+                <img id="imgTag3" height="300" width="300" style="object-fit:contain" />
+            </picture>
+        </div>
+    </div>
+</body>
+</html>
