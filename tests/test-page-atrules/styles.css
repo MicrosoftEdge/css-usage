@@ -1,0 +1,59 @@
+@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,900);
+
+@font-face {
+    font-family: 'testfont';
+    src: url('testfont.ttf') format('truetype');
+}
+
+@supports (display: flex) {
+    #changeWhenSupported {
+        color: orange;
+    }
+}
+
+@supports not (display: flex) {
+    #changeWhenSupported {
+        color: orchid;
+    }
+}
+
+@keyframes hue {
+    0% {
+        background-color: aliceblue;
+    }
+
+    50% {
+        background-color: powderblue;
+    }
+
+    100% {
+        background-color: aliceblue;
+    }
+}
+
+.wrapper {
+    animation: hue 8s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        color: #001f3f;
+        margin-left: 0em;
+    }
+
+    100% {
+        color: #ff4136;
+        margin-left: 10em;
+    }
+}
+
+h2 {
+    animation: pulse 5s infinite;
+}
+
+@media only screen and (min-device-width: 320px) {
+
+    h3 {
+        color: orchid;
+    }
+}
