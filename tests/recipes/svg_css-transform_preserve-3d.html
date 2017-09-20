@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>SVG CSS transform and preserve-3d test</title>
+    <style>
+        text {
+            width: 70%;
+            margin: 0 auto;
+            display: block;
+            transform: perspective(300px) rotateX(30deg);
+            transform-style: preserve-3d;
+        }
+    </style>
+    <script src="../../Recipe.min.js"></script>
+</head>
+<body>
+    <svg viewBox="0 0 100 100">
+        <g>
+            <circle cx="20" cy="20" r="20"/>
+            <text x="0" y="20">YAY!!!!!!!!!!!</text>
+        </g>
+    </svg>
+</body>
+</html>

@@ -1541,6 +1541,184 @@ void function() { try {
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
 /* 
+    RECIPE: object_fit_object_position
+    -------------------------------------------------------------
+    Author: joevery
+    Description: Get count of how many times object-fit and object-position CSS properties are used on websites and classify by HTML tag.
+*/
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push(
+        function object_fit_object_position(element, results) 
+        {
+            // Need this to ensure no errors on html and head tags when running the code below.
+            if (!element.CSSUsage) return;
+
+            if (element.CSSUsage["object-fit"])
+            {
+                // Allows counting of number of HTML tags using object-fit CSS property on page.
+                results["object-fit"] = results["object-fit"] || { count: 0, };
+                results["object-fit"].count++;
+
+                // Classify count by HTML tag.
+                var nodeName = element.nodeName;
+                results["object-fit"][nodeName] = results["object-fit"][nodeName] || { count: 0, };
+                results["object-fit"][nodeName].count++;
+            }
+
+            if (element.CSSUsage["object-position"])
+            {
+                // Allows counting of number of HTML tags using object-position CSS property on page.
+                results["object-position"] = results["object-position"] || { count: 0, };
+                results["object-position"].count++;
+
+                // Classify count by HTML tag.
+                var nodeName = element.nodeName;
+                results["object-position"][nodeName] = results["object-position"][nodeName] || { count: 0, };
+                results["object-position"][nodeName].count++;
+            }
+
+            return results;
+        });
+}();
+
+/* 
+    RECIPE: object_fit_onvideo
+    -------------------------------------------------------------
+    Author: joevery
+    Description: Get count of how many times object-fit CSS property is used on a video element on websites.
+*/
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push(
+        function object_fit_onvideo(element, results) 
+        {
+            var nodeName = element.nodeName;
+
+            if (nodeName == "VIDEO")
+            {
+                if (element.CSSUsage["object-fit"])
+                {
+                    var key = "VIDEO" + "_" + "object-fit";
+                    results[key] = results[key] || { count: 0, };
+                    results[key].count++;
+                }
+            }
+            return results;
+        });
+}();
+
+/* 
+    RECIPE: position-sticky_ancestry-tree
+    -------------------------------------------------------------
+    Author: joevery
+    Description: Get count of how many times position CSS property with value sticky are used on websites and classify by HTML tag.
+*/
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push(
+        function position_sticky_ancestry_tree(element, results) 
+        {
+            // Need this to ensure no errors on html and head tags when running the code below.
+            if (!element.CSSUsage) return;
+
+            if (element.CSSUsage["position"] == "sticky")
+            {
+                var nodeName = element.nodeName;
+
+                var ancestryTreeArray = [nodeName];
+
+                var currentParent = element.parentElement;
+
+                while (currentParent)
+                {
+                    ancestryTreeArray.push(currentParent.nodeName);
+                    currentParent = currentParent.parentElement;
+                }
+
+                var ancestryTree = ancestryTreeArray.join("-");
+
+                results["sticky"] = results["sticky"] || { count: 0, };
+                results["sticky"].count++;
+
+                results["sticky"][nodeName] = results["sticky"][nodeName] || { count: 0, };
+                results["sticky"][nodeName].count++;
+
+                results["sticky"][nodeName][ancestryTree] = results["sticky"][nodeName][ancestryTree] || { count: 0, };
+                results["sticky"][nodeName][ancestryTree].count++;
+            }
+
+            return results;
+        });
+}();
+
+/* 
+    RECIPE: svg_css-transform_preserve-3d
+    -------------------------------------------------------------
+    Author: joevery
+    Description: Get count of svg elements on page along with how many contain the transform CSS property and the transform-style CSS property with value preserve-3d in their namespace.
+*/
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push(
+        function svg_css_transform_preserve_3d(element, results) 
+        {
+            var nodeName = element.nodeName;
+
+            if (nodeName == "svg")
+            {
+                var elementsToCheck = [element];
+                var elementHasTranform = false;
+                var elementHas3DStyle = false;
+
+                while (elementsToCheck.length > 0 && (!elementHas3DStyle || !elementHasTranform))
+                {
+                    var children = [];
+
+                    for (var i = 0; i < elementsToCheck.length; ++i)
+                    {
+                        var e = elementsToCheck[i];
+
+                        // If no CSS on element, then don't do what is inside if statement, otherwise it will hit error.
+                        if (e.CSSUsage)
+                        {
+                            if (e.CSSUsage["transform"]) {
+                                elementHasTranform = true;
+                            }
+
+                            // We have to check for the transform-style property first before checking its values, otherwise it will hit error.
+                            var transformStyle = e.CSSUsage["transform-style"];
+                            if (transformStyle)
+                            {
+                                if (transformStyle.valuesArray.includes("preserve-3d")) {
+                                    elementHas3DStyle = true;
+                                }
+                            }
+                        }
+
+                        // Need to convert children HTML collection to array to combine with other children found.
+                        children = children.concat(Array.from(e.children));
+                    }
+                    elementsToCheck = children;
+                }
+
+                results["svg"] = results["svg"] || { count: 0, };
+                results["svg"].count++;
+
+                if (elementHasTranform)
+                {
+                    results["svg"]["transform"] = results["svg"]["transform"] || { count: 0, };
+                    results["svg"]["transform"].count++;
+                }
+
+                if (elementHas3DStyle)
+                {
+                    results["svg"]["transform-style_preserve-3d"] = results["svg"]["transform-style_preserve-3d"] || { count: 0, };
+                    results["svg"]["transform-style_preserve-3d"].count++;
+                }
+            }
+
+            return results;
+        });
+}();
+
+/* 
     RECIPE: z-index on static flex items
     -------------------------------------------------------------
     Author: Francois Remy
