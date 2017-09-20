@@ -42,6 +42,8 @@ void function() {
             }
         }
 
+        CSSUsage.Playground.printStyling();
+
         // Keep track of duration
         var startTime = performance.now();
 

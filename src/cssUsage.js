@@ -189,6 +189,7 @@ void function() { try {
 		 */
 		function walkOverCssRules(/*CSSRuleList*/ cssRules, styleSheet, parentMatchedElements) {
 			if(window.debugCSSUsage) console.log("STAGE: Walking over rules");
+			// TODO: console.log(cssRules);
 			for (var ruleIndex = cssRules.length; ruleIndex--;) {
 
 				// Loop through the rules
@@ -208,10 +209,9 @@ void function() { try {
 					
 				// Other rules should be processed immediately
 				processRule(rule,parentMatchedElements);
-					
-
 			}
 		}
+
 		
 		/**
 		 * This function takes a css rule and:
@@ -219,6 +219,7 @@ void function() { try {
 		 * [2] call rule analyzers for that rule if it has style data
 		 */
 		function processRule(rule, parentMatchedElements) {
+			// TODO: console.log(rule);
 			
 			// Increment the rule type's counter
 			CSSUsageResults.types[rule.type|0]++; 
@@ -230,15 +231,15 @@ void function() { try {
 				
 			}
 
-			// Some CssRules have style we can ananlyze
+			// Some CssRules have style we can analyze
 			if(rule.style) {
-				
 				// find what the rule applies to
 				var selectorText;
 				var matchedElements; 
 				if(rule.selectorText) {
 					selectorText = CSSUsage.PropertyValuesAnalyzer.cleanSelectorText(rule.selectorText);
 					try {
+						// NOTE: parentMatchedElement always nil, never set
 						if(parentMatchedElements) {
 							matchedElements = [].slice.call(document.querySelectorAll(selectorText));
 							matchedElements.parentMatchedElements = parentMatchedElements;
@@ -260,9 +261,38 @@ void function() { try {
 				
 				// run an analysis on it
 				runRuleAnalyzers(rule.style, selectorText, matchedElements, rule.type);
-				
+			} else {
+				// KEY: must pass in others here to be analyzed
+				if(rule.conditionText) {
+					processConditionalAtRules(rule);
+				}
 			}
 		}
+
+		/**
+		 * This process @atrules with conditional statements such as @supports.
+		 * It will call helpers to process condition statements to conform to
+		 * a standardized version.
+		 */
+		function processConditionalAtRules(rule) {
+			var selectorText = '@atrule:' + rule.type;
+			console.log(rule);
+
+			if(!CSSUsageResults.rules[selectorText]) {
+				CSSUsageResults.rules[selectorText] = Object.create(null);
+				CSSUsageResults.rules[selectorText] = {"count": 1, 
+													   "props": {}} // TODO: process condition
+			} else {
+				var previousCount = CSSUsageResults.rules[selectorText].count
+				CSSUsageResults.rules[selectorText].count = previousCount + 1
+			}
+
+			for(let cssRule in rule.cssRules) {
+				processRule(cssRule, cssRule.parentRule);
+			}
+			
+		}
+
 
 		/**
 		 * This is the dom work horse, this will will loop over the
@@ -318,6 +348,7 @@ void function() { try {
 			// Run all rule analyzers
 			for(var i = 0; i < CSSUsage.StyleWalker.ruleAnalyzers.length; i++) {
 				var runAnalyzer = CSSUsage.StyleWalker.ruleAnalyzers[i];
+				// TODO: console.log(runAnalyzer);
 				runAnalyzer(style, selectorText, matchedElements, type, isInline);
 			}
 			
@@ -522,7 +553,7 @@ void function() { try {
 	}();
 
 	//
-	// computes various css stats
+	// computes various css stats (PropertyValuesAnalyzer)
 	//
 	void function() {
 
@@ -647,6 +678,7 @@ void function() { try {
 					: [selectorCat, selector]
 			);
 			
+			// TODO: console.log(generalizedSelectors);
 			// Get the datastores of the generalized selectors
 			var generalizedSelectorsData = map(generalizedSelectors, (generalizedSelector) => (
 				CSSUsageResults.rules[generalizedSelector] || (CSSUsageResults.rules[generalizedSelector] = {count:0,props:Object.create(null)})
@@ -659,7 +691,7 @@ void function() { try {
 			}
 			
 			// avoid most common browser lies
-			var cssText = ' '+style.cssText.toLowerCase(); 
+			var cssText = ' ' + style.cssText.toLowerCase(); 
 			if(browserIsEdge) {
 				cssText = cssText.replace(/border: medium; border-image: none;/,'border: none;');
 				cssText = cssText.replace(/ border-image: none;/,' ');
@@ -683,11 +715,13 @@ void function() { try {
 				if (isPropertyUndefined) {
 					continue;
 				}
+
+				//TODO: find where to insert props for conditional at rules
 				
 				// divide the value into simplified components
 				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
 				var values = new Array();
-				for(var j=specifiedValuesArray.length; j--;) {
+				for(var j = specifiedValuesArray.length; j--;) {
 					values.push(CSSUsage.CSSValues.parseValues(specifiedValuesArray[j],normalizedKey));
 				}
 				
@@ -1034,11 +1068,26 @@ void function() { try {
 			results = getPatternUsage(results, domClasses, cssClasses);
 			
 			CSSUsageResults.usages = results;
+			console.log(CSSUsageResults);
 			if(window.debugCSSUsage) if(window.debugCSSUsage) console.log(CSSUsageResults.usages);
 		}
 
 		
 			
-	}();
+    }();
+
+
+    //
+    // playground for at rules anaylsis
+    // 
+    void function () {
+		CSSUsage.Playground = {};
+        CSSUsage.Playground.printStyling = printStyling;
+
+        function printStyling() {
+			console.log(document.styleSheets);
+        }
+        
+    }();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();

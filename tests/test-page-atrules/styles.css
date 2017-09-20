@@ -11,6 +11,12 @@
     }
 }
 
+@supports (display: grid) {
+    #changeWhenSupported {
+        text-align: center;
+    }
+}
+
 @supports not (display: flex) {
     #changeWhenSupported {
         color: orchid;
