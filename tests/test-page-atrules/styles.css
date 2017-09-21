@@ -42,12 +42,12 @@
 }
 
 @keyframes pulse {
-    0% {
+    from {
         color: #001f3f;
         margin-left: 0em;
     }
 
-    100% {
+    to {
         color: #ff4136;
         margin-left: 10em;
     }

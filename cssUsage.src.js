@@ -609,6 +609,8 @@ void function() { try {
 					}
 				}
 			}*/
+
+			atrules: {}
 			
 		}
 	}();
@@ -758,12 +760,14 @@ void function() { try {
 				
 				// run an analysis on it
 				runRuleAnalyzers(rule.style, selectorText, matchedElements, rule.type);
-			} else {
-				// KEY: must pass in others here to be analyzed
+			}
+
+			if((rule.type >= 2 && rule.type <= 8) || (rule.type >= 10 && rule.type <= 15)) {
 				if(rule.conditionText) {
 					processConditionalAtRules(rule);
-				}
-				//console.log(rule);
+				} else {
+					processGeneralAtRules(rule);
+				} 
 			}
 		}
 
@@ -774,20 +778,63 @@ void function() { try {
 		 */
 		function processConditionalAtRules(rule) {
 			var selectorText = '@atrule:' + rule.type;
-			console.log(rule);
 
-			if(!CSSUsageResults.rules[selectorText]) {
-				CSSUsageResults.rules[selectorText] = Object.create(null);
-				CSSUsageResults.rules[selectorText] = {"count": 1, 
-													   "props": {}} // TODO: process condition
+			if(!CSSUsageResults.atrules[selectorText]) {
+				CSSUsageResults.atrules[selectorText] = Object.create(null);
+				CSSUsageResults.atrules[selectorText] = {"count": 1, 
+														 "props": {},
+														 "conditions": {}} // TODO: process condition
 			} else {
-				var previousCount = CSSUsageResults.rules[selectorText].count
-				CSSUsageResults.rules[selectorText].count = previousCount + 1
+				var previousCount = CSSUsageResults.atrules[selectorText].count
+				CSSUsageResults.atrules[selectorText].count = previousCount + 1
 			}
 
-			for(let cssRule in rule.cssRules) {
-				processRule(cssRule, cssRule.parentRule);
+			for(let index in rule.cssRules) {
+				let ruleBody = rule.cssRules[index];
+				if(ruleBody.cssText) {
+					console.log(ruleBody);
+				}
 			}
+			
+		}
+
+
+		/**
+		 * This process all other @atrules that don't have conditions or styles.
+		 */
+		function processGeneralAtRules(rule) {
+			var selectorText = '@atrule:' + rule.type;
+
+			if(!CSSUsageResults.atrules[selectorText]) {
+				CSSUsageResults.atrules[selectorText] = Object.create(null);
+				CSSUsageResults.atrules[selectorText] = {"count": 1, 
+														 "props": {}} // TODO: process props
+			} else {
+				var previousCount = CSSUsageResults.atrules[selectorText].count
+				CSSUsageResults.atrules[selectorText].count = previousCount + 1
+			}
+
+			if(rule.type == 7) {
+				if(!CSSUsageResults.atrules[selectorText]["keyframes"]) {
+					CSSUsageResults.atrules[selectorText]["keyframes"] = Object.create(null);
+				}
+				CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules["@atrule:8"].props;
+
+				for(let index in rule.cssRules) {
+					let keyframe = rule.cssRules[index];
+					if(keyframe.keyText) {
+						if(!CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText]) {
+							CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText] = {"count": 1};
+						} else {
+							var previousKeyframeCount = CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText].count;
+							CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText].count = previousKeyframeCount + 1;
+						}
+					}
+				}
+			} else if(rule.type == 5) {
+				CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules["@atrule:5"].props;
+			}
+			// TODO: add props
 			
 		}
 
@@ -1176,7 +1223,6 @@ void function() { try {
 					: [selectorCat, selector]
 			);
 			
-			// TODO: console.log(generalizedSelectors);
 			// Get the datastores of the generalized selectors
 			var generalizedSelectorsData = map(generalizedSelectors, (generalizedSelector) => (
 				CSSUsageResults.rules[generalizedSelector] || (CSSUsageResults.rules[generalizedSelector] = {count:0,props:Object.create(null)})
@@ -1195,12 +1241,16 @@ void function() { try {
 				cssText = cssText.replace(/ border-image: none;/,' ');
 			}
 			
+			// TODO: console.log(style);
 			// For each property declaration in this rule, we collect some stats
 			for (var i = style.length; i--;) {
 
 				var key = style[i], rootKeyIndex=key.indexOf('-'), rootKey = rootKeyIndex==-1 ? key : key.substr(0,rootKeyIndex);
 				var normalizedKey = rootKeyIndex==0&&key.indexOf('-',1)==1 ? '--var' : key;
 				var styleValue = style.getPropertyValue(key);
+
+				// TODO: console.log(normalizedKey);
+				// TODO: console.log(styleValue);
 				
 				// Only keep styles that were declared by the author
 				// We need to make sure we're only checking string props
@@ -1213,6 +1263,8 @@ void function() { try {
 				if (isPropertyUndefined) {
 					continue;
 				}
+
+				//TODO: find where to insert props for conditional at rules
 				
 				// divide the value into simplified components
 				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
@@ -1283,6 +1335,8 @@ void function() { try {
 							propObject.values[value] = (propObject.values[value]|0) + 1;
 							knownValues.push(value);
 						}
+
+						console.log(propObject);
 						
 					}
 					
