@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>elementFromPoint example</title>
+ <link type="text/css" href="../test-page/style.css" media="all" rel="stylesheet" />
+<script src="../../recipe.min.js"></script>
+<script>
+function changeColor(newColor) {
+  elem = document.elementFromPoint(2, 2);
+  elem.style.color = newColor;
+}
+</script>
+</head>
+
+<body>
+<p id="para1">Some text here</p>
+<button onclick="changeColor('blue');">blue</button>
+<button onclick="changeColor('red');">red</button>
+</body>
+</html>
