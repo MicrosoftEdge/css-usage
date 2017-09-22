@@ -1539,33 +1539,237 @@ void function() { try {
 	}();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
+function isVisible(element) {
+    //checks if width/height = 0 and left/top < 0
+    var rect = element.getBoundingClientRect();
+    if (rect !== null) {
+        var box = rect;
+        var width = box.width;
+        var height = box.height;
+        var bottom = box.bottom;
+        var right = box.right;
+        if (width == 0 || height == 0 || bottom <= 0 || right <= 0) {
+            return false;
+        }
+    }
+
+    //checks for visibility with computed style
+    var elStyle = getComputedStyle(element);
+    if (elStyle.display === "none") {
+        return false;
+    }
+    else if (elStyle.opacity < 0.1) {
+        return false;
+    }
+    else if (elStyle.transform.scale == 0 || elStyle.transform.scaleX == 0 || elStyle.transform.scaleY == 0) {
+        return false;
+    }
+    else if (elStyle.visibility != "visible") {
+        return false;
+    }
+
+    // if text is within an iframe that does not appear
+    var elAbove = element;
+    do {
+        if (elAbove.nodeName === "IFRAME" || !!element.closest("IFRAME")) {
+            return false;
+        }
+        elAbove = elAbove.parentElement;
+    } while (!!elAbove);
+    return true;
+}
 
 /* 
-    RECIPE: z-index on static flex items
+    RECIPE: browserDownloadUrls
     -------------------------------------------------------------
-    Author: Francois Remy
-    Description: Get count of flex items who should create a stacking context but do not really
+    Author: Morgan, Lia, Joel, Malick
+    Description: Looks for the download urls of other browsers
 */
 
+
 void function() {
-
-    window.CSSUsage.StyleWalker.recipesToRun.push( function zstaticflex(/*HTML DOM Element*/ element, results) {
-        if(!element.parentElement) return;
-
-        // the problem happens if the element is a flex item with static position and non-auto z-index
-        if(getComputedStyle(element.parentElement).display != 'flex') return results;
-        if(getComputedStyle(element).position != 'static') return results;
-        if(getComputedStyle(element).zIndex != 'auto') {
-            results.likely = 1;
+    window.CSSUsage.StyleWalker.recipesToRun.push(function browserDownloadUrls(element, results){
+        //excludes Microsoft sites and forums because they will have irrelevant user comments about switching browsers 
+        if(window.location.href.indexOf("microsoft.com") !== -1 || window.location.href.indexOf("forum") !== -1){
+            return results;
         }
+        
+        //tests for browser download urls
+        var browsers = [{co:"google", browser:"chrome", name:"Chrome", re:null}, {co:"microsoft", browser:"(internet-explorer|\\Wie)", name:"IE", re:null}, 
+                {co:"microsoft", browser:"(microsoft-edge)", name:"Edge", re:null},{co:"(mozilla|getfirefox|firefox)", browser:"", name:"Firefox", re:null}, 
+                {co:"apple", browser:"safari", name:"Safari", re:null}, {co:"opera", browser:"", name:"Opera", re:null}];
+        //creates regex for urls and adds it to array
+        for (var i = 0; i < browsers.length; i++) {
+            browsers[i].re = new RegExp("^http(s)?\\:\\/\\/(\\w{0,9}\\.)?" + browsers[i].co + "\\.(\\w{0,4})\\/?((\\W|\\w)+)?" + browsers[i].browser + "($|\\W)", "gi");
+        }        
 
-        // the problem might happen if z-index could ever be non-auto
-        if(element.CSSUsage["z-index"] && element.CSSUsage["z-index"].valuesArray.length > 0) {
-            results.possible = 1;
+        for(var link of browsers){
+            if(element.hasAttribute("href")){
+                var href = element.getAttribute("href");
+                //filtering out results that begin with "answers" to exclude answer forum results  
+                if(link.re.test(href) && href.indexOf("answers") === -1 && href.indexOf("itunes") === -1){
+                    results[link.name] = results[link.name] || {count: 0};
+                    results[link.name].count++;
+                    //checks if is visible on page
+                    results["visibility"] = results["visibility"] || {value:"false"};
+                    if(isVisible(element)){
+                        results["visibility"] = "true";
+                    }
+                }
+            }
         }
-
     });
 }();
+
+/*    
+        RECIPE: browserMentions 
+        Authors: Morgan, Lia, Malick, Joel
+*/
+
+void function () {
+    window.CSSUsage.StyleWalker.recipesToRun.push(function browserMentions(element, results) {
+        //doesn't go to microsoft sites
+        if (window.location.href.toString().indexOf("microsoft.com") !== -1 || window.location.href.toString().indexOf("forum") !== -1) {
+            return results;
+        }
+
+        if (element.nodeName !== "SCRIPT" && element.nodeName !== "META") {
+
+            var str = element.cloneNode(true);
+            var directTextContent = '';
+            for (var i = element.childNodes.length; i > 0; i--) {
+                var childNode = element.childNodes[i - 1];
+                if (childNode.nodeType === Node.TEXT_NODE) { directTextContent = childNode.nodeValue + ' ' + directTextContent; }
+            }
+
+            var browsers = new RegExp(/(\s|^)(Opera|Internet Explorer|Firefox|Chrome|Edge|Safari|IE)(\r\n|\n|\W|\s|$)/gi);
+            var browsers2 = new RegExp(/(Opera|Internet Explorer|Firefox|Chrome|Edge|Safari|IE)/gi);
+            var matches = directTextContent.match(browsers);
+            if (matches !== null) {
+                results["browser"] = results["browser"] || { count: 0, values: [] };
+                results["browser"].count++;
+
+                for (var x = 0; x < matches.length; x++) {
+                    var foundBrowserName = matches[x].match(browsers2)[0].toLowerCase();
+                    results["browser"].values[foundBrowserName] = results["browser"].values[foundBrowserName] || { count: 0 }
+                    results["browser"].values[foundBrowserName].count++;
+                }
+                //checks if is visible on page
+                results["visibility"] = results["visibility"] || { value: "false" };
+                if (results["visibility"].value === "false") {
+                    results["visibility"].value = isVisible(element).toString();
+                }
+            }
+        }
+        return results;
+    });
+}();
+/* 
+    RECIPE: imgEdgeSearch
+    -------------------------------------------------------------
+    Author: Morgan, Lia, Joel, Malick
+    Description: Looking for sites that do not include edge as a supported browser within images
+*/
+
+void function () {
+    window.CSSUsage.StyleWalker.recipesToRun.push(function imgEdgeSearch(element, results){
+        //doesn't go to microsoft sites
+        if(window.location.href.toString().indexOf("microsoft.com") !== -1 || window.location.href.toString().indexOf("forum") !== -1){
+            return results;
+        }
+
+        //tests for images
+        if(element.nodeName == "IMG"){
+            var browsers = [{ re: (new RegExp("(internet(\\s|(\\-|\\_))?explorer|(^|\\W)ie($|\\W))", "gi")), name: "Internet Explorer" },
+            { re: (new RegExp("chrome[^b|$]", "gi")), name: "Chrome" },
+            { re: (new RegExp("firefox", "gi")), name: "Firefox" },
+            { re: (new RegExp("safari", "gi")), name: "Safari" },
+            { re: (new RegExp("(^|o|\\W)edge", "gi")), name: "Edge" },
+            { re: (new RegExp("(^|[o]|\\W)opera([^t]|\\W|$)", "gi")), name: "Opera" }];
+
+            for(var i = 0; i < browsers.length; i++){
+                var alt = element.getAttribute("alt");
+                if(!!alt){//null check
+                    if(browsers[i].re.test(alt)){
+                        var altMatch = alt.match(browsers[i].re);
+
+                        results[browsers[i].name] = results[browsers[i].name] || { count: 0, values: [] };
+                        results[browsers[i].name].count++;                        
+                    }
+                }
+                var src=element.getAttribute("src");
+                if(!!src){//null check
+                    if(browsers[i].re.test(src)){
+                        var srcMatch = src.match(browsers[i].re);
+
+                        results[browsers[i].name] = results[browsers[i].name] || { count: 0, values: [] };
+                        results[browsers[i].name].count++;
+
+                        for(var k = 0; k < srcMatch.length; k++){
+                            results[browsers[i].name].values[srcMatch[k]] = results[browsers[i].name].values[srcMatch[k]] || { count: 0 };
+                            results[browsers[i].name].values[srcMatch[k]].count++;
+                        }
+
+                        ///checks if visible on page
+                        results["visibility"] = results["visibility"] || {value:"false"};
+                        if(results["visibility"].value === "false"){
+                            results["visibility"].value = isVisible(element).toString();
+                        }
+                    }
+                }
+            }
+        }
+
+        return results;
+    });
+}();
+/* 
+    RECIPE: SupportedBrowserPage
+    -------------------------------------------------------------
+    Author: Malick Sere, Lia Hiscock, Joel Ramos, Morgan Graham
+    Description: This recipe looks for strings that would indicate that a page is a "supported browser" page.
+*/
+
+
+
+void function () {
+    window.CSSUsage.StyleWalker.recipesToRun.push(function SupportedBrowserPage(element, results) {
+        //doesn't go to microsoft sites
+        if (window.location.href.toString().indexOf("microsoft.com") !== -1 || window.location.href.toString().indexOf("forum") !== -1) {
+            return results;
+        }
+
+        if (element.nodeName !== "HTML" && element.nodeName !== "SCRIPT" && element.nodeName !== "BODY") {
+            var directTextContent = '';
+            for (var i = element.childNodes.length; i>0; i--) {
+                var childNode = element.childNodes[i-1];
+                if (childNode.nodeType === Node.TEXT_NODE) { directTextContent = childNode.nodeValue + ' ' + directTextContent; }
+            }
+            var find = new RegExp(/(\s|^)((Supported|Compatible|Recommended|Required)\s(\w+\s){0,3}Browser)|(Browser (Support|Recommendation|Compatibility|Requirement))|(System Requirement)s?(\r\n|\n|\W|\s|$)/gi);
+            var matches = directTextContent.match(find);
+
+            if (matches !== null) {
+                results["browserPage"] = results["browserPage"] || { count: 0, values: [] };
+                results["browserPage"].count++;
+                for (var i = 0; i < matches.length; i++) {
+                    results["browserPage"].values[matches[i]] = results["browserPage"].values[matches[i]] || { count: 0 };
+                    results["browserPage"].values[matches[i]].count++;
+                }
+
+                //checks if is visible on page
+                results["visibility"] = results["visibility"] || { value: "false" };
+                if (results["visibility"].value === "false") {
+                    results["visibility"].value = isVisible(element).toString();
+                }
+
+            }
+        }
+        return results;
+    });
+}();
+
+
+
 
 //
 // This file is only here to create the TSV
