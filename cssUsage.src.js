@@ -883,6 +883,36 @@ void function() { try {
 			} else if(CSSUsageResults.rules[selectorText].props) {
 				atrulesUsage[selectorText].props = CSSUsageResults.rules[selectorText].props;
 			}
+
+			if(rule.pseudoClass) {
+				processPseudoClassesOfAtrules(rule);
+			}
+		}
+
+
+		/**
+		 * If an atrule as has a pseudo class such as @page, process the pseudo class and
+		 * add it to the atrule usage.
+		 */
+		function processPseudoClassesOfAtrules(rule) {
+			var selectorText = '@atrule:' + rule.type;
+			var selectorAtruleUsage = CSSUsageResults.atrules[selectorText];
+
+			if(!selectorAtruleUsage["pseudos"]) {
+				selectorAtruleUsage["pseudos"] = Object.create(null);
+				selectorAtruleUsage["pseudos"] = {};
+			}
+
+			var pseudosUsageForSelector = selectorAtruleUsage["pseudos"];
+			let pseudoClass = rule.pseudoClass;
+
+			if(!pseudosUsageForSelector[pseudoClass]) {
+				pseudosUsageForSelector[pseudoClass] = Object.create(null);
+				pseudosUsageForSelector[pseudoClass] = {"count": 1};
+			} else {
+				var previousCount = pseudosUsageForSelector[pseudoClass].count;
+				pseudosUsageForSelector[pseudoClass].count = previousCount + 1;
+			}
 		}
 
 
