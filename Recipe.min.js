@@ -791,8 +791,7 @@ void function() { try {
 						"supports":0,  //12
 						"viewport":0,  //15
 			 */
-			let type = rule.type;
-			return (type >= 2 && rule.type <= 8) || (type == 10) || (type == 12) || (type == 15);
+			return (rule.type >= 2 && rule.type <= 8) || (rule.type == 10) || (rule.type == 12) || (rule.type == 15);
 		}
 
 		/**
@@ -803,44 +802,40 @@ void function() { try {
 		 */
 		function processConditionalAtRules(rule) {
 			var selectorText = '@atrule:' + rule.type;
-			var selectorAtrulesUsage = CSSUsageResults.atrules[selectorText];
+			var atrulesUsage = CSSUsageResults.atrules;
 
-			if(!selectorAtrulesUsage) {
-				selectorAtrulesUsage = Object.create(null);
-				selectorAtrulesUsage = {"count": 1, 
-										"props": {},
-										"conditions": {}} // TODO: process condition
+			if(!atrulesUsage[selectorText]) {
+				atrulesUsage[selectorText] = Object.create(null);
+				atrulesUsage[selectorText] = {"count": 1, 
+											  "props": {},
+											  "conditions": {}} // TODO: process condition
 			} else {
+				var selectorAtruleUsage = atrulesUsage[selectorText];
 				var previousCount = selectorAtruleUsage.count;
 				selectorAtruleUsage.count = previousCount + 1;
 			}
 
 			for(let index in rule.cssRules) {
 				let ruleBody = rule.cssRules[index];
-				let ruleStyle = ruleBody.style;
-
-				if(!ruleStyle) {
-					continue;
+				if(ruleBody.cssText) {
+					console.log(ruleBody);
 				}
-				
-				console.log(ruleBody);
 			}
 		}
 
 		/**
 		 * This process all other @atrules that don't have conditions or styles.
-		 * [1] It will process any props and values used within the body of the rule.
-		 * [2] It will count the occurence of usage of nested atrules.
 		 */
 		function processGeneralAtRules(rule) {
 			var selectorText = '@atrule:' + rule.type;
-			var selectorAtrulesUsage = CSSUsageResults.atrules[selectorText];
+			var atrulesUsage = CSSUsageResults.atrules;
 
-			if(!selectorAtrulesUsage) {
-				selectorAtrulesUsage = Object.create(null);
-				selectorAtrulesUsage = {"count": 1, 
-										"props": {}} // TODO: process props
+			if(!atrulesUsage[selectorText]) {
+				atrulesUsage[selectorText] = Object.create(null);
+				atrulesUsage[selectorText] = {"count": 1, 
+											  "props": {}} // TODO: process props
 			} else {
+				var selectorAtruleUsage = atrulesUsage[selectorText];
 				var previousCount = selectorAtruleUsage.count;
 				selectorAtruleUsage.count = previousCount + 1;
 			}
@@ -848,10 +843,8 @@ void function() { try {
 			// @keyframes rule type is 7
 			if(rule.type == 7) {
 				processKeyframeAtRules(rule);
-			}
-			
-			if(CSSUsageResults.rules[selectorText].props) {
-				selectorAtrulesUsage.props = CSSUsageResults.rules[selectorText].props;
+			} else if(CSSUsageResults.rules[selectorText].props) {
+				atrulesUsage[selectorText].props = CSSUsageResults.rules[selectorText].props;
 			}
 		}
 
@@ -867,12 +860,6 @@ void function() { try {
 			if(!atrulesUsageForSelector["keyframes"]) {
 				atrulesUsageForSelector["keyframes"] = Object.create(null);
 			}
-
-			/**
-			 * grab the props from the individual keyframe props that was already populated 
-			 * under CSSUsageResults.rules. Note: @atrule:8 is the individual frames.
-			 * WARN: tightly coupled with previous processing of rules.
-			 */
 			atrulesUsageForSelector.props = CSSUsageResults.rules["@atrule:8"].props;
 
 			for(let index in rule.cssRules) {
