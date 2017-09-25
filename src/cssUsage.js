@@ -318,27 +318,36 @@ void function() { try {
 			}
 
 			if(rule.type == 7) {
-				if(!CSSUsageResults.atrules[selectorText]["keyframes"]) {
-					CSSUsageResults.atrules[selectorText]["keyframes"] = Object.create(null);
-				}
-				CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules["@atrule:8"].props;
-
-				for(let index in rule.cssRules) {
-					let keyframe = rule.cssRules[index];
-					if(keyframe.keyText) {
-						if(!CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText]) {
-							CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText] = {"count": 1};
-						} else {
-							var previousKeyframeCount = CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText].count;
-							CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText].count = previousKeyframeCount + 1;
-						}
-					}
-				}
+				processKeyframeAtRules(rule);
 			} else if(CSSUsageResults.rules[selectorText].props) {
 				CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules[selectorText].props;
 			}
-			// TODO: add props
-			
+		}
+
+
+		/**
+		 * Processes on @keyframe to add the appropriate props from the frame and a counter of which
+		 * frames are used throughout the document.
+		 */
+		function processKeyframeAtRules(rule) {
+			var selectorText = '@atrule:' + rule.type;
+
+			if(!CSSUsageResults.atrules[selectorText]["keyframes"]) {
+				CSSUsageResults.atrules[selectorText]["keyframes"] = Object.create(null);
+			}
+			CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules["@atrule:8"].props;
+
+			for(let index in rule.cssRules) {
+				let keyframe = rule.cssRules[index];
+				if(keyframe.keyText) {
+					if(!CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText]) {
+						CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText] = {"count": 1};
+					} else {
+						var previousKeyframeCount = CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText].count;
+						CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText].count = previousKeyframeCount + 1;
+					}
+				}
+			}
 		}
 
 
