@@ -762,7 +762,8 @@ void function() { try {
 				runRuleAnalyzers(rule.style, selectorText, matchedElements, rule.type);
 			}
 
-			if((rule.type >= 2 && rule.type <= 8) || (rule.type >= 10 && rule.type <= 15)) {
+			// run analysis on at rules to populate CSSUsageResults.atrules
+			if(isRuleAnAtRule(rule)) {
 				if(rule.conditionText) {
 					processConditionalAtRules(rule);
 				} else {
@@ -771,22 +772,47 @@ void function() { try {
 			}
 		}
 
+
+		/**
+		 * Checks whether an rule is an @atrule.
+		 */
+		function isRuleAnAtRule(rule) {
+			/**
+			 *  @atrules types ~= {
+						"charset": 0,  //2
+						"import":0,    //3
+						"media":0,     //4
+						"font-face":0, //5
+						"page":0,      //6
+						"keyframes":0, //7 This is the @keyframe at rule
+						"keyframe":0,  //8 This is the individual 0%, or from/to
+
+						"namespace":0, //10
+						"supports":0,  //12
+						"viewport":0,  //15
+			 */
+			return (rule.type >= 2 && rule.type <= 8) || (rule.type == 10) || (rule.type == 12) || (rule.type == 15);
+		}
+
 		/**
 		 * This process @atrules with conditional statements such as @supports.
-		 * It will call helpers to process condition statements to conform to
-		 * a standardized version.
+		 * [1] It will process any props and values used within the body of the rule.
+		 * [2] It will count the occurence of usage of nested atrules.
+		 * [3] It will process condition statements to conform to a standardized version. 
 		 */
 		function processConditionalAtRules(rule) {
 			var selectorText = '@atrule:' + rule.type;
+			var atrulesUsage = CSSUsageResults.atrules;
 
-			if(!CSSUsageResults.atrules[selectorText]) {
-				CSSUsageResults.atrules[selectorText] = Object.create(null);
-				CSSUsageResults.atrules[selectorText] = {"count": 1, 
-														 "props": {},
-														 "conditions": {}} // TODO: process condition
+			if(!atrulesUsage[selectorText]) {
+				atrulesUsage[selectorText] = Object.create(null);
+				atrulesUsage[selectorText] = {"count": 1, 
+											  "props": {},
+											  "conditions": {}} // TODO: process condition
 			} else {
-				var previousCount = CSSUsageResults.atrules[selectorText].count
-				CSSUsageResults.atrules[selectorText].count = previousCount + 1
+				var selectorAtruleUsage = atrulesUsage[selectorText];
+				var previousCount = selectorAtruleUsage.count;
+				selectorAtruleUsage.count = previousCount + 1;
 			}
 
 			for(let index in rule.cssRules) {
@@ -795,29 +821,30 @@ void function() { try {
 					console.log(ruleBody);
 				}
 			}
-			
 		}
-
 
 		/**
 		 * This process all other @atrules that don't have conditions or styles.
 		 */
 		function processGeneralAtRules(rule) {
 			var selectorText = '@atrule:' + rule.type;
+			var atrulesUsage = CSSUsageResults.atrules;
 
-			if(!CSSUsageResults.atrules[selectorText]) {
-				CSSUsageResults.atrules[selectorText] = Object.create(null);
-				CSSUsageResults.atrules[selectorText] = {"count": 1, 
-														 "props": {}} // TODO: process props
+			if(!atrulesUsage[selectorText]) {
+				atrulesUsage[selectorText] = Object.create(null);
+				atrulesUsage[selectorText] = {"count": 1, 
+											  "props": {}} // TODO: process props
 			} else {
-				var previousCount = CSSUsageResults.atrules[selectorText].count
-				CSSUsageResults.atrules[selectorText].count = previousCount + 1
+				var selectorAtruleUsage = atrulesUsage[selectorText];
+				var previousCount = selectorAtruleUsage.count;
+				selectorAtruleUsage.count = previousCount + 1;
 			}
 
+			// @keyframes rule type is 7
 			if(rule.type == 7) {
 				processKeyframeAtRules(rule);
 			} else if(CSSUsageResults.rules[selectorText].props) {
-				CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules[selectorText].props;
+				atrulesUsage[selectorText].props = CSSUsageResults.rules[selectorText].props;
 			}
 		}
 
@@ -828,20 +855,23 @@ void function() { try {
 		 */
 		function processKeyframeAtRules(rule) {
 			var selectorText = '@atrule:' + rule.type;
+			var atrulesUsageForSelector = CSSUsageResults.atrules[selectorText];
 
-			if(!CSSUsageResults.atrules[selectorText]["keyframes"]) {
-				CSSUsageResults.atrules[selectorText]["keyframes"] = Object.create(null);
+			if(!atrulesUsageForSelector["keyframes"]) {
+				atrulesUsageForSelector["keyframes"] = Object.create(null);
 			}
-			CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules["@atrule:8"].props;
+			atrulesUsageForSelector.props = CSSUsageResults.rules["@atrule:8"].props;
 
 			for(let index in rule.cssRules) {
 				let keyframe = rule.cssRules[index];
+				var atrulesUsageForKeyframeOfSelector = atrulesUsageForSelector.keyframes;
+
 				if(keyframe.keyText) {
-					if(!CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText]) {
-						CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText] = {"count": 1};
+					if(!atrulesUsageForKeyframeOfSelector[keyframe.keyText]) {
+						atrulesUsageForKeyframeOfSelector[keyframe.keyText] = {"count": 1};
 					} else {
-						var previousKeyframeCount = CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText].count;
-						CSSUsageResults.atrules[selectorText].keyframes[keyframe.keyText].count = previousKeyframeCount + 1;
+						var previousKeyframeCount = atrulesUsageForKeyframeOfSelector[keyframe.keyText].count;
+						atrulesUsageForKeyframeOfSelector[keyframe.keyText].count = previousKeyframeCount + 1;
 					}
 				}
 			}
@@ -1237,6 +1267,8 @@ void function() { try {
 				CSSUsageResults.rules[generalizedSelector] || (CSSUsageResults.rules[generalizedSelector] = {count:0,props:Object.create(null)})
 			));
 			
+			// MARK
+
 			// Increment the occurence counter of found generalized selectors
 			for(var i = 0; i < generalizedSelectorsData.length; i++) {
 				var generalizedSelectorData = generalizedSelectorsData[i];
@@ -1258,7 +1290,7 @@ void function() { try {
 				var normalizedKey = rootKeyIndex==0&&key.indexOf('-',1)==1 ? '--var' : key;
 				var styleValue = style.getPropertyValue(key);
 
-				// TODO: console.log(normalizedKey);
+				// TODO: console.log(normalizedKey);  // gives the prop name
 				// TODO: console.log(styleValue);
 				
 				// Only keep styles that were declared by the author
