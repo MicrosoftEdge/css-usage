@@ -831,8 +831,8 @@ void function() { try {
 						}
 					}
 				}
-			} else if(rule.type == 5) {
-				CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules["@atrule:5"].props;
+			} else if(CSSUsageResults.rules[selectorText].props) {
+				CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules[selectorText].props;
 			}
 			// TODO: add props
 			
@@ -1263,8 +1263,6 @@ void function() { try {
 				if (isPropertyUndefined) {
 					continue;
 				}
-
-				//TODO: find where to insert props for conditional at rules
 				
 				// divide the value into simplified components
 				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
@@ -1335,8 +1333,6 @@ void function() { try {
 							propObject.values[value] = (propObject.values[value]|0) + 1;
 							knownValues.push(value);
 						}
-
-						console.log(propObject);
 						
 					}
 					

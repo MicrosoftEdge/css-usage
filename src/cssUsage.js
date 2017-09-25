@@ -334,8 +334,8 @@ void function() { try {
 						}
 					}
 				}
-			} else if(rule.type == 5) {
-				CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules["@atrule:5"].props;
+			} else if(CSSUsageResults.rules[selectorText].props) {
+				CSSUsageResults.atrules[selectorText].props = CSSUsageResults.rules[selectorText].props;
 			}
 			// TODO: add props
 			
