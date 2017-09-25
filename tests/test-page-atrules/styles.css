@@ -11,6 +11,12 @@
     }
 }
 
+@supports (text-decoration: underline) {
+    #changeColorWhenSupported {
+        color: blue;
+    }
+}
+
 @supports (display: grid) {
     #changeWhenSupported {
         text-align: center;

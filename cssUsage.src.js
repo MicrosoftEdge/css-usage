@@ -791,7 +791,8 @@ void function() { try {
 						"supports":0,  //12
 						"viewport":0,  //15
 			 */
-			return (rule.type >= 2 && rule.type <= 8) || (rule.type == 10) || (rule.type == 12) || (rule.type == 15);
+			let type = rule.type;
+			return (type >= 2 && type <= 8) || (type == 10) || (type == 12) || (type == 15);
 		}
 
 		/**
@@ -817,14 +818,50 @@ void function() { try {
 
 			for(let index in rule.cssRules) {
 				let ruleBody = rule.cssRules[index];
-				if(ruleBody.cssText) {
-					console.log(ruleBody);
+				let style = ruleBody.style;
+
+				// guard for non css objects
+				if(!style) {
+					continue;
+				}
+
+				let cssText = ' ' + style.cssText.toLowerCase(); 
+
+				for (var i = style.length; i--;) {
+					// processes out normalized prop name for style
+					var key = style[i], rootKeyIndex=key.indexOf('-'), rootKey = rootKeyIndex==-1 ? key : key.substr(0,rootKeyIndex);
+					var normalizedKey = rootKeyIndex==0&&key.indexOf('-',1)==1 ? '--var' : key;
+					var styleValue = style.getPropertyValue(key);
+
+					// Only keep styles that were declared by the author
+					// We need to make sure we're only checking string props
+					var isValueInvalid = typeof styleValue !== 'string' && styleValue != "" && styleValue != undefined;
+					if (isValueInvalid) { 
+						continue;
+					}
+					
+					var isPropertyUndefined = (cssText.indexOf(' '+key+':') == -1) && (styleValue=='initial' || !valueExistsInRootProperty(cssText, key, rootKey, styleValue));
+					if (isPropertyUndefined) {
+						continue;
+					}
+
+					var propsForSelectedAtrule = atrulesUsage[selectorText].props;
+
+					if(!propsForSelectedAtrule[normalizedKey]) {
+						propsForSelectedAtrule[normalizedKey] = Object.create(null);
+						propsForSelectedAtrule[normalizedKey] = {"count": 1};
+					} else {
+						var previousPropCount = propsForSelectedAtrule[normalizedKey].count;
+						propsForSelectedAtrule[normalizedKey].count = previousPropCount + 1;
+					}
 				}
 			}
 		}
 
 		/**
 		 * This process all other @atrules that don't have conditions or styles.
+		 * [1] It will process any props and values used within the body of the rule.
+		 * [2] It will count the occurence of usage of nested atrules.
 		 */
 		function processGeneralAtRules(rule) {
 			var selectorText = '@atrule:' + rule.type;
@@ -860,6 +897,12 @@ void function() { try {
 			if(!atrulesUsageForSelector["keyframes"]) {
 				atrulesUsageForSelector["keyframes"] = Object.create(null);
 			}
+
+			/**
+			 * grab the props from the individual keyframe props that was already populated 
+			 * under CSSUsageResults.rules. Note: @atrule:8 is the individual frames.
+			 * WARN: tightly coupled with previous processing of rules.
+			 */
 			atrulesUsageForSelector.props = CSSUsageResults.rules["@atrule:8"].props;
 
 			for(let index in rule.cssRules) {
@@ -1289,9 +1332,6 @@ void function() { try {
 				var key = style[i], rootKeyIndex=key.indexOf('-'), rootKey = rootKeyIndex==-1 ? key : key.substr(0,rootKeyIndex);
 				var normalizedKey = rootKeyIndex==0&&key.indexOf('-',1)==1 ? '--var' : key;
 				var styleValue = style.getPropertyValue(key);
-
-				// TODO: console.log(normalizedKey);  // gives the prop name
-				// TODO: console.log(styleValue);
 				
 				// Only keep styles that were declared by the author
 				// We need to make sure we're only checking string props
