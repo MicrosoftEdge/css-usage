@@ -241,7 +241,6 @@ void function() { try {
 				if(rule.selectorText) {
 					selectorText = CSSUsage.PropertyValuesAnalyzer.cleanSelectorText(rule.selectorText);
 					try {
-						// NOTE: parentMatchedElement always nil, never set
 						if(parentMatchedElements) {
 							matchedElements = [].slice.call(document.querySelectorAll(selectorText));
 							matchedElements.parentMatchedElements = parentMatchedElements;
@@ -260,7 +259,7 @@ void function() { try {
 						matchedElements = [];
 					}
 				}
-				
+
 				// run an analysis on it
 				runRuleAnalyzers(rule.style, selectorText, matchedElements, rule.type);
 			}
@@ -298,6 +297,7 @@ void function() { try {
 			return (type >= 2 && type <= 8) || (type == 10) || (type == 12) || (type == 15);
 		}
 
+
 		/**
 		 * This process @atrules with conditional statements such as @supports.
 		 * [1] It will process any props and values used within the body of the rule.
@@ -319,45 +319,33 @@ void function() { try {
 				selectorAtruleUsage.count = previousCount + 1;
 			}
 
-			for(let index in rule.cssRules) {
-				let ruleBody = rule.cssRules[index];
-				let style = ruleBody.style;
+			var selectedAtruleUsage = atrulesUsage[selectorText];
 
-				// guard for non css objects
-				if(!style) {
-					continue;
-				}
+			if(rule.cssRules) {
+				CSSUsage.PropertyValuesAnalyzer.anaylzeStyleOfRulePropCount(rule, selectedAtruleUsage);
+				
+				// find the rule count for nested rules
+				for(let index in rule.cssRules) {
+					let ruleBody = rule.cssRules[index];
 
-				let cssText = ' ' + style.cssText.toLowerCase(); 
+					if(ruleBody.conditionText) {
+						var nestAtRules = selectedAtruleUsage["nested"]
 
-				for (var i = style.length; i--;) {
-					// processes out normalized prop name for style
-					var key = style[i], rootKeyIndex=key.indexOf('-'), rootKey = rootKeyIndex==-1 ? key : key.substr(0,rootKeyIndex);
-					var normalizedKey = rootKeyIndex==0&&key.indexOf('-',1)==1 ? '--var' : key;
-					var styleValue = style.getPropertyValue(key);
-
-					// Only keep styles that were declared by the author
-					// We need to make sure we're only checking string props
-					var isValueInvalid = typeof styleValue !== 'string' && styleValue != "" && styleValue != undefined;
-					if (isValueInvalid) { 
-						continue;
-					}
-					
-					var isPropertyUndefined = (cssText.indexOf(' '+key+':') == -1) && (styleValue=='initial' || !valueExistsInRootProperty(cssText, key, rootKey, styleValue));
-					if (isPropertyUndefined) {
-						continue;
-					}
-
-					var propsForSelectedAtrule = atrulesUsage[selectorText].props;
-
-					if(!propsForSelectedAtrule[normalizedKey]) {
-						propsForSelectedAtrule[normalizedKey] = Object.create(null);
-						propsForSelectedAtrule[normalizedKey] = {"count": 1};
-					} else {
-						var previousPropCount = propsForSelectedAtrule[normalizedKey].count;
-						propsForSelectedAtrule[normalizedKey].count = previousPropCount + 1;
+						//console.log(ruleBody);
 					}
 				}
+			}
+
+			analyzeConditionText(rule.conditionText, selectedAtruleUsage.conditions);
+		}
+
+		function analyzeConditionText(conditionText, selectedAtruleConditionalUsage) {
+			if(!selectedAtruleConditionalUsage[conditionText]) {
+				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
+				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
+			} else {
+				var previousCount = selectedAtruleConditionalUsage[conditionText];
+				selectedAtruleConditionalUsage[conditionText] = previousCount + 1;
 			}
 		}
 
@@ -721,6 +709,7 @@ void function() { try {
 		CSSUsage.PropertyValuesAnalyzer.cleanSelectorText = cleanSelectorText;
 		CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf = generalizedSelectorsOf;
 		CSSUsage.PropertyValuesAnalyzer.finalize = finalize;
+		CSSUsage.PropertyValuesAnalyzer.anaylzeStyleOfRulePropCount = anaylzeStyleOfRulePropCount;
 
 		// We put a computed style in cache for filtering purposes
 		var defaultStyle = getComputedStyle(document.createElement('div'));
@@ -952,6 +941,49 @@ void function() { try {
 					
 				}
 				
+			}
+		}
+
+		function anaylzeStyleOfRulePropCount(rule, selectedAtrulesUsage) {
+			for(let index in rule.cssRules) {
+				let ruleBody = rule.cssRules[index];
+				let style = ruleBody.style;
+
+				// guard for non css objects
+				if(!style) {
+					continue;
+				}
+
+				let cssText = ' ' + style.cssText.toLowerCase(); 
+
+				for (var i = style.length; i--;) {
+					// processes out normalized prop name for style
+					var key = style[i], rootKeyIndex=key.indexOf('-'), rootKey = rootKeyIndex==-1 ? key : key.substr(0,rootKeyIndex);
+					var normalizedKey = rootKeyIndex==0&&key.indexOf('-',1)==1 ? '--var' : key;
+					var styleValue = style.getPropertyValue(key);
+
+					// Only keep styles that were declared by the author
+					// We need to make sure we're only checking string props
+					var isValueInvalid = typeof styleValue !== 'string' && styleValue != "" && styleValue != undefined;
+					if (isValueInvalid) { 
+						continue;
+					}
+					
+					var isPropertyUndefined = (cssText.indexOf(' '+key+':') == -1) && (styleValue=='initial' || !valueExistsInRootProperty(cssText, key, rootKey, styleValue));
+					if (isPropertyUndefined) {
+						continue;
+					}
+
+					var propsForSelectedAtrule = selectedAtrulesUsage.props;
+
+					if(!propsForSelectedAtrule[normalizedKey]) {
+						propsForSelectedAtrule[normalizedKey] = Object.create(null);
+						propsForSelectedAtrule[normalizedKey] = {"count": 1};
+					} else {
+						var previousPropCount = propsForSelectedAtrule[normalizedKey].count;
+						propsForSelectedAtrule[normalizedKey].count = previousPropCount + 1;
+					}
+				}
 			}
 		}
 		
