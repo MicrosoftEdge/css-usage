@@ -90,6 +90,14 @@ h2 {
                 color:#fff;    
             }
         }
+
+        @media screen        and (min-width: 1040px) {
+            
+                    body{
+                        background-color:#FAC1E0;
+                        color:#fff;    
+                    }
+                }
     }
 
 @page {

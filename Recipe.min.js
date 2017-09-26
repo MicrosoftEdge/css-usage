@@ -809,6 +809,7 @@ void function() { try {
 				atrulesUsage[selectorText] = Object.create(null);
 				atrulesUsage[selectorText] = {"count": 1, 
 											  "props": {},
+											  "nested": {},
 											  "conditions": {}} // TODO: process condition
 			} else {
 				var selectorAtruleUsage = atrulesUsage[selectorText];
@@ -820,23 +821,67 @@ void function() { try {
 
 			if(rule.cssRules) {
 				CSSUsage.PropertyValuesAnalyzer.anaylzeStyleOfRulePropCount(rule, selectedAtruleUsage);
-				
-				// find the rule count for nested rules
-				for(let index in rule.cssRules) {
-					let ruleBody = rule.cssRules[index];
+				processNestedRules(rule, selectedAtruleUsage.nested);
+			}
 
-					if(ruleBody.conditionText) {
-						var nestAtRules = selectedAtruleUsage["nested"]
+			processConditionText(rule.conditionText, selectedAtruleUsage.conditions);
+		}
 
-						//console.log(ruleBody);
+		/**
+		 * Analyzes the given @atrules, such as @supports, and counts the usage of the nested rules
+		 * according to their type. NOTE: must pass in the current usage of nested rules for the
+		 * given @atrule.
+		 */
+		function processNestedRules(rule, nestedRulesUsage) {
+			// find the rule count for nested rules
+			for(let index in rule.cssRules) {
+				let ruleBody = rule.cssRules[index];
+
+				if(!ruleBody.cssText) {
+					continue;
+				}
+
+				var nestRuleSelector;
+
+				if(isRuleAnAtRule(ruleBody)) {
+					nestRuleSelector = '@atrule:' + ruleBody.type;
+
+				} else if(ruleBody.style) {
+					if(ruleBody.selectorText) {
+						try {
+							var selectorText = CSSUsage.PropertyValuesAnalyzer.cleanSelectorText(ruleBody.selectorText);
+							var matchedElements = [].slice.call(document.querySelectorAll(selectorText));
+
+							if(matchedElements.length == 0) {
+								continue;
+							}
+
+							var cleanedSelector = CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf(selectorText);
+							nestRuleSelector = cleanedSelector[0];  // only passed in one selector to a function that returns many
+						} catch (ex) {
+							continue;
+						}
+					}
+				}
+
+				if(nestRuleSelector) {
+					if(!nestedRulesUsage[nestRuleSelector]) {
+						nestedRulesUsage[nestRuleSelector] = Object.create(null);
+						nestedRulesUsage[nestRuleSelector] = {"count": 1}
+					} else {
+						var previousNestedCount = nestedRulesUsage[nestRuleSelector].count;
+						nestedRulesUsage[nestRuleSelector].count = previousNestedCount + 1;
 					}
 				}
 			}
-
-			analyzeConditionText(rule.conditionText, selectedAtruleUsage.conditions);
 		}
 
-		function analyzeConditionText(conditionText, selectedAtruleConditionalUsage) {
+		/**
+		 * This processes the usage of conditions of conditional @atrules like @media.
+		 * Requires the condition of the rule to process and the current recorded usage 
+		 * of the @atrule in question.
+		 */
+		function processConditionText(conditionText, selectedAtruleConditionalUsage) {
 			if(!selectedAtruleConditionalUsage[conditionText]) {
 				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
 				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
@@ -847,7 +892,7 @@ void function() { try {
 		}
 
 		/**
-		 * This process all other @atrules that don't have conditions or styles.
+		 * This will process all other @atrules that don't have conditions or styles.
 		 * [1] It will process any props and values used within the body of the rule.
 		 * [2] It will count the occurence of usage of nested atrules.
 		 */
