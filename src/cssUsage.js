@@ -1305,26 +1305,8 @@ void function() { try {
 			results = getPatternUsage(results, domClasses, cssClasses);
 			
 			CSSUsageResults.usages = results;
-			console.log(CSSUsageResults);
 			if(window.debugCSSUsage) if(window.debugCSSUsage) console.log(CSSUsageResults.usages);
 		}
-
-		
-			
-    }();
-
-
-    //
-    // playground for at rules anaylsis
-    // 
-    void function () {
-		CSSUsage.Playground = {};
-        CSSUsage.Playground.printStyling = printStyling;
-
-        function printStyling() {
-			console.log(document.styleSheets);
-        }
-        
     }();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
