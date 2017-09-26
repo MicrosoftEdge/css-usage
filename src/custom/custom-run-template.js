@@ -1,5 +1,4 @@
 void function() {
-    document.addEventListener('DOMContentLoaded', function () {
         
         var results = "";
 
@@ -9,7 +8,6 @@ void function() {
         
         // Add it to the document dom
         function appendResults(results) {
-            if(window.debugCSSUsage) console.log("Trying to append");
             var output = document.createElement('script');
             output.id = "css-usage-tsv-results";
             output.textContent = results;
@@ -19,17 +17,11 @@ void function() {
         }
 
         function checkAppend() {
-            if(window.debugCSSUsage) if(window.debugCSSUsage) console.log("Checking append");
             var elem = document.getElementById('css-usage-tsv-results');
             if(elem === null) {
                 if(window.debugCSSUsage) console.log("Element not appended");
                 if(window.debugCSSUsage) console.log("Trying to append again");
                 appendTSV();
             }
-            else {
-                if(window.debugCSSUsage) console.log("Element successfully found");
-            }
         }
-
-    });
 }();
