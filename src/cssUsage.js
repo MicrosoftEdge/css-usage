@@ -330,9 +330,8 @@ void function() { try {
 											  "nested": {},
 											  "conditions": {}} 
 			} else {
-				var selectorAtruleUsage = atrulesUsage[selectorText];
-				var previousCount = selectorAtruleUsage.count;
-				selectorAtruleUsage.count = previousCount + 1;
+				var count = atrulesUsage[selectorText].count;
+				count = count++;
 			}
 
 			var selectedAtruleUsage = atrulesUsage[selectorText];
@@ -387,8 +386,8 @@ void function() { try {
 						nestedRulesUsage[nestRuleSelector] = Object.create(null);
 						nestedRulesUsage[nestRuleSelector] = {"count": 1}
 					} else {
-						var previousNestedCount = nestedRulesUsage[nestRuleSelector].count;
-						nestedRulesUsage[nestRuleSelector].count = previousNestedCount + 1;
+						var nestedCount = nestedRulesUsage[nestRuleSelector].count;
+						nestedCount = nestedCount++;
 					}
 				}
 			}
@@ -404,8 +403,8 @@ void function() { try {
 				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
 				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
 			} else {
-				var previousCount = selectedAtruleConditionalUsage[conditionText];
-				selectedAtruleConditionalUsage[conditionText] = previousCount + 1;
+				var count = selectedAtruleConditionalUsage[conditionText].count;
+				count = count++;
 			}
 		}
 
@@ -423,9 +422,8 @@ void function() { try {
 				atrulesUsage[selectorText] = {"count": 1, 
 											  "props": {}} 
 			} else {
-				var selectorAtruleUsage = atrulesUsage[selectorText];
-				var previousCount = selectorAtruleUsage.count;
-				selectorAtruleUsage.count = previousCount + 1;
+				var count = atrulesUsage[selectorText].count;
+				count = count++;
 			}
 
 			// @keyframes rule type is 7
@@ -461,8 +459,8 @@ void function() { try {
 				pseudosUsageForSelector[pseudoClass] = Object.create(null);
 				pseudosUsageForSelector[pseudoClass] = {"count": 1};
 			} else {
-				var previousCount = pseudosUsageForSelector[pseudoClass].count;
-				pseudosUsageForSelector[pseudoClass].count = previousCount + 1;
+				var pseudoCount = pseudosUsageForSelector[pseudoClass].count;
+				pseudoCount = pseudoCount++;
 			}
 		}
 
@@ -494,8 +492,8 @@ void function() { try {
 					if(!atrulesUsageForKeyframeOfSelector[keyframe.keyText]) {
 						atrulesUsageForKeyframeOfSelector[keyframe.keyText] = {"count": 1};
 					} else {
-						var previousKeyframeCount = atrulesUsageForKeyframeOfSelector[keyframe.keyText].count;
-						atrulesUsageForKeyframeOfSelector[keyframe.keyText].count = previousKeyframeCount + 1;
+						var keyframeCount = atrulesUsageForKeyframeOfSelector[keyframe.keyText].count;
+						keyframeCount = keyframeCount++;
 					}
 				}
 			}
@@ -1036,8 +1034,8 @@ void function() { try {
 						propsForSelectedAtrule[normalizedKey] = Object.create(null);
 						propsForSelectedAtrule[normalizedKey] = {"count": 1};
 					} else {
-						var previousPropCount = propsForSelectedAtrule[normalizedKey].count;
-						propsForSelectedAtrule[normalizedKey].count = previousPropCount + 1;
+						var propCount = propsForSelectedAtrule[normalizedKey].count;
+						propCount = propCount++;
 					}
 				}
 			}

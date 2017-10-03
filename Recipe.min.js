@@ -706,7 +706,6 @@ void function() { try {
 		 */
 		function walkOverCssRules(/*CSSRuleList*/ cssRules, styleSheet, parentMatchedElements) {
 			if(window.debugCSSUsage) console.log("STAGE: Walking over rules");
-			// TODO: console.log(cssRules);
 			for (var ruleIndex = cssRules.length; ruleIndex--;) {
 
 				// Loop through the rules
@@ -735,9 +734,7 @@ void function() { try {
 		 * [1] walk over its child rules if needed
 		 * [2] call rule analyzers for that rule if it has style data
 		 */
-		function processRule(rule, parentMatchedElements) {
-			// TODO: console.log(rule);
-			
+		function processRule(rule, parentMatchedElements) {			
 			// Increment the rule type's counter
 			CSSUsageResults.types[rule.type|0]++; 
 
@@ -828,11 +825,10 @@ void function() { try {
 				atrulesUsage[selectorText] = {"count": 1, 
 											  "props": {},
 											  "nested": {},
-											  "conditions": {}} // TODO: process condition
+											  "conditions": {}} 
 			} else {
-				var selectorAtruleUsage = atrulesUsage[selectorText];
-				var previousCount = selectorAtruleUsage.count;
-				selectorAtruleUsage.count = previousCount + 1;
+				var count = atrulesUsage[selectorText].count;
+				count = count++;
 			}
 
 			var selectedAtruleUsage = atrulesUsage[selectorText];
@@ -887,8 +883,8 @@ void function() { try {
 						nestedRulesUsage[nestRuleSelector] = Object.create(null);
 						nestedRulesUsage[nestRuleSelector] = {"count": 1}
 					} else {
-						var previousNestedCount = nestedRulesUsage[nestRuleSelector].count;
-						nestedRulesUsage[nestRuleSelector].count = previousNestedCount + 1;
+						var nestedCount = nestedRulesUsage[nestRuleSelector].count;
+						nestedCount = nestedCount++;
 					}
 				}
 			}
@@ -904,8 +900,8 @@ void function() { try {
 				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
 				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
 			} else {
-				var previousCount = selectedAtruleConditionalUsage[conditionText];
-				selectedAtruleConditionalUsage[conditionText] = previousCount + 1;
+				var count = selectedAtruleConditionalUsage[conditionText].count;
+				count = count++;
 			}
 		}
 
@@ -921,11 +917,10 @@ void function() { try {
 			if(!atrulesUsage[selectorText]) {
 				atrulesUsage[selectorText] = Object.create(null);
 				atrulesUsage[selectorText] = {"count": 1, 
-											  "props": {}} // TODO: process props
+											  "props": {}} 
 			} else {
-				var selectorAtruleUsage = atrulesUsage[selectorText];
-				var previousCount = selectorAtruleUsage.count;
-				selectorAtruleUsage.count = previousCount + 1;
+				var count = atrulesUsage[selectorText].count;
+				count = count++;
 			}
 
 			// @keyframes rule type is 7
@@ -961,8 +956,8 @@ void function() { try {
 				pseudosUsageForSelector[pseudoClass] = Object.create(null);
 				pseudosUsageForSelector[pseudoClass] = {"count": 1};
 			} else {
-				var previousCount = pseudosUsageForSelector[pseudoClass].count;
-				pseudosUsageForSelector[pseudoClass].count = previousCount + 1;
+				var pseudoCount = pseudosUsageForSelector[pseudoClass].count;
+				pseudoCount = pseudoCount++;
 			}
 		}
 
@@ -994,8 +989,8 @@ void function() { try {
 					if(!atrulesUsageForKeyframeOfSelector[keyframe.keyText]) {
 						atrulesUsageForKeyframeOfSelector[keyframe.keyText] = {"count": 1};
 					} else {
-						var previousKeyframeCount = atrulesUsageForKeyframeOfSelector[keyframe.keyText].count;
-						atrulesUsageForKeyframeOfSelector[keyframe.keyText].count = previousKeyframeCount + 1;
+						var keyframeCount = atrulesUsageForKeyframeOfSelector[keyframe.keyText].count;
+						keyframeCount = keyframeCount++;
 					}
 				}
 			}
@@ -1056,7 +1051,6 @@ void function() { try {
 			// Run all rule analyzers
 			for(var i = 0; i < CSSUsage.StyleWalker.ruleAnalyzers.length; i++) {
 				var runAnalyzer = CSSUsage.StyleWalker.ruleAnalyzers[i];
-				// TODO: console.log(runAnalyzer);
 				runAnalyzer(style, selectorText, matchedElements, type, isInline);
 			}
 			
@@ -1391,8 +1385,6 @@ void function() { try {
 			var generalizedSelectorsData = map(generalizedSelectors, (generalizedSelector) => (
 				CSSUsageResults.rules[generalizedSelector] || (CSSUsageResults.rules[generalizedSelector] = {count:0,props:Object.create(null)})
 			));
-			
-			// MARK
 
 			// Increment the occurence counter of found generalized selectors
 			for(var i = 0; i < generalizedSelectorsData.length; i++) {
@@ -1407,7 +1399,6 @@ void function() { try {
 				cssText = cssText.replace(/ border-image: none;/,' ');
 			}
 			
-			// TODO: console.log(style);
 			// For each property declaration in this rule, we collect some stats
 			for (var i = style.length; i--;) {
 
@@ -1540,8 +1531,8 @@ void function() { try {
 						propsForSelectedAtrule[normalizedKey] = Object.create(null);
 						propsForSelectedAtrule[normalizedKey] = {"count": 1};
 					} else {
-						var previousPropCount = propsForSelectedAtrule[normalizedKey].count;
-						propsForSelectedAtrule[normalizedKey].count = previousPropCount + 1;
+						var propCount = propsForSelectedAtrule[normalizedKey].count;
+						propCount = propCount++;
 					}
 				}
 			}
