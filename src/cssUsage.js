@@ -209,7 +209,6 @@ void function() { try {
 		 */
 		function walkOverCssRules(/*CSSRuleList*/ cssRules, styleSheet, parentMatchedElements) {
 			if(window.debugCSSUsage) console.log("STAGE: Walking over rules");
-			// TODO: console.log(cssRules);
 			for (var ruleIndex = cssRules.length; ruleIndex--;) {
 
 				// Loop through the rules
@@ -238,9 +237,7 @@ void function() { try {
 		 * [1] walk over its child rules if needed
 		 * [2] call rule analyzers for that rule if it has style data
 		 */
-		function processRule(rule, parentMatchedElements) {
-			// TODO: console.log(rule);
-			
+		function processRule(rule, parentMatchedElements) {			
 			// Increment the rule type's counter
 			CSSUsageResults.types[rule.type|0]++; 
 
@@ -331,7 +328,7 @@ void function() { try {
 				atrulesUsage[selectorText] = {"count": 1, 
 											  "props": {},
 											  "nested": {},
-											  "conditions": {}} // TODO: process condition
+											  "conditions": {}} 
 			} else {
 				var selectorAtruleUsage = atrulesUsage[selectorText];
 				var previousCount = selectorAtruleUsage.count;
@@ -424,7 +421,7 @@ void function() { try {
 			if(!atrulesUsage[selectorText]) {
 				atrulesUsage[selectorText] = Object.create(null);
 				atrulesUsage[selectorText] = {"count": 1, 
-											  "props": {}} // TODO: process props
+											  "props": {}} 
 			} else {
 				var selectorAtruleUsage = atrulesUsage[selectorText];
 				var previousCount = selectorAtruleUsage.count;
@@ -559,7 +556,6 @@ void function() { try {
 			// Run all rule analyzers
 			for(var i = 0; i < CSSUsage.StyleWalker.ruleAnalyzers.length; i++) {
 				var runAnalyzer = CSSUsage.StyleWalker.ruleAnalyzers[i];
-				// TODO: console.log(runAnalyzer);
 				runAnalyzer(style, selectorText, matchedElements, type, isInline);
 			}
 			
@@ -894,8 +890,6 @@ void function() { try {
 			var generalizedSelectorsData = map(generalizedSelectors, (generalizedSelector) => (
 				CSSUsageResults.rules[generalizedSelector] || (CSSUsageResults.rules[generalizedSelector] = {count:0,props:Object.create(null)})
 			));
-			
-			// MARK
 
 			// Increment the occurence counter of found generalized selectors
 			for(var i = 0; i < generalizedSelectorsData.length; i++) {
@@ -910,7 +904,6 @@ void function() { try {
 				cssText = cssText.replace(/ border-image: none;/,' ');
 			}
 			
-			// TODO: console.log(style);
 			// For each property declaration in this rule, we collect some stats
 			for (var i = style.length; i--;) {
 
