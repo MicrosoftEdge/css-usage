@@ -112,6 +112,26 @@ void function() { try {
 					}
 				}
 			}*/
+
+			atrules: {}/*
+			atrules ~= {
+				"@atrule:4": {
+					count: 3,
+					props: {
+						"background-color": 1,
+						"color": 4,
+						"opacity": 3,
+						"transform": 3
+					},
+					nested: {
+						"h3": 1
+					},
+					conditions: {
+						"screen": 1
+					}
+				}
+			}*/
+			
 			
 		}
 	}();
@@ -208,18 +228,16 @@ void function() { try {
 					
 				// Other rules should be processed immediately
 				processRule(rule,parentMatchedElements);
-					
-
 			}
 		}
+
 		
 		/**
 		 * This function takes a css rule and:
 		 * [1] walk over its child rules if needed
 		 * [2] call rule analyzers for that rule if it has style data
 		 */
-		function processRule(rule, parentMatchedElements) {
-			
+		function processRule(rule, parentMatchedElements) {			
 			// Increment the rule type's counter
 			CSSUsageResults.types[rule.type|0]++; 
 
@@ -230,9 +248,8 @@ void function() { try {
 				
 			}
 
-			// Some CssRules have style we can ananlyze
+			// Some CssRules have style we can analyze
 			if(rule.style) {
-				
 				// find what the rule applies to
 				var selectorText;
 				var matchedElements; 
@@ -257,12 +274,231 @@ void function() { try {
 						matchedElements = [];
 					}
 				}
-				
+
 				// run an analysis on it
 				runRuleAnalyzers(rule.style, selectorText, matchedElements, rule.type);
-				
+			}
+
+			// run analysis on at rules to populate CSSUsageResults.atrules
+			if(isRuleAnAtRule(rule)) {
+				if(rule.conditionText) {
+					processConditionalAtRules(rule);
+				} else {
+					processGeneralAtRules(rule);
+				} 
 			}
 		}
+
+
+		/**
+		 * Checks whether an rule is an @atrule.
+		 */
+		function isRuleAnAtRule(rule) {
+			/**
+			 *  @atrules types ~= {
+						"charset": 0,  //2
+						"import":0,    //3
+						"media":0,     //4
+						"font-face":0, //5
+						"page":0,      //6
+						"keyframes":0, //7 This is the @keyframe at rule
+						"keyframe":0,  //8 This is the individual 0%, or from/to
+
+						"namespace":0, //10
+						"supports":0,  //12
+						"viewport":0,  //15
+			 */
+			let type = rule.type;
+			return (type >= 2 && type <= 8) || (type == 10) || (type == 12) || (type == 15);
+		}
+
+
+		/**
+		 * This process @atrules with conditional statements such as @supports.
+		 * [1] It will process any props and values used within the body of the rule.
+		 * [2] It will count the occurence of usage of nested atrules.
+		 * [3] It will process condition statements to conform to a standardized version. 
+		 */
+		function processConditionalAtRules(rule) {
+			var selectorText = '@atrule:' + rule.type;
+			var atrulesUsage = CSSUsageResults.atrules;
+
+			if(!atrulesUsage[selectorText]) {
+				atrulesUsage[selectorText] = Object.create(null);
+				atrulesUsage[selectorText] = {"count": 1, 
+											  "props": {},
+											  "nested": {},
+											  "conditions": {}} 
+			} else {
+				var count = atrulesUsage[selectorText].count;
+				count = count++;
+			}
+
+			var selectedAtruleUsage = atrulesUsage[selectorText];
+
+			if(rule.cssRules) {
+				CSSUsage.PropertyValuesAnalyzer.anaylzeStyleOfRulePropCount(rule, selectedAtruleUsage);
+				processNestedRules(rule, selectedAtruleUsage.nested);
+			}
+
+			processConditionText(rule.conditionText, selectedAtruleUsage.conditions);
+		}
+
+		/**
+		 * Analyzes the given @atrules, such as @supports, and counts the usage of the nested rules
+		 * according to their type. NOTE: must pass in the current usage of nested rules for the
+		 * given @atrule.
+		 */
+		function processNestedRules(rule, nestedRulesUsage) {
+			// find the rule count for nested rules
+			for(let index in rule.cssRules) {
+				let ruleBody = rule.cssRules[index];
+
+				if(!ruleBody.cssText) {
+					continue;
+				}
+
+				var nestRuleSelector;
+
+				if(isRuleAnAtRule(ruleBody)) {
+					nestRuleSelector = '@atrule:' + ruleBody.type;
+
+				} else if(ruleBody.style) {
+					if(ruleBody.selectorText) {
+						try {
+							var selectorText = CSSUsage.PropertyValuesAnalyzer.cleanSelectorText(ruleBody.selectorText);
+							var matchedElements = [].slice.call(document.querySelectorAll(selectorText));
+
+							if(matchedElements.length == 0) {
+								continue;
+							}
+
+							var cleanedSelector = CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf(selectorText);
+							nestRuleSelector = cleanedSelector[0];  // only passed in one selector to a function that returns many
+						} catch (ex) {
+							continue;
+						}
+					}
+				}
+
+				if(nestRuleSelector) {
+					if(!nestedRulesUsage[nestRuleSelector]) {
+						nestedRulesUsage[nestRuleSelector] = Object.create(null);
+						nestedRulesUsage[nestRuleSelector] = {"count": 1}
+					} else {
+						var nestedCount = nestedRulesUsage[nestRuleSelector].count;
+						nestedCount = nestedCount++;
+					}
+				}
+			}
+		}
+
+		/**
+		 * This processes the usage of conditions of conditional @atrules like @media.
+		 * Requires the condition of the rule to process and the current recorded usage 
+		 * of the @atrule in question.
+		 */
+		function processConditionText(conditionText, selectedAtruleConditionalUsage) {
+			if(!selectedAtruleConditionalUsage[conditionText]) {
+				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
+				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
+			} else {
+				var count = selectedAtruleConditionalUsage[conditionText].count;
+				count = count++;
+			}
+		}
+
+		/**
+		 * This will process all other @atrules that don't have conditions or styles.
+		 * [1] It will process any props and values used within the body of the rule.
+		 * [2] It will count the occurence of usage of nested atrules.
+		 */
+		function processGeneralAtRules(rule) {
+			var selectorText = '@atrule:' + rule.type;
+			var atrulesUsage = CSSUsageResults.atrules;
+
+			if(!atrulesUsage[selectorText]) {
+				atrulesUsage[selectorText] = Object.create(null);
+				atrulesUsage[selectorText] = {"count": 1, 
+											  "props": {}} 
+			} else {
+				var count = atrulesUsage[selectorText].count;
+				count = count++;
+			}
+
+			// @keyframes rule type is 7
+			if(rule.type == 7) {
+				processKeyframeAtRules(rule);
+			} else if(CSSUsageResults.rules[selectorText].props) {
+				atrulesUsage[selectorText].props = CSSUsageResults.rules[selectorText].props;
+			}
+
+			if(rule.pseudoClass) {
+				processPseudoClassesOfAtrules(rule);
+			}
+		}
+
+
+		/**
+		 * If an atrule as has a pseudo class such as @page, process the pseudo class and
+		 * add it to the atrule usage.
+		 */
+		function processPseudoClassesOfAtrules(rule) {
+			var selectorText = '@atrule:' + rule.type;
+			var selectorAtruleUsage = CSSUsageResults.atrules[selectorText];
+
+			if(!selectorAtruleUsage["pseudos"]) {
+				selectorAtruleUsage["pseudos"] = Object.create(null);
+				selectorAtruleUsage["pseudos"] = {};
+			}
+
+			var pseudosUsageForSelector = selectorAtruleUsage["pseudos"];
+			let pseudoClass = rule.pseudoClass;
+
+			if(!pseudosUsageForSelector[pseudoClass]) {
+				pseudosUsageForSelector[pseudoClass] = Object.create(null);
+				pseudosUsageForSelector[pseudoClass] = {"count": 1};
+			} else {
+				var pseudoCount = pseudosUsageForSelector[pseudoClass].count;
+				pseudoCount = pseudoCount++;
+			}
+		}
+
+
+		/**
+		 * Processes on @keyframe to add the appropriate props from the frame and a counter of which
+		 * frames are used throughout the document.
+		 */
+		function processKeyframeAtRules(rule) {
+			var selectorText = '@atrule:' + rule.type;
+			var atrulesUsageForSelector = CSSUsageResults.atrules[selectorText];
+
+			if(!atrulesUsageForSelector["keyframes"]) {
+				atrulesUsageForSelector["keyframes"] = Object.create(null);
+			}
+
+			/**
+			 * grab the props from the individual keyframe props that was already populated 
+			 * under CSSUsageResults.rules. Note: @atrule:8 is the individual frames.
+			 * WARN: tightly coupled with previous processing of rules.
+			 */
+			atrulesUsageForSelector.props = CSSUsageResults.rules["@atrule:8"].props;
+
+			for(let index in rule.cssRules) {
+				let keyframe = rule.cssRules[index];
+				var atrulesUsageForKeyframeOfSelector = atrulesUsageForSelector.keyframes;
+
+				if(keyframe.keyText) {
+					if(!atrulesUsageForKeyframeOfSelector[keyframe.keyText]) {
+						atrulesUsageForKeyframeOfSelector[keyframe.keyText] = {"count": 1};
+					} else {
+						var keyframeCount = atrulesUsageForKeyframeOfSelector[keyframe.keyText].count;
+						keyframeCount = keyframeCount++;
+					}
+				}
+			}
+		}
+
 
 		/**
 		 * This is the dom work horse, this will will loop over the
@@ -522,7 +758,7 @@ void function() { try {
 	}();
 
 	//
-	// computes various css stats
+	// computes various css stats (PropertyValuesAnalyzer)
 	//
 	void function() {
 
@@ -530,6 +766,7 @@ void function() { try {
 		CSSUsage.PropertyValuesAnalyzer.cleanSelectorText = cleanSelectorText;
 		CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf = generalizedSelectorsOf;
 		CSSUsage.PropertyValuesAnalyzer.finalize = finalize;
+		CSSUsage.PropertyValuesAnalyzer.anaylzeStyleOfRulePropCount = anaylzeStyleOfRulePropCount;
 
 		// We put a computed style in cache for filtering purposes
 		var defaultStyle = getComputedStyle(document.createElement('div'));
@@ -651,7 +888,7 @@ void function() { try {
 			var generalizedSelectorsData = map(generalizedSelectors, (generalizedSelector) => (
 				CSSUsageResults.rules[generalizedSelector] || (CSSUsageResults.rules[generalizedSelector] = {count:0,props:Object.create(null)})
 			));
-			
+
 			// Increment the occurence counter of found generalized selectors
 			for(var i = 0; i < generalizedSelectorsData.length; i++) {
 				var generalizedSelectorData = generalizedSelectorsData[i];
@@ -659,7 +896,7 @@ void function() { try {
 			}
 			
 			// avoid most common browser lies
-			var cssText = ' '+style.cssText.toLowerCase(); 
+			var cssText = ' ' + style.cssText.toLowerCase(); 
 			if(browserIsEdge) {
 				cssText = cssText.replace(/border: medium; border-image: none;/,'border: none;');
 				cssText = cssText.replace(/ border-image: none;/,' ');
@@ -687,7 +924,7 @@ void function() { try {
 				// divide the value into simplified components
 				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
 				var values = new Array();
-				for(var j=specifiedValuesArray.length; j--;) {
+				for(var j = specifiedValuesArray.length; j--;) {
 					values.push(CSSUsage.CSSValues.parseValues(specifiedValuesArray[j],normalizedKey));
 				}
 				
@@ -758,6 +995,49 @@ void function() { try {
 					
 				}
 				
+			}
+		}
+
+		function anaylzeStyleOfRulePropCount(rule, selectedAtrulesUsage) {
+			for(let index in rule.cssRules) {
+				let ruleBody = rule.cssRules[index];
+				let style = ruleBody.style;
+
+				// guard for non css objects
+				if(!style) {
+					continue;
+				}
+
+				let cssText = ' ' + style.cssText.toLowerCase(); 
+
+				for (var i = style.length; i--;) {
+					// processes out normalized prop name for style
+					var key = style[i], rootKeyIndex=key.indexOf('-'), rootKey = rootKeyIndex==-1 ? key : key.substr(0,rootKeyIndex);
+					var normalizedKey = rootKeyIndex==0&&key.indexOf('-',1)==1 ? '--var' : key;
+					var styleValue = style.getPropertyValue(key);
+
+					// Only keep styles that were declared by the author
+					// We need to make sure we're only checking string props
+					var isValueInvalid = typeof styleValue !== 'string' && styleValue != "" && styleValue != undefined;
+					if (isValueInvalid) { 
+						continue;
+					}
+					
+					var isPropertyUndefined = (cssText.indexOf(' '+key+':') == -1) && (styleValue=='initial' || !valueExistsInRootProperty(cssText, key, rootKey, styleValue));
+					if (isPropertyUndefined) {
+						continue;
+					}
+
+					var propsForSelectedAtrule = selectedAtrulesUsage.props;
+
+					if(!propsForSelectedAtrule[normalizedKey]) {
+						propsForSelectedAtrule[normalizedKey] = Object.create(null);
+						propsForSelectedAtrule[normalizedKey] = {"count": 1};
+					} else {
+						var propCount = propsForSelectedAtrule[normalizedKey].count;
+						propCount = propCount++;
+					}
+				}
 			}
 		}
 		
@@ -1034,11 +1314,26 @@ void function() { try {
 			results = getPatternUsage(results, domClasses, cssClasses);
 			
 			CSSUsageResults.usages = results;
+			deleteDuplicatedAtRules(); // TODO: issue #52
+			
 			if(window.debugCSSUsage) if(window.debugCSSUsage) console.log(CSSUsageResults.usages);
 		}
 
-		
-			
-	}();
+		/**
+		 * Removes duplicated at rules data that was generated under CSSUsageResults.rules
+		 * TODO: should not be using such a function, refer to issue #52
+		 */
+		function deleteDuplicatedAtRules() {
+			var cssUsageRules = CSSUsageResults.rules;
+
+			console.log(keys);
+			for(let key of keys) {
+				// only remove specific atrules
+				if (key.includes("atrule:")) {
+					delete cssUsageRules[key];
+				}
+			}
+		}
+    }();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
