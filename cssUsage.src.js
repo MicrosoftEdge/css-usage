@@ -1811,7 +1811,25 @@ void function() { try {
 			results = getPatternUsage(results, domClasses, cssClasses);
 			
 			CSSUsageResults.usages = results;
+			deleteDuplicatedAtRules(); // TODO: issue #52
+			
 			if(window.debugCSSUsage) if(window.debugCSSUsage) console.log(CSSUsageResults.usages);
+		}
+
+		/**
+		 * Removes duplicated at rules data that was generated under CSSUsageResults.rules
+		 * TODO: should not be using such a function, refer to issue #52
+		 */
+		function deleteDuplicatedAtRules() {
+			var cssUsageRules = CSSUsageResults.rules;
+
+			console.log(keys);
+			for(let key of keys) {
+				// only remove specific atrules
+				if (key.includes("atrule:")) {
+					delete cssUsageRules[key];
+				}
+			}
 		}
     }();
 	
