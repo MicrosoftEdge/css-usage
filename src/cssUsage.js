@@ -1325,8 +1325,8 @@ void function() { try {
 		 */
 		function deleteDuplicatedAtRules() {
 			var cssUsageRules = CSSUsageResults.rules;
+			var keys = Object.keys(cssUsageRules);
 
-			console.log(keys);
 			for(let key of keys) {
 				// only remove specific atrules
 				if (key.includes("atrule:")) {
