@@ -828,7 +828,7 @@ void function() { try {
 											  "conditions": {}} 
 			} else {
 				var count = atrulesUsage[selectorText].count;
-				count = count++;
+				atrulesUsage[selectorText].count = count + 1;
 			}
 
 			var selectedAtruleUsage = atrulesUsage[selectorText];
@@ -879,15 +879,20 @@ void function() { try {
 				}
 
 				if(nestRuleSelector) {
-					if(!nestedRulesUsage[nestRuleSelector]) {
-						nestedRulesUsage[nestRuleSelector] = Object.create(null);
-						nestedRulesUsage[nestRuleSelector] = {"count": 1}
-					} else {
-						var nestedCount = nestedRulesUsage[nestRuleSelector].count;
-						nestedCount = nestedCount++;
+					var individualNested = nestRuleSelector.split(' ');
+
+					for (let selector of individualNested) {
+						if(!nestedRulesUsage[selector]) {
+							nestedRulesUsage[selector] = Object.create(null);
+							nestedRulesUsage[selector] = {"count": 1}
+						} else {
+							var nestedCount = nestedRulesUsage[selector].count;
+							nestedRulesUsage[selector].count = nestedCount + 1;
+						}
 					}
 				}
 			}
+
 		}
 
 		/**
@@ -901,7 +906,7 @@ void function() { try {
 				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
 			} else {
 				var count = selectedAtruleConditionalUsage[conditionText].count;
-				count = count++;
+				selectedAtruleConditionalUsage[conditionText].count = count + 1;
 			}
 		}
 
@@ -920,7 +925,7 @@ void function() { try {
 											  "props": {}} 
 			} else {
 				var count = atrulesUsage[selectorText].count;
-				count = count++;
+				atrulesUsage[selectorText].count = count + 1;
 			}
 
 			// @keyframes rule type is 7
@@ -957,7 +962,7 @@ void function() { try {
 				pseudosUsageForSelector[pseudoClass] = {"count": 1};
 			} else {
 				var pseudoCount = pseudosUsageForSelector[pseudoClass].count;
-				pseudoCount = pseudoCount++;
+				pseudosUsageForSelector[pseudoClass].count = pseudoCount + 1;
 			}
 		}
 
@@ -990,7 +995,7 @@ void function() { try {
 						atrulesUsageForKeyframeOfSelector[keyframe.keyText] = {"count": 1};
 					} else {
 						var keyframeCount = atrulesUsageForKeyframeOfSelector[keyframe.keyText].count;
-						keyframeCount = keyframeCount++;
+						atrulesUsageForKeyframeOfSelector[keyframe.keyText].count = keyframeCount + 1;
 					}
 				}
 			}
@@ -1813,6 +1818,7 @@ void function() { try {
 			CSSUsageResults.usages = results;
 			deleteDuplicatedAtRules(); // TODO: issue #52
 			
+			console.log(CSSUsageResults);
 			if(window.debugCSSUsage) if(window.debugCSSUsage) console.log(CSSUsageResults.usages);
 		}
 
