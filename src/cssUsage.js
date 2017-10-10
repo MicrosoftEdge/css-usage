@@ -404,6 +404,7 @@ void function() { try {
 		 * of the @atrule in question.
 		 */
 		function processConditionText(conditionText, selectedAtruleConditionalUsage) {
+			conditionText = conditionText.replace(/[0-9]/g, '');
 			if(!selectedAtruleConditionalUsage[conditionText]) {
 				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
 				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
