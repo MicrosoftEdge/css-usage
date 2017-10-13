@@ -824,7 +824,6 @@ void function() { try {
 				atrulesUsage[selectorText] = Object.create(null);
 				atrulesUsage[selectorText] = {"count": 1, 
 											  "props": {},
-											  "nested": {},
 											  "conditions": {}} 
 			} else {
 				var count = atrulesUsage[selectorText].count;
@@ -835,64 +834,9 @@ void function() { try {
 
 			if(rule.cssRules) {
 				CSSUsage.PropertyValuesAnalyzer.anaylzeStyleOfRulePropCount(rule, selectedAtruleUsage);
-				processNestedRules(rule, selectedAtruleUsage.nested);
 			}
 
 			processConditionText(rule.conditionText, selectedAtruleUsage.conditions);
-		}
-
-		/**
-		 * Analyzes the given @atrules, such as @supports, and counts the usage of the nested rules
-		 * according to their type. NOTE: must pass in the current usage of nested rules for the
-		 * given @atrule.
-		 */
-		function processNestedRules(rule, nestedRulesUsage) {
-			// find the rule count for nested rules
-			for(let index in rule.cssRules) {
-				let ruleBody = rule.cssRules[index];
-
-				if(!ruleBody.cssText) {
-					continue;
-				}
-
-				var nestRuleSelector;
-
-				if(isRuleAnAtRule(ruleBody)) {
-					nestRuleSelector = '@atrule:' + ruleBody.type;
-
-				} else if(ruleBody.style) {
-					if(ruleBody.selectorText) {
-						try {
-							var selectorText = CSSUsage.PropertyValuesAnalyzer.cleanSelectorText(ruleBody.selectorText);
-							var matchedElements = [].slice.call(document.querySelectorAll(selectorText));
-
-							if(matchedElements.length == 0) {
-								continue;
-							}
-
-							var cleanedSelector = CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf(selectorText);
-							nestRuleSelector = cleanedSelector[0];  // only passed in one selector to a function that returns many
-						} catch (ex) {
-							continue;
-						}
-					}
-				}
-
-				if(nestRuleSelector) {
-					var individualNested = nestRuleSelector.split(' ');
-
-					for (let selector of individualNested) {
-						if(!nestedRulesUsage[selector]) {
-							nestedRulesUsage[selector] = Object.create(null);
-							nestedRulesUsage[selector] = {"count": 1}
-						} else {
-							var nestedCount = nestedRulesUsage[selector].count;
-							nestedRulesUsage[selector].count = nestedCount + 1;
-						}
-					}
-				}
-			}
-
 		}
 
 		/**
@@ -1538,7 +1482,7 @@ void function() { try {
 						propsForSelectedAtrule[normalizedKey] = {"count": 1};
 					} else {
 						var propCount = propsForSelectedAtrule[normalizedKey].count;
-						propCount = propCount++;
+						propsForSelectedAtrule[normalizedKey].count = propCount + 1;
 					}
 				}
 			}
