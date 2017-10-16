@@ -337,6 +337,7 @@ void function() { try {
 
 			if(rule.cssRules) {
 				CSSUsage.PropertyValuesAnalyzer.anaylzeStyleOfRulePropCount(rule, selectedAtruleUsage);
+				processNestedAtRules(rule.cssRules, selectedAtruleUsage);
 			}
 
 			processConditionText(rule.conditionText, selectedAtruleUsage.conditions);
@@ -349,12 +350,49 @@ void function() { try {
 		 */
 		function processConditionText(conditionText, selectedAtruleConditionalUsage) {
 			conditionText = conditionText.replace(/[0-9]/g, '');
+			conditionText = conditionText.replace(".px", "px");
+			conditionText = conditionText.replace(".em", "px");
 			if(!selectedAtruleConditionalUsage[conditionText]) {
 				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
 				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
 			} else {
 				var count = selectedAtruleConditionalUsage[conditionText].count;
 				selectedAtruleConditionalUsage[conditionText].count = count + 1;
+			}
+		}
+
+		/**
+		 * This processes the usage of nested atrules within other at rules.
+		 */
+		function processNestedAtRules(cssRules, selectedAtruleConditionalUsage) {
+			for(let index in cssRules) {
+				let ruleBody = cssRules[index];
+
+
+				if(!ruleBody.cssText) {
+					continue;
+				}
+
+				// only collect stats for sub atrules
+				if(!isRuleAnAtRule(ruleBody)) {
+					continue;
+				}
+
+				var nestRuleSelector = nestRuleSelector = '@atrule:' + ruleBody.type;
+
+				if(!selectedAtruleConditionalUsage["nested"]) {
+					selectedAtruleConditionalUsage["nested"] = Object.create(null);
+				}
+
+				var nestedUsage = selectedAtruleConditionalUsage["nested"];
+
+				if(!nestedUsage[nestRuleSelector]) {
+					nestedUsage[nestRuleSelector] = Object.create(null);
+					nestedUsage[nestRuleSelector] = { "count": 1 }
+				} else {
+					var nestedCount = nestedUsage[nestRuleSelector].count;
+					nestedUsage[nestRuleSelector].count = nestedCount + 1;
+				}
 			}
 		}
 
@@ -382,38 +420,7 @@ void function() { try {
 			} else if(CSSUsageResults.rules[selectorText].props) {
 				atrulesUsage[selectorText].props = CSSUsageResults.rules[selectorText].props;
 			}
-
-			if(rule.pseudoClass) {
-				processPseudoClassesOfAtrules(rule);
-			}
 		}
-
-
-		/**
-		 * If an atrule as has a pseudo class such as @page, process the pseudo class and
-		 * add it to the atrule usage.
-		 */
-		function processPseudoClassesOfAtrules(rule) {
-			var selectorText = '@atrule:' + rule.type;
-			var selectorAtruleUsage = CSSUsageResults.atrules[selectorText];
-
-			if(!selectorAtruleUsage["pseudos"]) {
-				selectorAtruleUsage["pseudos"] = Object.create(null);
-				selectorAtruleUsage["pseudos"] = {};
-			}
-
-			var pseudosUsageForSelector = selectorAtruleUsage["pseudos"];
-			let pseudoClass = rule.pseudoClass;
-
-			if(!pseudosUsageForSelector[pseudoClass]) {
-				pseudosUsageForSelector[pseudoClass] = Object.create(null);
-				pseudosUsageForSelector[pseudoClass] = {"count": 1};
-			} else {
-				var pseudoCount = pseudosUsageForSelector[pseudoClass].count;
-				pseudosUsageForSelector[pseudoClass].count = pseudoCount + 1;
-			}
-		}
-
 
 		/**
 		 * Processes on @keyframe to add the appropriate props from the frame and a counter of which
