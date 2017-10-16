@@ -438,12 +438,18 @@ void function() { try {
 				let keyframe = rule.cssRules[index];
 				var atrulesUsageForKeyframeOfSelector = atrulesUsageForSelector.keyframes;
 
-				if(keyframe.keyText) {
-					if(!atrulesUsageForKeyframeOfSelector[keyframe.keyText]) {
-						atrulesUsageForKeyframeOfSelector[keyframe.keyText] = {"count": 1};
+				if(!keyframe.keyText) {
+					continue;
+				}
+
+				var frames = keyframe.keyText.split(', ');
+
+				for (let frame of frames) {
+					if(!atrulesUsageForKeyframeOfSelector[frame]) {
+						atrulesUsageForKeyframeOfSelector[frame] = { "count" : 1 };
 					} else {
-						var keyframeCount = atrulesUsageForKeyframeOfSelector[keyframe.keyText].count;
-						atrulesUsageForKeyframeOfSelector[keyframe.keyText].count = keyframeCount + 1;
+						var keyframeCount = atrulesUsageForKeyframeOfSelector[frame].count;
+						atrulesUsageForKeyframeOfSelector[frame].count = keyframeCount + 1;
 					}
 				}
 			}
@@ -958,6 +964,20 @@ void function() { try {
 					continue;
 				}
 
+				if(ruleBody.selector) { 
+					try {
+						var selectorText = CssPropertyValuesAnalyzer.cleanSelectorText(ruleBody.selectorText);
+						var matchedElements = [].slice.call(document.querySelectorAll(selectorText));
+						
+						if (matchedElements.length == 0) {
+							continue;
+						}
+					} catch (ex) {
+						console.warn(ex.stack||("Invalid selector: "+selectorText+" -- via "+ruleBody.selectorText));
+						continue;
+					}
+				}	
+
 				let cssText = ' ' + style.cssText.toLowerCase(); 
 
 				for (var i = style.length; i--;) {
@@ -1284,6 +1304,8 @@ void function() { try {
 					delete cssUsageRules[key];
 				}
 			}
+
+			delete CSSUsageResults.atrules["@atrule:8"];  // delete duplicated data from atrule:7, keyframe
 		}
     }();
 	
