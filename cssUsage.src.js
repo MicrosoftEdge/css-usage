@@ -847,7 +847,7 @@ void function() { try {
 		function processConditionText(conditionText, selectedAtruleConditionalUsage) {
 			// replace numeric specific information from condition statements
 			conditionText = conditionText.replace(/[0-9]+.*[0-9]+/g, '');
-			
+
 			if(!selectedAtruleConditionalUsage[conditionText]) {
 				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
 				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
@@ -1755,8 +1755,7 @@ void function() { try {
 			
 			CSSUsageResults.usages = results;
 			deleteDuplicatedAtRules(); // TODO: issue #52
-			
-			console.log(CSSUsageResults);
+
 			if(window.debugCSSUsage) if(window.debugCSSUsage) console.log(CSSUsageResults.usages);
 		}
 
