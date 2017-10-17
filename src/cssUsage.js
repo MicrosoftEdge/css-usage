@@ -415,15 +415,13 @@ void function() { try {
 					continue;
 				}
 
-				var frames = keyframe.keyText.split(', ');
+				var frame = keyframe.keyText;
 
-				for (let frame of frames) {
-					if(!atrulesUsageForKeyframeOfSelector[frame]) {
-						atrulesUsageForKeyframeOfSelector[frame] = { "count" : 1 };
-					} else {
-						var keyframeCount = atrulesUsageForKeyframeOfSelector[frame].count;
-						atrulesUsageForKeyframeOfSelector[frame].count = keyframeCount + 1;
-					}
+				if(!atrulesUsageForKeyframeOfSelector[frame]) {
+					atrulesUsageForKeyframeOfSelector[frame] = { "count" : 1 };
+				} else {
+					var keyframeCount = atrulesUsageForKeyframeOfSelector[frame].count;
+					atrulesUsageForKeyframeOfSelector[frame].count = keyframeCount + 1;
 				}
 			}
 		}
