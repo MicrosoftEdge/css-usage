@@ -834,7 +834,6 @@ void function() { try {
 
 			if(rule.cssRules) {
 				CSSUsage.PropertyValuesAnalyzer.anaylzeStyleOfRulePropCount(rule, selectedAtruleUsage);
-				processNestedAtRules(rule.cssRules, selectedAtruleUsage);
 			}
 
 			processConditionText(rule.conditionText, selectedAtruleUsage.conditions);
@@ -846,50 +845,15 @@ void function() { try {
 		 * of the @atrule in question.
 		 */
 		function processConditionText(conditionText, selectedAtruleConditionalUsage) {
-			conditionText = conditionText.replace(/[0-9]/g, '');
-			conditionText = conditionText.replace(".px", "px");
-			conditionText = conditionText.replace(".em", "px");
+			// replace numeric specific information from condition statements
+			conditionText = conditionText.replace(/[0-9]+.*[0-9]+/g, '');
+			
 			if(!selectedAtruleConditionalUsage[conditionText]) {
 				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
 				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
 			} else {
 				var count = selectedAtruleConditionalUsage[conditionText].count;
 				selectedAtruleConditionalUsage[conditionText].count = count + 1;
-			}
-		}
-
-		/**
-		 * This processes the usage of nested atrules within other at rules.
-		 */
-		function processNestedAtRules(cssRules, selectedAtruleConditionalUsage) {
-			for(let index in cssRules) {
-				let ruleBody = cssRules[index];
-
-
-				if(!ruleBody.cssText) {
-					continue;
-				}
-
-				// only collect stats for sub atrules
-				if(!isRuleAnAtRule(ruleBody)) {
-					continue;
-				}
-
-				var nestRuleSelector = nestRuleSelector = '@atrule:' + ruleBody.type;
-
-				if(!selectedAtruleConditionalUsage["nested"]) {
-					selectedAtruleConditionalUsage["nested"] = Object.create(null);
-				}
-
-				var nestedUsage = selectedAtruleConditionalUsage["nested"];
-
-				if(!nestedUsage[nestRuleSelector]) {
-					nestedUsage[nestRuleSelector] = Object.create(null);
-					nestedUsage[nestRuleSelector] = { "count": 1 }
-				} else {
-					var nestedCount = nestedUsage[nestRuleSelector].count;
-					nestedUsage[nestRuleSelector].count = nestedCount + 1;
-				}
 			}
 		}
 
@@ -916,6 +880,7 @@ void function() { try {
 				processKeyframeAtRules(rule);
 			} else if(CSSUsageResults.rules[selectorText].props) {
 				atrulesUsage[selectorText].props = CSSUsageResults.rules[selectorText].props;
+				delete atrulesUsage[selectorText].props.values;
 			}
 		}
 
@@ -937,6 +902,7 @@ void function() { try {
 			 * WARN: tightly coupled with previous processing of rules.
 			 */
 			atrulesUsageForSelector.props = CSSUsageResults.rules["@atrule:8"].props;
+			delete atrulesUsageForSelector.props.values;
 
 			for(let index in rule.cssRules) {
 				let keyframe = rule.cssRules[index];
