@@ -130,10 +130,12 @@ footer {
 @keyframes test {
   from {
     margin-left: 0px;
+    margin-top:0em;
   }
 
   to {
     margin-left: 75px;
+    margin-top: 10em;
   }
 }
 
@@ -144,16 +146,16 @@ footer {
     
     @keyframes test {
         from {
-            margin-left: 5px;
+            margin-right: 5em;
         }
         
         to {
-            margin-left: 300px;
+            margin-right: 300em;
         }
     }
 }
 
-@supports(display: flex) {
+@supports (display: flex) {
     body {
         font-size: 1em;
     }
