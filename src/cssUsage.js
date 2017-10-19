@@ -602,7 +602,7 @@ void function() { try {
 		/**
 		 * This will transform a value into an array of value identifiers
 		 */ 
-		function createValueArray(value, propertyName, wewantinsidesofurls) { 
+		function createValueArray(value, propertyName, stripUrlValue) { 
 
 			// Trim value on the edges
 			value = value.trim();
@@ -648,19 +648,12 @@ void function() { try {
 					value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
 					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
 					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
-
-					// Collapse whitespace
-					value = value.trim().replace(/\s+/g, " ");
-
-					// Divide at commas and spaces to separate different values
-					value = value.split(/\s*(?:,|[/])\s*|\s+/g);
 					break;
 					
 				default:
-				
 					
 					// Don't divide commas and spaces if we want the inside of Url values
-					if(!wewantinsidesofurls){
+					if (stripUrlValue){
 						// Replace strings by dummies
 						value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
 									 			.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
@@ -682,7 +675,7 @@ void function() { try {
 
 			// This fixes a bug where there is only one item and it's not split by the value.split
 			// What ends up happening is that this function returns a string, not an array. 
-			// That ruins everything because when we do .length in the for loop after this, it returns the length of the string, not the array. Ugh.			
+			// This causes an issue because when we do .length in the for loop after this, it returns the length of the string, not the array.			
 			if( typeof value === 'string' ) {
     			value = [ value ];
 			}
@@ -870,8 +863,8 @@ void function() { try {
 				}
 				
 				// divide the value into simplified components
-				var wewantinsidesofurls = true;
-				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey, wewantinsidesofurls);
+				var stripUrlValue = false;
+				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue, normalizedKey, stripUrlValue);
 				var values = new Array();
 				for(var j = specifiedValuesArray.length; j--;) {
 					values.push(CSSUsage.CSSValues.parseValues(specifiedValuesArray[j],normalizedKey));
