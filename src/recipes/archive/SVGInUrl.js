@@ -1,8 +1,8 @@
 /* 
     RECIPE: SVGInUrl
     -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
+    Author: Joshua Berenhaus
+    Description: Find CSS Properties with url("___.svg") or url(data:image/svg+xml___)
 */
 
 void function() {

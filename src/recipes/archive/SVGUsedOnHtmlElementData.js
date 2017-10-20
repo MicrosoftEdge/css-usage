@@ -1,8 +1,8 @@
 /* 
     RECIPE: SVGUsedOnHtmlElementData
     -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
+    Author: Joshua Berenhaus
+    Description: Find instances that match <___ data="___.svg"> or <___ type="image/svg+xml" data="___.svg">
 */
 
 void function() {

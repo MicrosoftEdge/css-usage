@@ -1360,7 +1360,7 @@ void function() { try {
 				}
 				
 				// divide the value into simplified components
-				var stripUrlValue = false;
+				var stripUrlValue = true;
 				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue, normalizedKey, stripUrlValue);
 				var values = new Array();
 				for(var j = specifiedValuesArray.length; j--;) {
@@ -1792,121 +1792,6 @@ void function() { try {
     }();
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
-
-/* 
-    RECIPE: SVGInUrl
-    -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function SVGInUrl( element, results) {
-        if(element.CSSUsage){
-            var x = Object.keys(element.CSSUsage);
-
-
-            for(var n = 0; n < x.length; n++){
-                var value = element.CSSUsage[Object.keys(element.CSSUsage)[n]] //Grab the value of each item in the object
-                //we want to know which are urls
-                if(/url\((.+\.svg.?)\)/.test(value)){
-                    results['SVGInUrl'] = results['SVGInUrl'] || {count : 0}
-                    results['SVGInUrl'].count++;
-                    break;
-                // } else if (/url\((data\:image\/svg\+xml.+)\)/.test(value)){
-                } else if (/svg\+xml\;base64/.test(value)){
-                    results['SVGInUrlExplicit'] = results['SVGInUrlExplicit'] || {count : 0}
-                    results['SVGInUrlExplicit'].count++;
-                    break;
-                }
-            }
-        }         
-        return results;
-    });
-}();
-
-
-
-
-/* 
-    RECIPE: <NAME OF RECIPE>
-    -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function SVGSyntaxUsed( element, results) {
-        if(element.nodeName == "svg") {
-            results['SVGSyntaxUsed'] = results['SVGSyntaxUsed'] || { count: 0 };
-            results['SVGSyntaxUsed'].count++;
-        }
-        
-        return results;
-    });
-}();
-
-
-
-
-/* 
-    RECIPE: SVGUsedOnHtmlElementData
-    -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function SVGUsedOnHtmlElementData( element, results) {
-        for(var n = 0; n < element.attributes.length; n++) {
-            if(element.attributes[n].name == "type" && element.attributes[n].value.indexOf("image/svg+xml") != -1) {
-                if(element.attributes[n+1].name == "data" && element.attributes[n+1].value.indexOf(".svg") != -1){
-                    results['SVGUsedOnHtmlElementDataExplicit'] = results['SVGUsedOnHtmlElementDataExplicit'] || { count: 0 };
-                    results['SVGUsedOnHtmlElementDataExplicit'].count++;
-                    break;
-                }
-            } else if (element.attributes[n].name == "data" && element.attributes[n].value.indexOf(".svg") != -1){
-                results['SVGUsedOnHtmlElementData'] = results['SVGUsedOnHtmlElementData'] || { count: 0 };
-                results['SVGUsedOnHtmlElementData'].count++;
-                break;
-            }
-        }    
-        return results;
-    });
-}();
-
-
-
-
-/* 
-    RECIPE: SVGUsedOnHtmlElementSrc
-    -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function SVGUsedOnHtmlElementSrc( element, results) {
-        var patt = new RegExp(/data\:image\/svg\+xml.+/);
-        for(var n = 0; n < element.attributes.length; n++) {
-            if(element.attributes[n].name == "src") {
-                if(element.attributes[n].value.indexOf(".svg") != -1){
-                    results['SVGUsedOnHtmlElementSrc'] = results['SVGUsedOnHtmlElementSrc'] || { count: 0 };
-                    results['SVGUsedOnHtmlElementSrc'].count++;
-                    break;
-                } else if (patt.test(element.attributes[n].value)){
-                    results['SVGUsedOnHtmlElementSrcExplicit'] = results['SVGUsedOnHtmlElementSrcExplicit'] || {count : 0}
-                    results['SVGUsedOnHtmlElementSrcExplicit'].count++;
-                    break;
-                }
-            }
-        }    
-        return results;
-    });
-}();
-
-
-
 
 /* 
     RECIPE: z-index on static flex items

@@ -863,7 +863,7 @@ void function() { try {
 				}
 				
 				// divide the value into simplified components
-				var stripUrlValue = false;
+				var stripUrlValue = true;
 				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue, normalizedKey, stripUrlValue);
 				var values = new Array();
 				for(var j = specifiedValuesArray.length; j--;) {

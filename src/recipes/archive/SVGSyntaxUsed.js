@@ -1,8 +1,8 @@
 /* 
-    RECIPE: <NAME OF RECIPE>
+    RECIPE: SVGSyntaxUsed
     -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
+    Author: Joshua Berenhaus
+    Description: <svg> tag found
 */
 
 void function() {

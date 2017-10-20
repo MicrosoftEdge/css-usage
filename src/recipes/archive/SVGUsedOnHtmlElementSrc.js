@@ -1,8 +1,8 @@
 /* 
     RECIPE: SVGUsedOnHtmlElementSrc
     -------------------------------------------------------------
-    Author: <YOUR NAME>
-    Description: <WHAT IS YOUR RECIPE LOOKING FOR>
+    Author: Joshua Berenhaus
+    Description: Find instances of <img src="___.svg"
 */
 
 void function() {
