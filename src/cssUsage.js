@@ -327,70 +327,19 @@ void function() { try {
 				atrulesUsage[selectorText] = Object.create(null);
 				atrulesUsage[selectorText] = {"count": 1, 
 											  "props": {},
-											  "nested": {},
 											  "conditions": {}} 
 			} else {
 				var count = atrulesUsage[selectorText].count;
-				count = count++;
+				atrulesUsage[selectorText].count = count + 1;
 			}
 
 			var selectedAtruleUsage = atrulesUsage[selectorText];
 
 			if(rule.cssRules) {
 				CSSUsage.PropertyValuesAnalyzer.anaylzeStyleOfRulePropCount(rule, selectedAtruleUsage);
-				processNestedRules(rule, selectedAtruleUsage.nested);
 			}
 
 			processConditionText(rule.conditionText, selectedAtruleUsage.conditions);
-		}
-
-		/**
-		 * Analyzes the given @atrules, such as @supports, and counts the usage of the nested rules
-		 * according to their type. NOTE: must pass in the current usage of nested rules for the
-		 * given @atrule.
-		 */
-		function processNestedRules(rule, nestedRulesUsage) {
-			// find the rule count for nested rules
-			for(let index in rule.cssRules) {
-				let ruleBody = rule.cssRules[index];
-
-				if(!ruleBody.cssText) {
-					continue;
-				}
-
-				var nestRuleSelector;
-
-				if(isRuleAnAtRule(ruleBody)) {
-					nestRuleSelector = '@atrule:' + ruleBody.type;
-
-				} else if(ruleBody.style) {
-					if(ruleBody.selectorText) {
-						try {
-							var selectorText = CSSUsage.PropertyValuesAnalyzer.cleanSelectorText(ruleBody.selectorText);
-							var matchedElements = [].slice.call(document.querySelectorAll(selectorText));
-
-							if(matchedElements.length == 0) {
-								continue;
-							}
-
-							var cleanedSelector = CSSUsage.PropertyValuesAnalyzer.generalizedSelectorsOf(selectorText);
-							nestRuleSelector = cleanedSelector[0];  // only passed in one selector to a function that returns many
-						} catch (ex) {
-							continue;
-						}
-					}
-				}
-
-				if(nestRuleSelector) {
-					if(!nestedRulesUsage[nestRuleSelector]) {
-						nestedRulesUsage[nestRuleSelector] = Object.create(null);
-						nestedRulesUsage[nestRuleSelector] = {"count": 1}
-					} else {
-						var nestedCount = nestedRulesUsage[nestRuleSelector].count;
-						nestedCount = nestedCount++;
-					}
-				}
-			}
 		}
 
 		/**
@@ -399,12 +348,15 @@ void function() { try {
 		 * of the @atrule in question.
 		 */
 		function processConditionText(conditionText, selectedAtruleConditionalUsage) {
+			// replace numeric specific information from condition statements
+			conditionText = conditionText.replace(/[0-9]+.*[0-9]+/g, '');
+
 			if(!selectedAtruleConditionalUsage[conditionText]) {
 				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
 				selectedAtruleConditionalUsage[conditionText] = {"count": 1}
 			} else {
 				var count = selectedAtruleConditionalUsage[conditionText].count;
-				count = count++;
+				selectedAtruleConditionalUsage[conditionText].count = count + 1;
 			}
 		}
 
@@ -423,7 +375,7 @@ void function() { try {
 											  "props": {}} 
 			} else {
 				var count = atrulesUsage[selectorText].count;
-				count = count++;
+				atrulesUsage[selectorText].count = count + 1;
 			}
 
 			// @keyframes rule type is 7
@@ -431,39 +383,9 @@ void function() { try {
 				processKeyframeAtRules(rule);
 			} else if(CSSUsageResults.rules[selectorText].props) {
 				atrulesUsage[selectorText].props = CSSUsageResults.rules[selectorText].props;
-			}
-
-			if(rule.pseudoClass) {
-				processPseudoClassesOfAtrules(rule);
+				delete atrulesUsage[selectorText].props.values;
 			}
 		}
-
-
-		/**
-		 * If an atrule as has a pseudo class such as @page, process the pseudo class and
-		 * add it to the atrule usage.
-		 */
-		function processPseudoClassesOfAtrules(rule) {
-			var selectorText = '@atrule:' + rule.type;
-			var selectorAtruleUsage = CSSUsageResults.atrules[selectorText];
-
-			if(!selectorAtruleUsage["pseudos"]) {
-				selectorAtruleUsage["pseudos"] = Object.create(null);
-				selectorAtruleUsage["pseudos"] = {};
-			}
-
-			var pseudosUsageForSelector = selectorAtruleUsage["pseudos"];
-			let pseudoClass = rule.pseudoClass;
-
-			if(!pseudosUsageForSelector[pseudoClass]) {
-				pseudosUsageForSelector[pseudoClass] = Object.create(null);
-				pseudosUsageForSelector[pseudoClass] = {"count": 1};
-			} else {
-				var pseudoCount = pseudosUsageForSelector[pseudoClass].count;
-				pseudoCount = pseudoCount++;
-			}
-		}
-
 
 		/**
 		 * Processes on @keyframe to add the appropriate props from the frame and a counter of which
@@ -483,18 +405,23 @@ void function() { try {
 			 * WARN: tightly coupled with previous processing of rules.
 			 */
 			atrulesUsageForSelector.props = CSSUsageResults.rules["@atrule:8"].props;
+			delete atrulesUsageForSelector.props.values;
 
 			for(let index in rule.cssRules) {
 				let keyframe = rule.cssRules[index];
 				var atrulesUsageForKeyframeOfSelector = atrulesUsageForSelector.keyframes;
 
-				if(keyframe.keyText) {
-					if(!atrulesUsageForKeyframeOfSelector[keyframe.keyText]) {
-						atrulesUsageForKeyframeOfSelector[keyframe.keyText] = {"count": 1};
-					} else {
-						var keyframeCount = atrulesUsageForKeyframeOfSelector[keyframe.keyText].count;
-						keyframeCount = keyframeCount++;
-					}
+				if(!keyframe.keyText) {
+					continue;
+				}
+
+				var frame = keyframe.keyText;
+
+				if(!atrulesUsageForKeyframeOfSelector[frame]) {
+					atrulesUsageForKeyframeOfSelector[frame] = { "count" : 1 };
+				} else {
+					var keyframeCount = atrulesUsageForKeyframeOfSelector[frame].count;
+					atrulesUsageForKeyframeOfSelector[frame].count = keyframeCount + 1;
 				}
 			}
 		}
@@ -1008,6 +935,20 @@ void function() { try {
 					continue;
 				}
 
+				if(ruleBody.selector) { 
+					try {
+						var selectorText = CssPropertyValuesAnalyzer.cleanSelectorText(ruleBody.selectorText);
+						var matchedElements = [].slice.call(document.querySelectorAll(selectorText));
+						
+						if (matchedElements.length == 0) {
+							continue;
+						}
+					} catch (ex) {
+						console.warn(ex.stack||("Invalid selector: "+selectorText+" -- via "+ruleBody.selectorText));
+						continue;
+					}
+				}	
+
 				let cssText = ' ' + style.cssText.toLowerCase(); 
 
 				for (var i = style.length; i--;) {
@@ -1035,7 +976,7 @@ void function() { try {
 						propsForSelectedAtrule[normalizedKey] = {"count": 1};
 					} else {
 						var propCount = propsForSelectedAtrule[normalizedKey].count;
-						propCount = propCount++;
+						propsForSelectedAtrule[normalizedKey].count = propCount + 1;
 					}
 				}
 			}
@@ -1315,7 +1256,7 @@ void function() { try {
 			
 			CSSUsageResults.usages = results;
 			deleteDuplicatedAtRules(); // TODO: issue #52
-			
+
 			if(window.debugCSSUsage) if(window.debugCSSUsage) console.log(CSSUsageResults.usages);
 		}
 
@@ -1333,6 +1274,8 @@ void function() { try {
 					delete cssUsageRules[key];
 				}
 			}
+
+			delete CSSUsageResults.atrules["@atrule:8"];  // delete duplicated data from atrule:7, keyframe
 		}
     }();
 	
