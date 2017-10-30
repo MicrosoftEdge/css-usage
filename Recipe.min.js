@@ -789,15 +789,14 @@ void function() { try {
 						var matchedElements = [element];
 						runRuleAnalyzers(element.style, selectorText, matchedElements, ruleType, isInline);					
 					}
-				} else { // We've already walked the DOM crawler and need to run the recipes
-					for(var r = 0; r < recipesToRun.length ; r++) {
-						var recipeToRun = recipesToRun[r];
-						var results = RecipeResults[recipeToRun.name] || (RecipeResults[recipeToRun.name]={});
-						recipeToRun(element, results, true);
-					}
 				}
 			}
-			
+			// We've already walked the DOM crawler and need to run the recipes
+			for(var r = 0; r < recipesToRun.length ; r++) {
+				var recipeToRun = recipesToRun[r];
+				var results = RecipeResults[recipeToRun.name] || (RecipeResults[recipeToRun.name]={});
+				recipeToRun(elements, results, true);
+			}
 		}
 
 		/**
@@ -1541,66 +1540,30 @@ void function() { try {
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
 /* 
-    RECIPE: Request Payment
+    RECIPE: Fiddler proxy tester
     -------------------------------------------------------------
     Author: Mustapha Jaber
-    Description: Find use of RequestPayment in script.
+    Description: Use Fiddler to check usage of getElementById on the web.
 */
 
+window.apiCount = 0;
+window.alert = function (alert) {
+    return function (string) {
+        window.apiCount++;
+        return alert(string);
+    };
+}(window.alert);
+
 void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function paymentRequest(/*HTML DOM Element*/ element, results) {
-        var nodeName = element.nodeName;
-        var script = "RequestPayment"
-        if (nodeName == "SCRIPT")
+    window.CSSUsage.StyleWalker.recipesToRun.push( function testFiddler(/*HTML DOM Elements*/ elements, results) {
+        var recipeName = "alert"
+        if(window.apiCount > 0)
         {
-            results[nodeName] = results[nodeName] || { count: 0, };
-            // if inline script. ensure that it's not our recipe script and look for string of interest
-            if (element.text !== undefined && element.text.indexOf(script) != -1)
-            {
-                results[nodeName].count++;
-            }
-            else if (element.src !== undefined && element.src != "")
-            {
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", element.src, false);
-                //xhr.setRequestHeader("Content-type", "text/javascript");
-                xhr.send();
-                if (xhr.status === 200 && xhr.responseText.indexOf(script) != -1)
-                {
-                    results[nodeName].count++;
-                }
-            }
-        }
-        return results;
+            results[recipeName] = results[recipeName] || { count: 0, };
+            results[recipeName].count = window.apiCount;
+        }return results;
     });
 }();
-/* 
-    RECIPE: z-index on static flex items
-    -------------------------------------------------------------
-    Author: Francois Remy
-    Description: Get count of flex items who should create a stacking context but do not really
-*/
-
-void function() {
-
-    window.CSSUsage.StyleWalker.recipesToRun.push( function zstaticflex(/*HTML DOM Element*/ element, results) {
-        if(!element.parentElement) return;
-
-        // the problem happens if the element is a flex item with static position and non-auto z-index
-        if(getComputedStyle(element.parentElement).display != 'flex') return results;
-        if(getComputedStyle(element).position != 'static') return results;
-        if(getComputedStyle(element).zIndex != 'auto') {
-            results.likely = 1;
-        }
-
-        // the problem might happen if z-index could ever be non-auto
-        if(element.CSSUsage["z-index"] && element.CSSUsage["z-index"].valuesArray.length > 0) {
-            results.possible = 1;
-        }
-
-    });
-}();
-
 //
 // This file is only here to create the TSV
 // necessary to collect the data from the crawler

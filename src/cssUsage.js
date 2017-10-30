@@ -292,15 +292,14 @@ void function() { try {
 						var matchedElements = [element];
 						runRuleAnalyzers(element.style, selectorText, matchedElements, ruleType, isInline);					
 					}
-				} else { // We've already walked the DOM crawler and need to run the recipes
-					for(var r = 0; r < recipesToRun.length ; r++) {
-						var recipeToRun = recipesToRun[r];
-						var results = RecipeResults[recipeToRun.name] || (RecipeResults[recipeToRun.name]={});
-						recipeToRun(element, results, true);
-					}
 				}
 			}
-			
+			// We've already walked the DOM crawler and need to run the recipes
+			for(var r = 0; r < recipesToRun.length ; r++) {
+				var recipeToRun = recipesToRun[r];
+				var results = RecipeResults[recipeToRun.name] || (RecipeResults[recipeToRun.name]={});
+				recipeToRun(elements, results, true);
+			}
 		}
 
 		/**
