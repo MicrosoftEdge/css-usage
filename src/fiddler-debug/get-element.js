@@ -13,11 +13,17 @@ void function() {
     document.addEventListener('DOMContentLoaded', function () {
         console.log("PIN2")
         var results = {};
-        var recipeName = "alert"
+        var recipeName = "getelem"
+
+
         if(window.apiCount > 0)
         {
-            results[recipeName] = results[recipeName] || { count: 0 };
+            results[recipeName] = results[recipeName] || { count: 0, href: location.href };
             results[recipeName].count = window.apiCount;
+        }
+        else
+        {
+            results[recipeName] = results[recipeName] || { href: location.href };
         }
         console.log("PIN3")
         appendResults(results);
