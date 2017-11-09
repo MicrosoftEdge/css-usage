@@ -15,7 +15,6 @@ void function() {
         var results = {};
         var recipeName = "getelem"
 
-
         if(window.apiCount > 0)
         {
             results[recipeName] = results[recipeName] || { count: 0, href: location.href };
