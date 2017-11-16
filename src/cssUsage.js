@@ -349,7 +349,7 @@ void function() { try {
 		 */
 		function processConditionText(conditionText, selectedAtruleConditionalUsage) {
 			// replace numeric specific information from condition statements
-			conditionText = conditionText.replace(/[0-9]+.*[0-9]+/g, '');
+			conditionText = CSSUsage.CSSValues.parseValues(conditionText);
 
 			if(!selectedAtruleConditionalUsage[conditionText]) {
 				selectedAtruleConditionalUsage[conditionText] = Object.create(null);
