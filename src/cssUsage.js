@@ -417,6 +417,9 @@ void function() { try {
 
 				var frame = keyframe.keyText;
 
+				// replace extra whitespaces
+				frame = frame.replace(/\s/g, '');
+
 				if(!atrulesUsageForKeyframeOfSelector[frame]) {
 					atrulesUsageForKeyframeOfSelector[frame] = { "count" : 1 };
 				} else {
