@@ -60,7 +60,9 @@ void function() {
 
         var results = new Array();
         counts.forEach(function(i) {
-            results.push({"name":i.name, "count": i.count, "href": location.href });
+            if(i.count != 0) {
+                results.push({"name":i.name, "count": i.count, "href": location.href });
+            }
         });
 
         appendResults(results);
