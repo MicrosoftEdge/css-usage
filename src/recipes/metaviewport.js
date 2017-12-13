@@ -1,4 +1,4 @@
-/* 
+/*
     RECIPE: Metaviewport
     -------------------------------------------------------------
     Author: Greg Whitworth
@@ -13,7 +13,7 @@ void function() {
         if(element.nodeName == "META") {
             for(var n = 0; n < element.attributes.length; n++) {
                 if(element.attributes[n].name == "content") {
-                                      
+
                     for(var needle = 0; needle < needles.length; needle++) {
                         var value = element.attributes[n].value;
 
@@ -24,7 +24,7 @@ void function() {
                         }
                     }
                 }
-            }    
+            }
         }
 
         return results;
