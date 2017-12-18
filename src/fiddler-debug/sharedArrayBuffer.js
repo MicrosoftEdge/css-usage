@@ -14,7 +14,8 @@ void(function() {
 
 void function() {
     document.addEventListener('DOMContentLoaded', function () {
-    var results = {};
+        var results = {};
+        var recipeName = "sab";
         if(window.apiCount > 0)
         {
             results[recipeName] = results[recipeName] || { count: 0, href: location.href };
