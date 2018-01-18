@@ -18,9 +18,8 @@ void function() {
 
         for(var i = 0; i < values.length; i++) {
             var value = values[i];
-
-            results[value] = results[value] || { count: 0 };
-            results[value].count++;
+            results["backgroundColorCount"] = results["backgroundColorCount"] || { count: 0 };
+            results["backgroundColorCount"].count++;
         }
 
         return results;
