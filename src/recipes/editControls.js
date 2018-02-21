@@ -13,9 +13,9 @@ void function() {
         	(element.getAttribute("type").toLowerCase() === "email" ||
         	 element.getAttribute("type").toLowerCase() === "number" ||
         	 element.getAttribute("type").toLowerCase() === "search" ||
-        	element.getAttribute("type").toLowerCase() === "tel" ||
-        	element.getAttribute("type").toLowerCase() === "url" ||
-        	element.getAttribute("type").toLowerCase() === "text")) 
+        	 element.getAttribute("type").toLowerCase() === "tel" ||
+        	 element.getAttribute("type").toLowerCase() === "url" ||
+        	 element.getAttribute("type").toLowerCase() === "text")) 
         {
             results["input"] = results["input"] || { count: 0 };
             results["input"].count++;    
