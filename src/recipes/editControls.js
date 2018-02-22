@@ -30,14 +30,11 @@ void function() {
 			results["textarea"] = results["textarea"] || { count: 0 };
             results["textarea"].count++;
         }
-        else if (element.nodeName.toLowerCase() === "div" || element.nodeName.toLowerCase() === "p" || element.nodeName.toLowerCase() === "table")
+        else if (element.getAttribute("contenteditable") !== null)
         {
-            if (element.getAttribute("contenteditable") !== null)
-            {
                 results["contenteditable"] = results["contenteditable"] || { count: 0 };
                 results["contenteditable"].count++;
-            }        	
-        }
+        }   
         return results;
     });
 }();
