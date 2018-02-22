@@ -9,16 +9,21 @@ void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function editControls(/*HTML DOM Element*/ element, results) {
         
         // we only care about special kind of inputs
-        if(element.nodeName.toLowerCase() === "input" && 
-        	(element.getAttribute("type").toLowerCase() === "email" ||
-        	 element.getAttribute("type").toLowerCase() === "number" ||
-        	 element.getAttribute("type").toLowerCase() === "search" ||
-        	 element.getAttribute("type").toLowerCase() === "tel" ||
-        	 element.getAttribute("type").toLowerCase() === "url" ||
-        	 element.getAttribute("type").toLowerCase() === "text")) 
+        if(element.nodeName.toLowerCase() === "input") 
         {
-            results["input"] = results["input"] || { count: 0 };
-            results["input"].count++;    
+            if(element.getAttribute("type") !== null)
+            {
+                if (element.getAttribute("type").toLowerCase() === "email" ||
+                    element.getAttribute("type").toLowerCase() === "number" ||
+                    element.getAttribute("type").toLowerCase() === "search" ||
+                    element.getAttribute("type").toLowerCase() === "tel" ||
+                    element.getAttribute("type").toLowerCase() === "url" ||
+                    element.getAttribute("type").toLowerCase() === "text")
+                    {
+                        results["input"] = results["input"] || { count: 0 };
+                        results["input"].count++;
+                    }
+            }
         }
         else if (element.nodeName.toLowerCase() === "textarea")
         {
@@ -27,11 +32,14 @@ void function() {
         }
         else if (element.nodeName.toLowerCase() === "div" || element.nodeName.toLowerCase() === "p" || element.nodeName.toLowerCase() === "table")
         {
-        	if(element.getAttribute("contenteditable").toLowerCase() === "true" || element.getAttribute("contenteditable").toLowerCase() === "plain-text")
-        	{
-				results["contenteditable"] = results["contenteditable"] || { count: 0 };
-            	results["contenteditable"].count++;
-        	}
+            if (element.getAttribute("contenteditable") !== null)
+            {
+                if(element.getAttribute("contenteditable").toLowerCase() === "true" || element.getAttribute("contenteditable").toLowerCase() === "plain-text")
+                {
+                    results["contenteditable"] = results["contenteditable"] || { count: 0 };
+                    results["contenteditable"].count++;
+                }
+            }        	
         }
         return results;
     });
