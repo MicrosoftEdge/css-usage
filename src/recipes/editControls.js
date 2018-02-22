@@ -34,11 +34,8 @@ void function() {
         {
             if (element.getAttribute("contenteditable") !== null)
             {
-                if(element.getAttribute("contenteditable").toLowerCase() === "true" || element.getAttribute("contenteditable").toLowerCase() === "plain-text")
-                {
-                    results["contenteditable"] = results["contenteditable"] || { count: 0 };
-                    results["contenteditable"].count++;
-                }
+                results["contenteditable"] = results["contenteditable"] || { count: 0 };
+                results["contenteditable"].count++;
             }        	
         }
         return results;
