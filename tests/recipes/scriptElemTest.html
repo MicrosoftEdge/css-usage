@@ -1,0 +1,27 @@
+<html>
+<head>
+    <style>
+        /* window.CSSUsage.StyleWalker requires the document to have a stylesheet to be used */
+        body { background: lightgreen; white-space:pre;}
+    </style>
+    <script src="../../../Recipe.min.js"></script>
+    <script id="inline1">
+        // this is inline script
+    </script>
+    <script id="external1"          src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.js"></script>
+    <script id="async1"     async   src="foo2.js"></script>
+    <script id="defer1"     defer   src="foo3.js"></script>
+</head>
+<body>
+Tests scriptElemStats
+
+To see results in F12 easily, paste
+    window.RecipeResults.scriptElemStats.data)
+    <script id="inline2">
+        // this is inline script
+    </script>
+    <script id="external2"          src="foo4.js"></script>
+    <script id="async2"     async   src="foo5.js"></script>
+    <script id="defer2"     defer   src="foo6.js"></script>
+</body>
+</html>

@@ -1781,33 +1781,77 @@ void function() { try {
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
-/* 
-    RECIPE: z-index on static flex items
+/*
+    RECIPE: scriptElemStats
     -------------------------------------------------------------
-    Author: Francois Remy
-    Description: Get count of flex items who should create a stacking context but do not really
+    Author: thomasmo
+    Description: Collect stats for script elements
 */
 
+
 void function() {
-
-    window.CSSUsage.StyleWalker.recipesToRun.push( function zstaticflex(/*HTML DOM Element*/ element, results) {
-        if(!element.parentElement) return;
-
-        // the problem happens if the element is a flex item with static position and non-auto z-index
-        if(getComputedStyle(element.parentElement).display != 'flex') return results;
-        if(getComputedStyle(element).position != 'static') return results;
-        if(getComputedStyle(element).zIndex != 'auto') {
-            results.likely = 1;
+    window.CSSUsage.StyleWalker.recipesToRun.push( function scriptElemStats( element, results) {
+        window._elementCount = window._elementCount || 0;
+        window._elementCount++;
+        if(element.nodeName.toLowerCase() == "script") {
+            results["data"] = results["data"] || [];
+            
+            var elemData = {
+                index :         window._elementCount,
+                async :         element.hasAttribute("async")   ? 1 : 0,
+                defer :         element.hasAttribute("defer")   ? 1 : 0,
+                externalSrc :   element.hasAttribute("src")     ? 1 : 0,
+                parentElem :    element.parentNode.nodeName.toLowerCase()
+            };
+            
+            results["data"].push(elemData);
         }
 
-        // the problem might happen if z-index could ever be non-auto
-        if(element.CSSUsage["z-index"] && element.CSSUsage["z-index"].valuesArray.length > 0) {
-            results.possible = 1;
-        }
-
+        return results;
     });
 }();
 
+/*
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function scriptElemStats( element, results) {
+        if(element.nodeName.toLowerCase() == "script") {
+            results["data"] = results["data"] || {
+                total : 0,
+                async : 0,
+                defer : 0,
+                externalSrc : 0,
+                parentElemHead : 0,
+                parentElemBody : 0,
+                parentElemOther : 0
+            };
+
+            var result = results["data"];
+            result.total++;
+
+            if (element.hasAttribute("async")) {
+                result.async++;
+            }
+            if (element.hasAttribute("defer")) {
+                result.defer++;
+            }
+            if (element.hasAttribute("src")) {
+                result.externalSrc++;
+            }
+
+            parentElemName = element.parentNode.nodeName.toLowerCase();
+            if (parentElemName === "head") {
+                result.parentElemHead++;
+            } else if (parentElemName === "body") {
+                result.parentElemBody++;
+            } else {
+                result.parentElemOther++;
+            }
+        }
+
+        return results;
+    });
+}();
+*/
 //
 // This file is only here to create the TSV
 // necessary to collect the data from the crawler
