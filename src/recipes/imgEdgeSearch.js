@@ -1,4 +1,4 @@
-/* 
+/*
     RECIPE: imgEdgeSearch
     -------------------------------------------------------------
     Author: Morgan, Lia, Joel, Malick
@@ -11,7 +11,18 @@ void function() {
         if(element.nodeName == "IMG") {
             var browsers = ["internetexplorer","ie","firefox","chrome","safari","edge", "opera"];
             for(var i = 0; i < browsers.length; i++) {
-                if(element.getAttribute("alt").toLowerCase().indexOf(browsers[i]) != -1|| element.getAttribute("src").toLowerCase().indexOf(browsers[i]) != -1) {
+                let alt = element.getAttribute("alt");
+                let src = element.getAttribute("src");
+
+                if (alt) {
+                    alt = alt.toLowerCase();
+                }
+
+                if (src) {
+                    src = src.toLowerCase();
+                }
+
+                if(src.indexOf(browsers[i]) != -1|| alt.indexOf(browsers[i]) != -1) {
                     results[browsers[i]] = results[browsers[i]] || {count: 0, container: ""};
                     results[browsers[i]].count++;
                     var parent = element.parentElement;
@@ -22,7 +33,7 @@ void function() {
                         results[browsers[i]].container = val;
                     }
                 }
-            
+
             }
         }
 
