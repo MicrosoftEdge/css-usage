@@ -1587,14 +1587,21 @@ void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function imgEdgeSearch( element, results) {
         //tests for images
         if(element.nodeName == "IMG") {
-            var browsers = ["internet explorer","ie","firefox","chrome","safari","edge", "opera"];
+            var browsers = ["internetexplorer","ie","firefox","chrome","safari","edge", "opera"];
             for(var i = 0; i < browsers.length; i++) {
                 if(element.getAttribute("alt").toLowerCase().indexOf(browsers[i]) != -1|| element.getAttribute("src").toLowerCase().indexOf(browsers[i]) != -1) {
-                    results[browsers[i]] = results[browsers[i]] || {count: 0};
+                    results[browsers[i]] = results[browsers[i]] || {count: 0, container: ""};
                     results[browsers[i]].count++;
+                    var parent = element.parentElement;
+
+                    if(parent) {
+                        var outer = element.parentElement.outerHTML;
+                        var val = outer.replace(element.parentElement.innerHTML, "");
+                        results[browsers[i]].container = val;
+                    }
                 }
             
-            }   
+            }
         }
 
         return results;
@@ -1610,22 +1617,38 @@ void function() {
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function unsupportedBrowser( element, results) {        
         //tests for phrases
-        var switchPhraseString = new RegExp("(Switch to|Get|Download|Install)(\\w|\\s)+(Google|Chrome|Safari|firefox|Opera|Internet Explorer|IE)","i");
-        var supportedPhraseString = new RegExp("(browser|Edge)(\\w|\\s)+(isn't|not|no longer)(\\w|\\s)+(supported|compatible)", "i");
+        var switchPhraseString = new RegExp("((?:Switch to|Get|Download|Install)(?:\\w|\\s)+(?:Google|Chrome|Safari|firefox|Opera|Internet Explorer|IE))","i");
+        var supportedPhraseString = new RegExp("((?:browser|Edge)(?:\\w|\\s)+(?:isn't|not|no longer)(?:\\w|\\s)+(?:supported|compatible))", "i");
         var needles = [{str:switchPhraseString, name:"switchPhrase"},
                         {str:supportedPhraseString, name:"supportedPhrase"}];;
 
         for(var i = 0; i < needles.length; i++) {
-            if((needles[i].str).test(element.textContent)) {
-                results[needles[i].name] = results[needles[i].name] || {count: 0};
-                results[needles[i].name].count++;
+            var found = element.textContent.match(needles[i].str);            
+            if(found) {
+                if(found.length > 0 && found !== (null || undefined)) {
+                    results[needles[i].name] = results[needles[i].name] || {count: 0, match: "", container: ""};
+                    results[needles[i].name].count++;
+
+                    var parent = element.parentElement;
+                    if(parent) {
+                        var outer = element.parentElement.outerHTML;
+                        var val = outer.replace(element.parentElement.innerHTML, "");
+                        results[needles[i].name].container = val;
+                    }
+                    
+                    found = remove(found, " ");
+                    results[needles[i].name].match = found.join();
+                }
             }
         }
         
         return results;
     });
-}();
 
+    function remove(array, element) {
+        return array.filter(e => e !== element);
+    }
+}();
 
 //
 // This file is only here to create the TSV
