@@ -7,16 +7,16 @@ module.exports = function(grunt) {
         src: {
             src: [
 			        'src/lodash.js',
-			        'src/cssShorthands.js',                                     
-              'src/fwks/*',              
-              'src/fwkUsage.js',               
+			        'src/cssShorthands.js',
+              'src/fwks/*',
+              'src/fwkUsage.js',
               'src/patterns.js',
               'src/patternUsage.js',
-              'src/htmlUsage.js',              
+              'src/htmlUsage.js',
               'src/cssUsage.js',
-              'src/recipes/*',    
+              'src/recipes/*',
               'src/crawl/prepareTsv.js',
-              'src/init.js'              
+              'src/init.js'
             ],
             dest: 'cssUsage.src.js'
         }
@@ -25,7 +25,14 @@ module.exports = function(grunt) {
       options: {
         patterns: [
           /currentRowTemplate.push\(\'(css|dom|html)\'\);/g,
-          /convertToTSV\(INSTRUMENTATION_RESULTS\[\'(css|dom|html)\'\]\);[\n\r]+\s+currentRowTemplate.pop\(\);/g
+          /convertToTSV\(INSTRUMENTATION_RESULTS\[\'(css|dom|html)\'\]\);[\n\r]+\s+currentRowTemplate.pop\(\);/g,
+
+          // Comment out if you want instrumentation information
+          /INSTRUMENTATION_RESULTS.UA,/g,
+          /INSTRUMENTATION_RESULTS.UASTRING_HASH,/g,
+          /INSTRUMENTATION_RESULTS.TIMESTAMP,/g,
+          /currentRowTemplate.push\(\'ua\'\);/g,
+          /convertToTSV\(\{identifier: INSTRUMENTATION_RESULTS\.UASTRING\}\);/g
         ]
       },
       your_target: {
@@ -35,7 +42,7 @@ module.exports = function(grunt) {
       }
     }
   });
-  
+
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-strip-code');
   grunt.registerTask('default', ['concat', 'strip_code']);

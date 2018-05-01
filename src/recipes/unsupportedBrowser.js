@@ -6,12 +6,27 @@
 */
 
 void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function unsupportedBrowser( element, results) {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function unsupportedBrowser(element, results) {
+        var ignoreElements = ["SCRIPT", "META", "HEAD", "TITLE", "STYLE"];
+
+        if (!element.CSSUsage || ignoreElements.includes(element.nodeName)) { return; }
+
+        // Make sure the element is visible (somewhere on the screen)
+        if (
+            (element.CSSUsage["visibility"] && element.CSSUsage["visibility"].includes("hidden")) ||
+            (element.CSSUsage["display"] && element.CSSUsage["display"].includes("none")) ||
+            (element.CSSUsage["opacity"] && element.CSSUsage["opacity"].valuesArray.includes("0"))
+         ) {
+                return;
+        }
+
         //tests for phrases
-        var switchPhraseString = new RegExp("((?:Switch to|Get|Download|Install)(?:\\w|\\s)+(?:Google|Chrome|Safari|firefox|Opera|Internet Explorer|IE))","i");
-        var supportedPhraseString = new RegExp("((?:browser|Edge)(?:\\w|\\s)+(?:isn't|not|no longer)(?:\\w|\\s)+(?:supported|compatible))", "i");
+        var switchPhraseString = new RegExp("((?:Switch to|Get|Download|Install|Use)(?:\\w|\\s)+(?:Google|Chrome|Safari|firefox|Opera|Internet Explorer))","i");
+        var supportedPhraseString = new RegExp("((?:browser|Edge)(?:\\w|\\s)+(?:isn't|is not|not|no longer)(?:\\w|\\s)+(?:supported|compatible))", "i");
         var needles = [{str:switchPhraseString, name:"switchPhrase"},
-                        {str:supportedPhraseString, name:"supportedPhrase"}];;
+                        {str:supportedPhraseString, name:"supportedPhrase"}];
+
+
 
         for(var i = 0; i < needles.length; i++) {
             var found = element.textContent.match(needles[i].str);
