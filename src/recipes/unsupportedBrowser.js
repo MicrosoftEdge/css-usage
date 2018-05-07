@@ -11,13 +11,8 @@ void function() {
 
         if (!element.CSSUsage || ignoreElements.includes(element.nodeName)) { return; }
 
-        // Make sure the element is visible (somewhere on the screen)
-        if (
-            (element.CSSUsage["visibility"] && element.CSSUsage["visibility"].includes("hidden")) ||
-            (element.CSSUsage["display"] && element.CSSUsage["display"].includes("none")) ||
-            (element.CSSUsage["opacity"] && element.CSSUsage["opacity"].valuesArray.includes("0"))
-         ) {
-                return;
+        if(isElemVisibleTreeWalk(element)) {
+
         }
 
         //tests for phrases
@@ -55,6 +50,34 @@ void function() {
 
         return results;
     });
+
+    function isElemVisibleTreeWalk(element) {
+        if(element.parentNode !== null) {
+            if(!isVisible(element)) {
+                return false;
+            }
+            else {
+                // Pass in the parent to check its parent
+                isElemVisible(element.parentNode);
+            }
+        }
+
+        return true;
+
+    }
+
+    function isVisible(element) {
+        if (
+            (element.CSSUsage["visibility"] && element.CSSUsage["visibility"].includes("hidden")) ||
+            (element.CSSUsage["display"] && element.CSSUsage["display"].includes("none")) ||
+            (element.CSSUsage["opacity"] && element.CSSUsage["opacity"].valuesArray.includes("0")) ||
+            (element.getBoundingClientRect().width !== 0 && element.getBoundingClientRect().height !== 0)
+         ) {
+                return false;
+        }
+
+        return true;
+    }
 
     function remove(array, element) {
         return array.filter(e => e !== element);
