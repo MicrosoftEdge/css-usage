@@ -3,7 +3,7 @@
 // necessary to collect the data from the crawler
 //
 void function() {
-	
+
 	/*	String hash function
 	/*	credits goes to http://erlycoder.com/49/javascript-hash-functions-to-convert-string-into-integer-hash- */
 	const hashCodeOf = (str) => {
@@ -14,7 +14,7 @@ void function() {
 		}
 		return hash;
 	}
-	
+
 	var ua = navigator.userAgent;
 	var uaName = ua.indexOf('Edge')>=0 ? 'EDGE' :ua.indexOf('Chrome')>=0 ? 'CHROME' : 'FIREFOX';
 	window.INSTRUMENTATION_RESULTS = {
@@ -29,7 +29,7 @@ void function() {
 		scripts: {/* "bootstrap.js": 1 */},
 	};
 	window.INSTRUMENTATION_RESULTS_TSV = [];
-	
+
 	/* make the script work in the context of a webview */
 	try {
 		var console = window.console || (window.console={log:function(){},warn:function(){},error:function(){}});
@@ -43,7 +43,7 @@ void function() {
 		};
 	} catch (ex) {
 		// we tried...
-	}	
+	}
 }();
 
 window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
@@ -51,10 +51,10 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 	INSTRUMENTATION_RESULTS.css = CSSUsageResults;
 	INSTRUMENTATION_RESULTS.html = HtmlUsageResults;
 	INSTRUMENTATION_RESULTS.recipe = RecipeResults;
-	
+
 	// Convert it to a more efficient format
 	INSTRUMENTATION_RESULTS_TSV = convertToTSV(INSTRUMENTATION_RESULTS);
-	
+
 	// Remove tabs and new lines from the data
 	for(var i = INSTRUMENTATION_RESULTS_TSV.length; i--;) {
 		var row = INSTRUMENTATION_RESULTS_TSV[i];
@@ -62,11 +62,11 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 			row[j] = (''+row[j]).replace(/(\s|\r|\n)+/g, ' ');
 		}
 	}
-	
+
 	// Convert into one signle tsv file
 	var tsvString = INSTRUMENTATION_RESULTS_TSV.map((row) => (row.join('\t'))).join('\n');
 	appendTSV(tsvString);
-	
+
 	// Add it to the document dom
 	function appendTSV(content) {
 		if(window.debugCSSUsage) console.log("Trying to append");
@@ -94,8 +94,8 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 	/** convert the instrumentation results to a spreadsheet for analysis */
 	function convertToTSV(INSTRUMENTATION_RESULTS) {
 		if(window.debugCSSUsage) console.log("Converting to TSV");
-		
-		var VALUE_COLUMN = 4;
+
+		var VALUE_COLUMN = 5;
 		var finishedRows = [];
 		var currentRowTemplate = [
 			INSTRUMENTATION_RESULTS.UA,
@@ -104,15 +104,15 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 			INSTRUMENTATION_RESULTS.TIMESTAMP,
 			0
 		];
-		
+
 		currentRowTemplate.push('ua');
 		convertToTSV({identifier: INSTRUMENTATION_RESULTS.UASTRING});
 		currentRowTemplate.pop();
-		
+
 		currentRowTemplate.push('css');
 		convertToTSV(INSTRUMENTATION_RESULTS['css']);
 		currentRowTemplate.pop();
-		
+
 		currentRowTemplate.push('dom');
 		convertToTSV(INSTRUMENTATION_RESULTS['dom']);
 		currentRowTemplate.pop();
@@ -124,18 +124,21 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 		currentRowTemplate.push('recipe');
 		convertToTSV(INSTRUMENTATION_RESULTS['recipe']);
 		currentRowTemplate.pop();
-		
-		var l = finishedRows[0].length;
-		finishedRows.sort((a,b) => {
-			for(var i = VALUE_COLUMN+1; i<l; i++) {
-				if(a[i]<b[i]) return -1;
-				if(a[i]>b[i]) return +1;
-			}
-			return 0;
-		});
-		
+
+		if(finishedRows.length > 0)
+		{
+			var l = finishedRows[0].length;
+			finishedRows.sort((a,b) => {
+				for(var i = VALUE_COLUMN+1; i<l; i++) {
+					if(a[i]<b[i]) return -1;
+					if(a[i]>b[i]) return +1;
+				}
+				return 0;
+			});
+		}
+
 		return finishedRows;
-		
+
 		/** helper function doing the actual conversion */
 		function convertToTSV(object) {
 			if(object==null || object==undefined || typeof object == 'number' || typeof object == 'string') {
@@ -150,10 +153,10 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 				}
 			}
 		}
-		
+
 		/** constructor for a row of our table */
 		function Row(currentRowTemplate, value) {
-			
+
 			// Initialize an empty row with enough columns
 			var row = [
 				/*UANAME:     edge                            */'',
@@ -169,15 +172,15 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 				/*...                                         */'',
 				/*...                                         */'',
 			];
-			
+
 			// Copy the column values from the template
 			for(var i = currentRowTemplate.length; i--;) {
 				row[i] = currentRowTemplate[i];
 			}
-			
+
 			// Add the value to the row
 			row[VALUE_COLUMN] = value;
-			
+
 			return row;
 		}
 

@@ -11,8 +11,9 @@ void function() {
 
         if (!element.CSSUsage || ignoreElements.includes(element.nodeName)) { return; }
 
-        if(isElemVisibleTreeWalk(element)) {
-
+        // We don't care to inspect any element that isn't visible
+        if(!isElemVisibleTreeWalk(element)) {
+            return;
         }
 
         //tests for phrases
@@ -52,26 +53,32 @@ void function() {
     });
 
     function isElemVisibleTreeWalk(element) {
+        // return if the current element isn't visible
+        if(!isVisible(element)) {
+            return false;
+        }
+
         if(element.parentNode !== null) {
-            if(!isVisible(element)) {
-                return false;
-            }
-            else {
-                // Pass in the parent to check its parent
-                isElemVisible(element.parentNode);
-            }
+            // Pass in the parent to check its parent
+            // element is visible or not
+            return isElemVisibleTreeWalk(element.parentNode);
         }
 
         return true;
-
     }
 
     function isVisible(element) {
+        // We'll include this element because (for example)
+        // HTML won't include this so we'll return to keep looking
+        if(!element.CSSUsage) {
+            return true;
+        }
+
         if (
             (element.CSSUsage["visibility"] && element.CSSUsage["visibility"].includes("hidden")) ||
             (element.CSSUsage["display"] && element.CSSUsage["display"].includes("none")) ||
             (element.CSSUsage["opacity"] && element.CSSUsage["opacity"].valuesArray.includes("0")) ||
-            (element.getBoundingClientRect().width !== 0 && element.getBoundingClientRect().height !== 0)
+            (element.getBoundingClientRect().width === 0 && element.getBoundingClientRect().height === 0)
          ) {
                 return false;
         }

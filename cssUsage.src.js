@@ -1540,84 +1540,6 @@ void function() { try {
 	
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
-/* 
-    RECIPE: browserDownloadUrls
-    -------------------------------------------------------------
-    Author: Morgan, Lia, Joel, Malick
-    Description: Looks for the download urls of other browsers
-*/
-
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function browserDownloadUrls( element, results) {
-        //tests for browser download urls
-        var linkList = [{url:"https://www.google.com/chrome/", name:"Chrome"}, 
-        {url:"https://www.google.com/intl/en/chrome/browser/desktop/index.html", name:"Chrome"},
-        {url:"https://support.microsoft.com/en-us/help/17621/internet-explorer-downloads", name:"InternetExplorer"}, 
-        {url:"http://windows.microsoft.com/en-US/internet-explorer/downloads/ie", name:"InternetExplorer"}, 
-        {url:"https://www.mozilla.org/en-US/firefox/", name:"Firefox"}, 
-        {url:"https://www.apple.com/safari/", name:"Safari"}, 
-        {url:"https://support.apple.com/en-us/HT204416", name:"Safari"},
-        {url:"http://www.opera.com/download", name:"Opera"},
-        {url:"https://www.microsoft.com/en-us/download/details.aspx?id=48126", name:"Edge"}];
-        for(var j = 0; j < linkList.length; j++) {
-            if(element.getAttribute("href") != null) {
-                if(element.getAttribute("href").indexOf(linkList[j].url) != -1 ) {
-                    results[linkList[j].name] = results[linkList[j].name] || {count: 0};
-                    results[linkList[j].name].count++;
-                }
-            }
-            if (element.src != null) {
-                if(element.src.indexOf(linkList[j].url) != -1 ) {
-                    results[linkList[j].name] = results[linkList[j].name] || {count: 0};
-                    results[linkList[j].name].count++;
-                }
-            }
-        }
-    });
-}();
-/*
-    RECIPE: imgEdgeSearch
-    -------------------------------------------------------------
-    Author: Morgan, Lia, Joel, Malick
-    Description: Looking for sites that do not include edge as a supported browser
-*/
-
-void function() {
-    window.CSSUsage.StyleWalker.recipesToRun.push( function imgEdgeSearch( element, results) {
-        //tests for images
-        if(element.nodeName == "IMG") {
-            var browsers = ["internetexplorer","ie","firefox","chrome","safari","edge", "opera"];
-            for(var i = 0; i < browsers.length; i++) {
-                let alt = element.getAttribute("alt");
-                let src = element.getAttribute("src");
-
-                if (alt) {
-                    alt = alt.toLowerCase();
-                }
-
-                if (src) {
-                    src = src.toLowerCase();
-                }
-
-                if(src.indexOf(browsers[i]) != -1|| alt.indexOf(browsers[i]) != -1) {
-                    results[browsers[i]] = results[browsers[i]] || {count: 0, container: ""};
-                    results[browsers[i]].count++;
-                    var parent = element.parentElement;
-
-                    if(parent) {
-                        var outer = element.parentElement.outerHTML;
-                        var val = outer.replace(element.parentElement.innerHTML, "");
-                        results[browsers[i]].container = val;
-                    }
-                }
-
-            }
-        }
-
-        return results;
-    });
-}();
 /*
     RECIPE: unsupported browser
     -------------------------------------------------------------
@@ -1631,13 +1553,9 @@ void function() {
 
         if (!element.CSSUsage || ignoreElements.includes(element.nodeName)) { return; }
 
-        // Make sure the element is visible (somewhere on the screen)
-        if (
-            (element.CSSUsage["visibility"] && element.CSSUsage["visibility"].includes("hidden")) ||
-            (element.CSSUsage["display"] && element.CSSUsage["display"].includes("none")) ||
-            (element.CSSUsage["opacity"] && element.CSSUsage["opacity"].valuesArray.includes("0"))
-         ) {
-                return;
+        // We don't care to inspect any element that isn't visible
+        if(!isElemVisibleTreeWalk(element)) {
+            return;
         }
 
         //tests for phrases
@@ -1676,6 +1594,40 @@ void function() {
         return results;
     });
 
+    function isElemVisibleTreeWalk(element) {
+        // return if the current element isn't visible
+        if(!isVisible(element)) {
+            return false;
+        }
+
+        if(element.parentNode !== null) {
+            // Pass in the parent to check its parent
+            // element is visible or not
+            return isElemVisibleTreeWalk(element.parentNode);
+        }
+
+        return true;
+    }
+
+    function isVisible(element) {
+        // We'll include this element because (for example)
+        // HTML won't include this so we'll return to keep looking
+        if(!element.CSSUsage) {
+            return true;
+        }
+
+        if (
+            (element.CSSUsage["visibility"] && element.CSSUsage["visibility"].includes("hidden")) ||
+            (element.CSSUsage["display"] && element.CSSUsage["display"].includes("none")) ||
+            (element.CSSUsage["opacity"] && element.CSSUsage["opacity"].valuesArray.includes("0")) ||
+            (element.getBoundingClientRect().width === 0 && element.getBoundingClientRect().height === 0)
+         ) {
+                return false;
+        }
+
+        return true;
+    }
+
     function remove(array, element) {
         return array.filter(e => e !== element);
     }
@@ -1686,7 +1638,7 @@ void function() {
 // necessary to collect the data from the crawler
 //
 void function() {
-	
+
 	/*	String hash function
 	/*	credits goes to http://erlycoder.com/49/javascript-hash-functions-to-convert-string-into-integer-hash- */
 	const hashCodeOf = (str) => {
@@ -1697,7 +1649,7 @@ void function() {
 		}
 		return hash;
 	}
-	
+
 	var ua = navigator.userAgent;
 	var uaName = ua.indexOf('Edge')>=0 ? 'EDGE' :ua.indexOf('Chrome')>=0 ? 'CHROME' : 'FIREFOX';
 	window.INSTRUMENTATION_RESULTS = {
@@ -1712,7 +1664,7 @@ void function() {
 		scripts: {/* "bootstrap.js": 1 */},
 	};
 	window.INSTRUMENTATION_RESULTS_TSV = [];
-	
+
 	/* make the script work in the context of a webview */
 	try {
 		var console = window.console || (window.console={log:function(){},warn:function(){},error:function(){}});
@@ -1726,7 +1678,7 @@ void function() {
 		};
 	} catch (ex) {
 		// we tried...
-	}	
+	}
 }();
 
 window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
@@ -1734,10 +1686,10 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 	INSTRUMENTATION_RESULTS.css = CSSUsageResults;
 	INSTRUMENTATION_RESULTS.html = HtmlUsageResults;
 	INSTRUMENTATION_RESULTS.recipe = RecipeResults;
-	
+
 	// Convert it to a more efficient format
 	INSTRUMENTATION_RESULTS_TSV = convertToTSV(INSTRUMENTATION_RESULTS);
-	
+
 	// Remove tabs and new lines from the data
 	for(var i = INSTRUMENTATION_RESULTS_TSV.length; i--;) {
 		var row = INSTRUMENTATION_RESULTS_TSV[i];
@@ -1745,11 +1697,11 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 			row[j] = (''+row[j]).replace(/(\s|\r|\n)+/g, ' ');
 		}
 	}
-	
+
 	// Convert into one signle tsv file
 	var tsvString = INSTRUMENTATION_RESULTS_TSV.map((row) => (row.join('\t'))).join('\n');
 	appendTSV(tsvString);
-	
+
 	// Add it to the document dom
 	function appendTSV(content) {
 		if(window.debugCSSUsage) console.log("Trying to append");
@@ -1777,8 +1729,8 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 	/** convert the instrumentation results to a spreadsheet for analysis */
 	function convertToTSV(INSTRUMENTATION_RESULTS) {
 		if(window.debugCSSUsage) console.log("Converting to TSV");
-		
-		var VALUE_COLUMN = 4;
+
+		var VALUE_COLUMN = 5;
 		var finishedRows = [];
 		var currentRowTemplate = [
 			INSTRUMENTATION_RESULTS.UA,
@@ -1787,15 +1739,15 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 			INSTRUMENTATION_RESULTS.TIMESTAMP,
 			0
 		];
-		
+
 		currentRowTemplate.push('ua');
 		convertToTSV({identifier: INSTRUMENTATION_RESULTS.UASTRING});
 		currentRowTemplate.pop();
-		
+
 		currentRowTemplate.push('css');
 		convertToTSV(INSTRUMENTATION_RESULTS['css']);
 		currentRowTemplate.pop();
-		
+
 		currentRowTemplate.push('dom');
 		convertToTSV(INSTRUMENTATION_RESULTS['dom']);
 		currentRowTemplate.pop();
@@ -1807,18 +1759,21 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 		currentRowTemplate.push('recipe');
 		convertToTSV(INSTRUMENTATION_RESULTS['recipe']);
 		currentRowTemplate.pop();
-		
-		var l = finishedRows[0].length;
-		finishedRows.sort((a,b) => {
-			for(var i = VALUE_COLUMN+1; i<l; i++) {
-				if(a[i]<b[i]) return -1;
-				if(a[i]>b[i]) return +1;
-			}
-			return 0;
-		});
-		
+
+		if(finishedRows.length > 0)
+		{
+			var l = finishedRows[0].length;
+			finishedRows.sort((a,b) => {
+				for(var i = VALUE_COLUMN+1; i<l; i++) {
+					if(a[i]<b[i]) return -1;
+					if(a[i]>b[i]) return +1;
+				}
+				return 0;
+			});
+		}
+
 		return finishedRows;
-		
+
 		/** helper function doing the actual conversion */
 		function convertToTSV(object) {
 			if(object==null || object==undefined || typeof object == 'number' || typeof object == 'string') {
@@ -1833,10 +1788,10 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 				}
 			}
 		}
-		
+
 		/** constructor for a row of our table */
 		function Row(currentRowTemplate, value) {
-			
+
 			// Initialize an empty row with enough columns
 			var row = [
 				/*UANAME:     edge                            */'',
@@ -1852,15 +1807,15 @@ window.onCSSUsageResults = function onCSSUsageResults(CSSUsageResults) {
 				/*...                                         */'',
 				/*...                                         */'',
 			];
-			
+
 			// Copy the column values from the template
 			for(var i = currentRowTemplate.length; i--;) {
 				row[i] = currentRowTemplate[i];
 			}
-			
+
 			// Add the value to the row
 			row[VALUE_COLUMN] = value;
-			
+
 			return row;
 		}
 
