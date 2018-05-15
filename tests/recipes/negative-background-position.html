@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Negative Background Position Test</title>
+    <link type="text/css" href="../test-page/style.css" media="all" rel="stylesheet" />
+    <style>
+        .neg_bgp {
+            color: red;
+            background-position: bottom -10px right;
+            position: fixed;
+        }
+    </style>
+    <script src="../../Recipe.min.js"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <h1>Negative Background Position Test</h1>
+        <div id="nested-div" class="neg_bgp" height="300" width = "300">
+            <p>Here's some text</p>
+        </div>
+    </div>
+</body>
+</html>

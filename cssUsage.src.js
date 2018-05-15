@@ -1782,29 +1782,45 @@ void function() { try {
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
 /* 
-    RECIPE: z-index on static flex items
+    RECIPE: negative_background_position
     -------------------------------------------------------------
-    Author: Francois Remy
-    Description: Get count of flex items who should create a stacking context but do not really
+    Author: ADYOUN
+    Description: Looking for cases where background-position has a negative value
 */
 
 void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function negative_background_position( element, results) {
+        if (element.CSSUsage)
+        {
+            var properties = [ "background-position-x", "background-position-y" ];
+            var found = false;
 
-    window.CSSUsage.StyleWalker.recipesToRun.push( function zstaticflex(/*HTML DOM Element*/ element, results) {
-        if(!element.parentElement) return;
+            for (var i = 0; i < properties.length; i++)
+            {
+                if (found)
+                {
+                    break;
+                }
 
-        // the problem happens if the element is a flex item with static position and non-auto z-index
-        if(getComputedStyle(element.parentElement).display != 'flex') return results;
-        if(getComputedStyle(element).position != 'static') return results;
-        if(getComputedStyle(element).zIndex != 'auto') {
-            results.likely = 1;
+                if (element.CSSUsage[properties[i]])
+                {
+                    var bpValues = element.CSSUsage[properties[i]].valuesArray;
+                    for (var j = 0; j < bpValues.length; j++)
+                    {
+                        if (bpValues[j][0] == '-')
+                        {
+                            var key = "negative_background_position";
+                            results[key] = results[key] || { count: 0, };
+                            results[key].count++;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
-        // the problem might happen if z-index could ever be non-auto
-        if(element.CSSUsage["z-index"] && element.CSSUsage["z-index"].valuesArray.length > 0) {
-            results.possible = 1;
-        }
-
+        return results;
     });
 }();
 
