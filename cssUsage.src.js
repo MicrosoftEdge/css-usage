@@ -1102,7 +1102,7 @@ void function() { try {
 		/**
 		 * This will transform a value into an array of value identifiers
 		 */ 
-		function createValueArray(value, propertyName) {
+		function createValueArray(value, propertyName, dontNormalize = true) {
 
 			// Trim value on the edges
 			value = value.trim();
@@ -1111,55 +1111,61 @@ void function() { try {
 			value = value.toLowerCase();
 			
 			// Remove comments and !important
-			value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
-			
-			// Do the right thing in function of the property
-			switch(propertyName) {
-				case 'font-family':
-					
-					// Remove various quotes
-					if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
-						value = value.replace(/('|‘|’|")/g, "");
-					}
-					
-					// Divide at commas to separate different font names
-					value = value.split(/\s*,\s*/g);
-					return value;
-					
-				case '--var':
-				
-					// Replace strings by dummies
-					value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
-					value = value.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
-					
-					// Replace url(...) functions by dummies
-					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
-					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
-					
-					// Remove group contents (...), {...} and [...]
-					value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
-					value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
-					value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
-					value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
-					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
-					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
-					
-					break;
-					
-				default:
-				
-					// Replace strings by dummies
-					value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
-								 .replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
-					
-					// Replace url(...) functions by dummies
-					if (value.indexOf("(") != -1) {
-						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
-						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
-					}
-					
+			if(dontNormalize)
+			{
+				value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
 			}
 			
+			// Do the right thing in function of the property
+			if(dontNormalize)
+			{
+				switch(propertyName) {
+					case 'font-family':
+						
+						// Remove various quotes
+						if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
+							value = value.replace(/('|‘|’|")/g, "");
+						}
+						
+						// Divide at commas to separate different font names
+						value = value.split(/\s*,\s*/g);
+						return value;
+						
+					case '--var':
+					
+						// Replace strings by dummies
+						value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
+						value = value.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
+						
+						// Replace url(...) functions by dummies
+						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
+						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
+						
+						// Remove group contents (...), {...} and [...]
+						value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
+						value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
+						value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
+						value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
+						value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
+						value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
+						
+						break;
+						
+					default:
+					
+						// Replace strings by dummies
+						value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
+									.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
+						
+						// Replace url(...) functions by dummies
+						if (value.indexOf("(") != -1) {
+							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
+							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
+						}
+						
+				}
+			}
+
 			// Collapse whitespace
 			value = value.trim().replace(/\s+/g, " ");
 			
@@ -1350,6 +1356,7 @@ void function() { try {
 				
 				// divide the value into simplified components
 				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
+				var specifiedValuesUnnormalized = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey,false);
 				var values = new Array();
 				for(var j = specifiedValuesArray.length; j--;) {
 					values.push(CSSUsage.CSSValues.parseValues(specifiedValuesArray[j],normalizedKey));
@@ -1400,8 +1407,8 @@ void function() { try {
 						// these on the element so we don't have to recompute them
 						knownValues.valuesArray = knownValues.valuesArray || (knownValues.valuesArray = []);
 						
-						for(var sv = 0; sv < specifiedValuesArray.length; sv++) {
-							var currentSV = specifiedValuesArray[sv];
+						for(var sv = 0; sv < specifiedValuesUnnormalized.length; sv++) {
+							var currentSV = specifiedValuesUnnormalized[sv];
 							if(knownValues.valuesArray.indexOf(currentSV) == -1) {
 								knownValues.valuesArray.push(currentSV)
 							}
@@ -1782,30 +1789,113 @@ void function() { try {
 } catch (ex) { /* do something maybe */ throw ex; } }();
 
 /* 
-    RECIPE: z-index on static flex items
+    RECIPE: browserDownloadUrls
     -------------------------------------------------------------
-    Author: Francois Remy
-    Description: Get count of flex items who should create a stacking context but do not really
+    Author: Morgan, Lia, Joel, Malick
+    Description: Looks for the download urls of other browsers
+*/
+
+
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function browserDownloadUrls( element, results) {
+        //tests for browser download urls
+        var linkList = [{url:"https://www.google.com/chrome/", name:"Chrome"}, 
+        {url:"https://www.google.com/intl/en/chrome/browser/desktop/index.html", name:"Chrome"},
+        {url:"https://support.microsoft.com/en-us/help/17621/internet-explorer-downloads", name:"InternetExplorer"}, 
+        {url:"http://windows.microsoft.com/en-US/internet-explorer/downloads/ie", name:"InternetExplorer"}, 
+        {url:"https://www.mozilla.org/en-US/firefox/", name:"Firefox"}, 
+        {url:"https://www.apple.com/safari/", name:"Safari"}, 
+        {url:"https://support.apple.com/en-us/HT204416", name:"Safari"},
+        {url:"http://www.opera.com/download", name:"Opera"},
+        {url:"https://www.microsoft.com/en-us/download/details.aspx?id=48126", name:"Edge"}];
+        for(var j = 0; j < linkList.length; j++) {
+            if(element.getAttribute("href") != null) {
+                if(element.getAttribute("href").indexOf(linkList[j].url) != -1 ) {
+                    results[linkList[j].name] = results[linkList[j].name] || {count: 0};
+                    results[linkList[j].name].count++;
+                }
+            }
+            if (element.src != null) {
+                if(element.src.indexOf(linkList[j].url) != -1 ) {
+                    results[linkList[j].name] = results[linkList[j].name] || {count: 0};
+                    results[linkList[j].name].count++;
+                }
+            }
+        }
+    });
+}();
+/* 
+    RECIPE: imgEdgeSearch
+    -------------------------------------------------------------
+    Author: Morgan, Lia, Joel, Malick
+    Description: Looking for sites that do not include edge as a supported browser
 */
 
 void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function imgEdgeSearch( element, results) {
+        //tests for images
+        if(element.nodeName == "IMG") {
+            var browsers = ["internetexplorer","ie","firefox","chrome","safari","edge", "opera"];
+            for(var i = 0; i < browsers.length; i++) {
+                if(element.getAttribute("alt").toLowerCase().indexOf(browsers[i]) != -1|| element.getAttribute("src").toLowerCase().indexOf(browsers[i]) != -1) {
+                    results[browsers[i]] = results[browsers[i]] || {count: 0, container: ""};
+                    results[browsers[i]].count++;
+                    var parent = element.parentElement;
 
-    window.CSSUsage.StyleWalker.recipesToRun.push( function zstaticflex(/*HTML DOM Element*/ element, results) {
-        if(!element.parentElement) return;
-
-        // the problem happens if the element is a flex item with static position and non-auto z-index
-        if(getComputedStyle(element.parentElement).display != 'flex') return results;
-        if(getComputedStyle(element).position != 'static') return results;
-        if(getComputedStyle(element).zIndex != 'auto') {
-            results.likely = 1;
+                    if(parent) {
+                        var outer = element.parentElement.outerHTML;
+                        var val = outer.replace(element.parentElement.innerHTML, "");
+                        results[browsers[i]].container = val;
+                    }
+                }
+            
+            }
         }
 
-        // the problem might happen if z-index could ever be non-auto
-        if(element.CSSUsage["z-index"] && element.CSSUsage["z-index"].valuesArray.length > 0) {
-            results.possible = 1;
-        }
-
+        return results;
     });
+}();
+/* 
+    RECIPE: unsupported browser
+    -------------------------------------------------------------
+    Author: Morgan Graham, Lia Hiscock
+    Description: Looking for phrases that tell users that Edge is not supported, or to switch browers. 
+*/
+
+void function() {
+    window.CSSUsage.StyleWalker.recipesToRun.push( function unsupportedBrowser( element, results) {        
+        //tests for phrases
+        var switchPhraseString = new RegExp("((?:Switch to|Get|Download|Install)(?:\\w|\\s)+(?:Google|Chrome|Safari|firefox|Opera|Internet Explorer|IE))","i");
+        var supportedPhraseString = new RegExp("((?:browser|Edge)(?:\\w|\\s)+(?:isn't|not|no longer)(?:\\w|\\s)+(?:supported|compatible))", "i");
+        var needles = [{str:switchPhraseString, name:"switchPhrase"},
+                        {str:supportedPhraseString, name:"supportedPhrase"}];;
+
+        for(var i = 0; i < needles.length; i++) {
+            var found = element.textContent.match(needles[i].str);            
+            if(found) {
+                if(found.length > 0 && found !== (null || undefined)) {
+                    results[needles[i].name] = results[needles[i].name] || {count: 0, match: "", container: ""};
+                    results[needles[i].name].count++;
+
+                    var parent = element.parentElement;
+                    if(parent) {
+                        var outer = element.parentElement.outerHTML;
+                        var val = outer.replace(element.parentElement.innerHTML, "");
+                        results[needles[i].name].container = val;
+                    }
+                    
+                    found = remove(found, " ");
+                    results[needles[i].name].match = found.join();
+                }
+            }
+        }
+        
+        return results;
+    });
+
+    function remove(array, element) {
+        return array.filter(e => e !== element);
+    }
 }();
 
 //

@@ -605,7 +605,7 @@ void function() { try {
 		/**
 		 * This will transform a value into an array of value identifiers
 		 */ 
-		function createValueArray(value, propertyName) {
+		function createValueArray(value, propertyName, dontNormalize = true) {
 
 			// Trim value on the edges
 			value = value.trim();
@@ -614,55 +614,61 @@ void function() { try {
 			value = value.toLowerCase();
 			
 			// Remove comments and !important
-			value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
-			
-			// Do the right thing in function of the property
-			switch(propertyName) {
-				case 'font-family':
-					
-					// Remove various quotes
-					if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
-						value = value.replace(/('|‘|’|")/g, "");
-					}
-					
-					// Divide at commas to separate different font names
-					value = value.split(/\s*,\s*/g);
-					return value;
-					
-				case '--var':
-				
-					// Replace strings by dummies
-					value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
-					value = value.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
-					
-					// Replace url(...) functions by dummies
-					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
-					value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
-					
-					// Remove group contents (...), {...} and [...]
-					value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
-					value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
-					value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
-					value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
-					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
-					value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
-					
-					break;
-					
-				default:
-				
-					// Replace strings by dummies
-					value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
-								 .replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
-					
-					// Replace url(...) functions by dummies
-					if (value.indexOf("(") != -1) {
-						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
-						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
-					}
-					
+			if(dontNormalize)
+			{
+				value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
 			}
 			
+			// Do the right thing in function of the property
+			if(dontNormalize)
+			{
+				switch(propertyName) {
+					case 'font-family':
+						
+						// Remove various quotes
+						if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
+							value = value.replace(/('|‘|’|")/g, "");
+						}
+						
+						// Divide at commas to separate different font names
+						value = value.split(/\s*,\s*/g);
+						return value;
+						
+					case '--var':
+					
+						// Replace strings by dummies
+						value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
+						value = value.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
+						
+						// Replace url(...) functions by dummies
+						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
+						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
+						
+						// Remove group contents (...), {...} and [...]
+						value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
+						value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
+						value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
+						value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
+						value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
+						value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
+						
+						break;
+						
+					default:
+					
+						// Replace strings by dummies
+						value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
+									.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
+						
+						// Replace url(...) functions by dummies
+						if (value.indexOf("(") != -1) {
+							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
+							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
+						}
+						
+				}
+			}
+
 			// Collapse whitespace
 			value = value.trim().replace(/\s+/g, " ");
 			
@@ -853,6 +859,7 @@ void function() { try {
 				
 				// divide the value into simplified components
 				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
+				var specifiedValuesUnnormalized = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey,false);
 				var values = new Array();
 				for(var j = specifiedValuesArray.length; j--;) {
 					values.push(CSSUsage.CSSValues.parseValues(specifiedValuesArray[j],normalizedKey));
@@ -903,8 +910,8 @@ void function() { try {
 						// these on the element so we don't have to recompute them
 						knownValues.valuesArray = knownValues.valuesArray || (knownValues.valuesArray = []);
 						
-						for(var sv = 0; sv < specifiedValuesArray.length; sv++) {
-							var currentSV = specifiedValuesArray[sv];
+						for(var sv = 0; sv < specifiedValuesUnnormalized.length; sv++) {
+							var currentSV = specifiedValuesUnnormalized[sv];
 							if(knownValues.valuesArray.indexOf(currentSV) == -1) {
 								knownValues.valuesArray.push(currentSV)
 							}
