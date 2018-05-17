@@ -38,6 +38,12 @@ describe('Basic Values', function(){
     });
 });
 
+describe('Basic Values UnNormalized', function(){
+    it('cursor: url("urlsomevalue.cur")', function(){
+        chai.assert.equal(["url('somevalue.cur')"][0], CSSUsage.CSSValues.createValueArray("url('somevalue.cur'), pointer", null, false)[0]);
+    });
+});
+
 // Webkit Values
 describe('Prefixed Values', function(){
     it('-webkit-linear-gradient()', function(){
