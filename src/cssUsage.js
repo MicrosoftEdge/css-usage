@@ -605,7 +605,7 @@ void function() { try {
 		/**
 		 * This will transform a value into an array of value identifiers
 		 */ 
-		function createValueArray(value, propertyName, dontNormalize = true) {
+		function createValueArray(value, propertyName, dontNormalize = false) {
 
 			// Trim value on the edges
 			value = value.trim();
@@ -613,37 +613,34 @@ void function() { try {
 			// Normalize letter-casing
 			value = value.toLowerCase();
 			
-			// Remove comments and !important
-			if(dontNormalize)
-			{
-				value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
-			}
-			
 			// Do the right thing in function of the property
-			if(dontNormalize)
-			{
-				switch(propertyName) {
+			if (!dontNormalize) {
+
+				// Remove comments and !important
+				value = value.replace(/([/][*](?:.|\r|\n)*[*][/]|[!]important.*)/g,'');
+
+				switch (propertyName) {
 					case 'font-family':
-						
+
 						// Remove various quotes
 						if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
 							value = value.replace(/('|‘|’|")/g, "");
 						}
-						
+
 						// Divide at commas to separate different font names
 						value = value.split(/\s*,\s*/g);
 						return value;
-						
+
 					case '--var':
-					
+
 						// Replace strings by dummies
 						value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
 						value = value.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
-						
+
 						// Replace url(...) functions by dummies
 						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
 						value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1()");
-						
+
 						// Remove group contents (...), {...} and [...]
 						value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
 						value = value.replace(/[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, " <parentheses-block> ");
@@ -651,21 +648,37 @@ void function() { try {
 						value = value.replace(/[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]+|[{](?:[^{}]*)[}])*[}])*[}])*[}])*[}]/g, " <curly-brackets-block> ");
 						value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
 						value = value.replace(/[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]+|[\[](?:[^\[\]]*)[\]])*[\]])*[\]])*[\]])*[\]]/g, " <square-brackets-block> ");
-						
+
 						break;
-						
+
 					default:
-					
+
 						// Replace strings by dummies
 						value = value.replace(/"([^"\\]|\\[^"\\]|\\\\|\\")*"/g,' <string> ')
-									.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
-						
+							.replace(/'([^'\\]|\\[^'\\]|\\\\|\\')*'/g,' <string> ');
+
 						// Replace url(...) functions by dummies
 						if (value.indexOf("(") != -1) {
 							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
 							value = value.replace(/([a-z]?)[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]+|[(](?:[^()]*)[)])*[)])*[)])*[)])*[)]/g, "$1() ");
 						}
-						
+
+				}
+			}
+			else {
+				switch (propertyName) {
+					// If a URL value is given for the cursor property, then we want to remove all the speech marks put in around the url links
+					// to prevent inconsistencies in results (in some running cases they are put in, others not) and split on the fallback values supplied.
+					case 'cursor':
+
+						// Remove various quotes - Crawler has some issue relating to speech marks, where sometimes they are put around url links (local test page run) and sometimes not (crawler run).
+						if (value.indexOf("'") != -1 || value.indexOf("‘") != -1 || value.indexOf('"')) {
+							value = value.replace(/('|‘|’|")/g, "");
+						}
+
+						// Divide at commas to separate cursor url value and supplied fallback values.
+						value = value.split(/\s*,\s*/g);
+						return value;
 				}
 			}
 
@@ -859,9 +872,9 @@ void function() { try {
 				
 				// divide the value into simplified components
 				var specifiedValuesArray = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey);
-				var specifiedValuesUnnormalized = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey,false);
+				var specifiedValuesUnnormalized = CSSUsage.CSSValues.createValueArray(styleValue,normalizedKey,true);
 				var values = new Array();
-				for(var j = specifiedValuesArray.length; j--;) {
+				for (var j = 0; j < specifiedValuesArray.length; ++j) {
 					values.push(CSSUsage.CSSValues.parseValues(specifiedValuesArray[j],normalizedKey));
 				}
 				
@@ -876,7 +889,7 @@ void function() { try {
 					
 					// we also saw a bunch of values
 					for(var v = 0; v < values.length; v++) {
-						var value = values[v];				
+						var value = values[v];
 						// increment the counts for those by one, too
 						if(value.length>0) {
 							propStats.values[value] = (propStats.values[value]|0) + 1
@@ -923,15 +936,14 @@ void function() { try {
 						// add newly found values too
 						for(var v = 0; v < values.length; v++) {
 							var value = values[v];
-							if(knownValues.indexOf(value) >= 0) { return; }
-							propObject.values[value] = (propObject.values[value]|0) + 1;
-							knownValues.push(value);
+							// Just want to keep the first of each distinct value for the CSS property.
+							if (knownValues.indexOf(value) == -1) {
+								propObject.values[value] = (propObject.values[value] | 0) + 1;
+								knownValues.push(value);
+							}
 						}
-						
 					}
-					
 				}
-				
 			}
 		}
 
