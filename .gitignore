@@ -1,6 +1,7 @@
 # Logs
 logs
 *.log
+.vscode/*
 
 # Runtime data
 pids
@@ -29,5 +30,5 @@ build/Release
 node_modules
 
 
-# Visual Studio Code 
+# Visual Studio Code
 .vs/*
